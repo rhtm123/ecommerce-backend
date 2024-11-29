@@ -1,0 +1,58 @@
+env*
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# vscode
+.vscode
+
+## database dump
+latest.dump
+
+### Secret Key for authentication
+jwt-signing.pem
+jwt-signing.pub
+
+## .env
+.ini
+.venv
+
+# C extensions
+*.so
+
+# db
+db.sqlite3
+
+
+# pycharm
+*.idea
+.idea/
+
+# environment
+.Python
+
+
+
+# PyInst
+
+# reactjS
+# dependencies
+
+# testing
+# static
+static
+media
+
+
+# misc
+# .DS_Store
+.env
+.env.local
+.env.development
+# .env.test.local
+.env.production.
+
+# npm-debug.log*
+# yarn-debug.log*
+# yarn-error.log*

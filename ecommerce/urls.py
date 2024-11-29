@@ -1,0 +1,52 @@
+"""
+URL configuration for repbackend project.
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/5.1/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+from django.contrib import admin
+from django.urls import path
+# from ninja_simple_jwt.auth.views.api import mobile_auth_router, web_auth_router
+
+
+from ninja import NinjaAPI
+
+from users.api import router as users_api
+from location.api import router as location_api
+
+# from firm.api import router as firm_api
+# from inventory.api import router as inventory_api
+
+# from project.api import router as project_api
+# from property.api import router as property_api
+
+
+# from billing.api import router as billing_api
+
+
+api = NinjaAPI()
+
+
+# api.add_router("/auth/mobile/", mobile_auth_router)
+# api.add_router("/auth/web/", web_auth_router)
+
+
+api.add_router("user/", users_api)
+api.add_router("location/", location_api)
+# api.add_router("firm/", firm_api)
+# api.add_router("inventory/", inventory_api)
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('api/', api.urls),
+]
