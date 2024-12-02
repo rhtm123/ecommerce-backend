@@ -42,11 +42,11 @@ class User(AbstractUser):
 
 
 
-
-class Seller(models.Model):
+class Entity(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)  # Foreign key to the User model
     name = models.CharField(max_length=255)
     gst_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
+    entity_type = models.CharField(max_length=255)
     address = models.ForeignKey(Address, on_delete=models.CASCADE, blank=True, null=True)
     
     created = models.DateTimeField(auto_now_add=True)

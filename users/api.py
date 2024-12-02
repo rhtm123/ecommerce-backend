@@ -1,9 +1,9 @@
 from ninja import  Router, Query
 
 # router.py
-from .models import User, Seller, ShippingAddress
+from .models import User, Entity, ShippingAddress
 from .schemas import UserCreateSchema, UserUpdateSchema, UserOutSchema
-from .schemas import SellerCreateSchema, SellerUpdateSchema, SellerOutSchema
+from .schemas import EntityCreateSchema, EntityUpdateSchema, EntityOutSchema
 from .schemas import ShippingAddressCreateSchema, ShippingAddressUpdateSchema, ShippingAddressOutSchema
 
 
@@ -65,44 +65,44 @@ def delete_user(request, user_id: int):
 
 
 
-# Create Seller
-@router.post("/sellers/", response=SellerOutSchema)
-def create_seller(request, payload: SellerCreateSchema):
-    seller = Seller(**payload.dict())
+# Create Entity
+@router.post("/entities/", response=EntityOutSchema)
+def create_entity(request, payload: EntityCreateSchema):
+    entity = Entity(**payload.dict())
 
-    seller.save()
-    return seller
+    entity.save()
+    return entity
 
 # Read Users (List)
-@router.get("/sellers/", response=PaginatedResponseSchema)
-def sellers(request,  page: int = Query(1), page_size: int = Query(10)):
-    qs = Seller.objects.all()
+@router.get("/entities/", response=PaginatedResponseSchema)
+def entities(request,  page: int = Query(1), page_size: int = Query(10)):
+    qs = Entity.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
 
-    return paginate_queryset(request, qs, SellerOutSchema, page_number, page_size)
+    return paginate_queryset(request, qs, EntityOutSchema, page_number, page_size)
 
 # Read Single User (Retrieve)
-@router.get("/sellers/{seller_id}/", response=SellerOutSchema)
-def retrieve_seller(request, seller_id: int):
-    seller = get_object_or_404(Seller, id=seller_id)
-    return seller
+@router.get("/entities/{entity_id}/", response=EntityOutSchema)
+def retrieve_entity(request, entity_id: int):
+    entity = get_object_or_404(Entity, id=entity_id)
+    return entity
 
 # Update User
-@router.put("/sellers/{seller_id}/", response=SellerOutSchema)
-def update_seller(request, seller_id: int, payload: SellerUpdateSchema):
-    seller = get_object_or_404(Seller, id=seller_id)
+@router.put("/entities/{entity_id}/", response=EntityOutSchema)
+def update_entity(request, entity_id: int, payload: EntityUpdateSchema):
+    entity = get_object_or_404(Entity, id=entity_id)
     for attr, value in payload.dict().items():
         if value is not None:
-            setattr(seller, attr, value)
-    seller.save()
-    return seller
+            setattr(entity, attr, value)
+    entity.save()
+    return entity
 
 # Delete User
-@router.delete("/sellers/{seller_id}/")
-def delete_seller(request, seller_id: int):
-    seller = get_object_or_404(Seller, id=seller_id)
-    seller.delete()
+@router.delete("/entities/{entity_id}/")
+def delete_entity(request, entity_id: int):
+    entity = get_object_or_404(Entity, id=entity_id)
+    entity.delete()
     return {"success": True}
 
 ######################### Shipping Address #################

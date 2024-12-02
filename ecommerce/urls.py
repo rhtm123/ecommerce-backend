@@ -18,20 +18,15 @@ from django.contrib import admin
 from django.urls import path
 # from ninja_simple_jwt.auth.views.api import mobile_auth_router, web_auth_router
 
-
 from ninja import NinjaAPI
 
 from users.api import router as users_api
 from location.api import router as location_api
 
-# from firm.api import router as firm_api
-# from inventory.api import router as inventory_api
-
-# from project.api import router as project_api
-# from property.api import router as property_api
+from carts.api import router as carts_api
+from orders.api import router as order_api
 
 
-# from billing.api import router as billing_api
 
 
 api = NinjaAPI()
@@ -43,8 +38,9 @@ api = NinjaAPI()
 
 api.add_router("user/", users_api)
 api.add_router("location/", location_api)
-# api.add_router("firm/", firm_api)
-# api.add_router("inventory/", inventory_api)
+api.add_router("cart/", carts_api)
+api.add_router("order/", order_api)
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),

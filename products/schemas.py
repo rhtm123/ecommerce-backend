@@ -47,7 +47,7 @@ class ProductUpdateSchema(Schema):
 class ProductListingOutSchema(Schema):
     id: int
     product_id: int
-    seller_id: int
+    # seller_id: int
     price: float
     stock: int
     created: datetime
@@ -55,7 +55,7 @@ class ProductListingOutSchema(Schema):
 
 class ProductListingCreateSchema(Schema):
     product_id: int
-    seller_id: int
+    # seller_id: int
     price: float
     stock: Optional[int] = 0
 

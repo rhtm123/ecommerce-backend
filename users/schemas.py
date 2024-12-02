@@ -28,7 +28,7 @@ class UserOutSchema(Schema):
     updated: datetime
 
 
-class SellerOutSchema(Schema):
+class EntityOutSchema(Schema):
     id: int
     name: str 
     gst_number: Optional[str] = None
@@ -37,14 +37,14 @@ class SellerOutSchema(Schema):
     updated: datetime
 
 
-class SellerCreateSchema(Schema):
+class EntityCreateSchema(Schema):
     user_id: int
     name: str
     address_id: Optional[int] = None
     gst_number: Optional[str] = None
 
 
-class SellerUpdateSchema(Schema):
+class EntityUpdateSchema(Schema):
     name: Optional[str] = None
     gst_number: Optional[str] = None
 
