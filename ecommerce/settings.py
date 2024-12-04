@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "treebeard",
     "users.apps.UsersConfig",
     "location.apps.LocationConfig",
     "products.apps.ProductsConfig",
@@ -65,7 +66,9 @@ ROOT_URLCONF = 'ecommerce.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            BASE_DIR / "templates",  # Ensure this points to your templates directory
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
