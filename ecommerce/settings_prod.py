@@ -1,0 +1,1 @@
+from ecommerce.settings import *

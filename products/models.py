@@ -17,9 +17,7 @@ class Category(MP_Node):
     description = models.TextField(null=True, blank=True)
 
     feature_names = models.JSONField(null=True, blank=True)  # Optional, as per your example
-
     # {"general": [{'name':"ram", key_feature:true}, {'name':"storage", key_feature:true}]}
-
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -37,8 +35,6 @@ class CategoryFeatureValues(models.Model):
     #     "ram": {"type": "categorical", "values": ["4GB", "6GB", "8GB"]},
     #     "storage": {"type": "numerical", "range": [64, 256]},  # Min and Max storage
     # }
-
-
 
 # is_active (BooleanField): To manage product visibility.
 # image (ImageField): To store product images.
@@ -74,7 +70,7 @@ class ProductImage(models.Model):
     )
 
     thumbnail = ImageSpecField(source='avatar',
-                                      processors=[ResizeToFill(100, 50)],
+                                      processors=[ResizeToFill(100, 100)],
                                       format='JPEG',
                                       options={'quality': 60})
     
