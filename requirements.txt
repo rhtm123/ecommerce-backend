@@ -5,3 +5,9 @@ pillow==11.0.0
 django-imagekit==5.0.0
 django-treebeard==4.7.1
 gunicorn
+whitenoise==6.8.2
+psycopg2-binary==2.9.10
+django-cors-headers==4.6.0
+django-cleanup==9.0.0
+cloudinary==1.41.0
+django-cloudinary-storage==0.3.0
