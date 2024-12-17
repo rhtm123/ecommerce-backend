@@ -21,25 +21,37 @@ from django.urls import path
 from ninja import NinjaAPI
 
 from users.api import router as users_api
-from location.api import router as location_api
+from locations.api import router as locations_api
 
 from carts.api import router as carts_api
-from orders.api import router as order_api
+from orders.api import router as orders_api
+
+from products.api import router as products_api
+
+
+from ninja_jwt.controller import NinjaJWTDefaultController
+from ninja_extra import NinjaExtraAPI
 
 
 
 
-api = NinjaAPI()
+# api = NinjaAPI()
+
+
+api = NinjaExtraAPI()
+api.register_controllers(NinjaJWTDefaultController)
 
 
 # api.add_router("/auth/mobile/", mobile_auth_router)
 # api.add_router("/auth/web/", web_auth_router)
 
 
-api.add_router("user/", users_api)
-api.add_router("location/", location_api)
-api.add_router("cart/", carts_api)
-api.add_router("order/", order_api)
+api.add_router("user/", users_api, tags=["Users API"])
+api.add_router("location/", locations_api, tags=["Locations API"])
+api.add_router("product/", products_api, tags=['Products API'])
+
+api.add_router("cart/", carts_api, tags=['Carts API'])
+api.add_router("order/", orders_api, tags=['Orders API'])
 
 
 urlpatterns = [

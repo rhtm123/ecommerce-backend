@@ -11,3 +11,4 @@ django-cors-headers==4.6.0
 django-cleanup==9.0.0
 cloudinary==1.41.0
 django-cloudinary-storage==0.3.0
+django-ninja-jwt==5.3.5

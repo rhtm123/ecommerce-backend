@@ -30,10 +30,19 @@ def create_address(request, payload: AddressCreateSchema):
 
 # Read Addresss (List)
 @router.get("/addresses/", response=PaginatedResponseSchema)
-def addresses(request,  page: int = Query(1), page_size: int = Query(10)):
+def addresses(request,  page: int = Query(1), page_size: int = Query(10),  city: str = None, pin:str = None , ordering: str = None,):
     qs = Address.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
+
+    if city:
+        qs = qs.filter(city=city)
+    
+    if pin:
+        qs = qs.filter(pin=pin)
+    
+    if ordering:
+        qs = qs.order_by(ordering)
 
     return paginate_queryset(request, qs, AddressOutSchema, page_number, page_size)
 

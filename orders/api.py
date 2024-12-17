@@ -34,10 +34,16 @@ def create_order(request, payload: OrderCreateSchema):
 
 # Read Orders (List)
 @router.get("/orders/", response=PaginatedResponseSchema)
-def orders(request,  page: int = Query(1), page_size: int = Query(10)):
+def orders(request,  page: int = Query(1), page_size: int = Query(10), user_id: int = None, ordering: str = None):
     qs = Order.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
+
+    if user_id:
+        qs = qs.filter(user__id=user_id)
+
+    if ordering:
+        qs = qs.order_by(ordering)
 
     return paginate_queryset(request, qs, OrderOutSchema, page_number, page_size)
 
@@ -80,10 +86,16 @@ def create_order_item(request, payload: OrderItemCreateSchema):
 
 # Read OrderItems (List)
 @router.get("/order_items/", response=PaginatedResponseSchema)
-def order_items(request,  page: int = Query(1), page_size: int = Query(10)):
+def order_items(request,  page: int = Query(1), page_size: int = Query(10), order_id: int = None, ordering: str = None):
     qs = OrderItem.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
+
+    if order_id:
+        qs = qs.filter(order__id=order_id)
+
+    if ordering:
+        qs = qs.order_by(ordering)
 
     return paginate_queryset(request, qs, OrderItemOutSchema, page_number, page_size)
 

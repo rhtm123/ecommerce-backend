@@ -29,7 +29,6 @@ class Wishlist(models.Model):
 class WishlistItem(models.Model):
     wishlist = models.ForeignKey(Wishlist, on_delete=models.SET_NULL, related_name="wishlist_items", null=True, blank=True)
     product_listing = models.ForeignKey(ProductListing, on_delete=models.SET_NULL, null=True, blank=True)
-    # quantity = models.PositiveBigIntegerField(default=1)
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)

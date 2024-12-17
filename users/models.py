@@ -7,7 +7,7 @@ from django.db import models
 # from imagekit.processors import ResizeToFill
 # from imagekit.models import ImageSpecField
 
-from location.models import Address
+from locations.models import Address
 
 
 class User(AbstractUser):
@@ -43,8 +43,8 @@ class User(AbstractUser):
 
 
 class Entity(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)  # Foreign key to the User model
-    name = models.CharField(max_length=255)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="user_entities")  # Foreign key to the User model
+    name = models.CharField(max_length=255, help_text="Name of the entity")
     gst_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
     entity_type = models.CharField(max_length=255)
     address = models.ForeignKey(Address, on_delete=models.CASCADE, blank=True, null=True)

@@ -7,19 +7,40 @@ from ninja import Schema
 class CategoryOutSchema(Schema):
     id: int
     name: str
-    parent_id: Optional[int] = None
+
+    description: Optional[str] = None
+    feature_names: Optional[dict] = None
+
+    level: int 
+    
     created: datetime
     updated: datetime
 
 class CategoryCreateSchema(Schema):
     name: str
+    description: Optional[str] = None
+    feature_names: Optional[dict] = None
     parent_id: Optional[int] = None
-
+ 
 class CategoryUpdateSchema(Schema):
     name: Optional[str] = None
-    parent_id: Optional[int] = None
+    
+
+class FeatureGroupOutSchema(Schema):
+    id: int 
+    name : str 
+    category_id: Optional[int] = None
 
 
+class FeatureTemplateOutSchema(Schema):
+    id: int
+    name: Optional[str] = None
+    feature_group_id: Optional[int] = None
+    key_feature: bool = False
+    possible_values: Optional[dict]
+
+    created: datetime
+    updated: datetime
 
 
 class ProductOutSchema(Schema):
@@ -62,3 +83,12 @@ class ProductListingCreateSchema(Schema):
 class ProductListingUpdateSchema(Schema):
     price: Optional[float] = None
     stock: Optional[int] = None
+
+class FeatureOutSchema(Schema):
+    id: int
+    listing_id: Optional[int] = None
+    feature_group: str
+    name: str
+    value: str
+    created: datetime
+    updated: datetime

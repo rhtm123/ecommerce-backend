@@ -18,28 +18,33 @@ from utils.pagination import PaginatedResponseSchema, paginate_queryset
 
 router = Router()
 
+from ninja_jwt.authentication import JWTAuth
+
+
 ############## 1 city ###########################
 
 ######################## Cart #######################
 
 
 # Create Cart
-@router.post("/carts/", response=CartOutSchema)
+@router.post("/carts/", response=CartOutSchema, auth=JWTAuth())
 def create_cart(request, payload: CartCreateSchema):
-
-    # locality = get_object_or_404(Locality, id=payload.locality_id)
-
     cart = Cart(**payload.dict())
-        
     cart.save()
     return cart
 
 # Read Carts (List)
 @router.get("/carts/", response=PaginatedResponseSchema)
-def carts(request,  page: int = Query(1), page_size: int = Query(10)):
+def carts(request,  page: int = Query(1), page_size: int = Query(10), user_id: int = None, ordering: str = None,):
     qs = Cart.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
+
+    if user_id:
+        qs = qs.filter(user__id=user_id)
+    
+    if ordering:
+        qs = qs.order_by(ordering)
 
     return paginate_queryset(request, qs, CartOutSchema, page_number, page_size)
 
@@ -82,10 +87,19 @@ def create_cart_item(request, payload: CartItemCreateSchema):
 
 # Read CartItems (List)
 @router.get("/cart_items/", response=PaginatedResponseSchema)
-def cart_items(request,  page: int = Query(1), page_size: int = Query(10)):
+def cart_items(request,  page: int = Query(1), page_size: int = Query(10), product_listing_id: int = None ,cart_id: int = None, ordering: str = None):
     qs = CartItem.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
+
+    if product_listing_id:
+        qs = qs.filter(product_listing__id=product_listing_id)
+
+    if cart_id:
+        qs = qs.filter(cart__id=cart_id)
+    
+    if ordering:
+        qs = qs.order_by(ordering)
 
     return paginate_queryset(request, qs, CartItemOutSchema, page_number, page_size)
 
@@ -127,10 +141,16 @@ def create_wishlist(request, payload: WishlistCreateSchema):
 
 # Read Wishlists (List)
 @router.get("/wishlists/", response=PaginatedResponseSchema)
-def wishlists(request,  page: int = Query(1), page_size: int = Query(10)):
+def wishlists(request,  page: int = Query(1), page_size: int = Query(10), user_id: int = None, ordering: str = None):
     qs = Wishlist.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
+
+    if user_id:
+        qs = qs.filter(user__id=user_id)
+    
+    if ordering:
+        qs = qs.order_by(ordering)
 
     return paginate_queryset(request, qs, WishlistOutSchema, page_number, page_size)
 
@@ -172,10 +192,19 @@ def create_wishlist_item(request, payload: WishlistItemCreateSchema):
 
 # Read WishlistItems (List)
 @router.get("/wishlist_items/", response=PaginatedResponseSchema)
-def wishlist_items(request,  page: int = Query(1), page_size: int = Query(10)):
+def wishlist_items(request,  page: int = Query(1), page_size: int = Query(10), product_listing_id: int = None, wishlist_id: int = None, ordering: str = None):
     qs = WishlistItem.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
+
+    if product_listing_id:
+        qs = qs.filter(product_listing__id=product_listing_id)
+
+    if wishlist_id:
+        qs = qs.filter(wishlist__id=wishlist_id)
+    
+    if ordering:
+        qs = qs.order_by(ordering)
 
     return paginate_queryset(request, qs, WishlistItemOutSchema, page_number, page_size)
 

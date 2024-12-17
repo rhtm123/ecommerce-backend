@@ -6,38 +6,44 @@ from imagekit.processors import ResizeToFill
 
 from imagekit.models import ImageSpecField
 
-
-# Create your models here.
-# image (ImageField): To visually represent categories.
-
 from treebeard.mp_tree import MP_Node
 
 class Category(MP_Node):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(null=True, blank=True)
 
-    feature_names = models.JSONField(null=True, blank=True)  # Optional, as per your example
-    # {"general": [{'name':"ram", key_feature:true}, {'name':"storage", key_feature:true}]}
+    level = models.PositiveIntegerField(default=1)  # Static field for level
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):
+        # Automatically update the level before saving
+        self.level = self.get_depth()
+        super().save(*args, **kwargs)
+
     def __str__(self):
-        return self.name
-    
-class CategoryFeatureValues(models.Model):
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True)
-    name = models.CharField(max_length=255) 
-    possible_values = models.JSONField()
+        return self.name 
 
-    # Example:
-    # {
-    #     "ram": {"type": "categorical", "values": ["4GB", "6GB", "8GB"]},
-    #     "storage": {"type": "numerical", "range": [64, 256]},  # Min and Max storage
-    # }
+class FeatureGroup(models.Model):
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="category_feature_groups", null=True, blank=True)
+    name = models.CharField(max_length=255)  # E.g., 'Specifications', 'Camera'
 
-# is_active (BooleanField): To manage product visibility.
-# image (ImageField): To store product images.
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+
+class FeatureTemplate(models.Model):
+    name = models.CharField(max_length=255)  # E.g., 'RAM', 'Storage'
+    feature_group = models.ForeignKey(FeatureGroup, on_delete=models.CASCADE, related_name='feature_templates', null=True, blank=True)
+    key_feature = models.BooleanField(default=False)
+    possible_values = models.JSONField(null=True, blank=True)
+
+    # { type: "categorical", values: ["2GB", "4GB", "6GB"], }
+
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
 
 class Product(models.Model):
     name = models.CharField(max_length=255)
@@ -50,6 +56,7 @@ class Product(models.Model):
     brand = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="brand_products", null=True, blank=True)
 
     country_of_origin = models.CharField(max_length=255, default="India")
+
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -64,13 +71,13 @@ class ProductImage(models.Model):
     )
     image = ProcessedImageField(
         upload_to="products/",
-        processors=[ResizeToFill(800, 800)],  # Resize to 800x800 pixels
+        processors=[ResizeToFill(1200, 1200)],  # Resize to 800x800 pixels
         format="JPEG",
         options={"quality": 85},  # Save with 85% quality
     )
 
     thumbnail = ImageSpecField(source='avatar',
-                                      processors=[ResizeToFill(100, 100)],
+                                      processors=[ResizeToFill(240, 240)],
                                       format='JPEG',
                                       options={'quality': 60})
     
@@ -81,9 +88,6 @@ class ProductImage(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {'Main' if self.is_main else 'Gallery'} Image"
-
-
-
 
 
 class Variant(models.Model):
@@ -144,6 +148,9 @@ class ProductListingImage(models.Model):
     
 class Feature(models.Model):
     listing = models.ForeignKey(ProductListing, on_delete=models.CASCADE, related_name='product_listing_features')
-    feature_category = models.CharField(max_length=255)  # e.g., 'general', 'camera'
+    feature_group = models.CharField(max_length=255)  # e.g., 'general', 'camera'
     name = models.CharField(max_length=255)     # e.g., 'ram'
     value = models.CharField(max_length=255)    # e.g., '6gb'
+
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)

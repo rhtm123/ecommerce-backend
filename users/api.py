@@ -31,10 +31,20 @@ def create_user(request, payload: UserCreateSchema):
 
 # Read Users (List)
 @router.get("/users/", response=PaginatedResponseSchema)
-def users(request,  page: int = Query(1), page_size: int = Query(10)):
+def users(request,  page: int = Query(1), page_size: int = Query(10), search: str = None, role:str = None , ordering: str = None,):
     qs = User.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
+
+    if role:
+        qs = qs.filter(role=role)
+
+    if search:
+        qs = qs.filter(mobile__icontains=search)
+    
+    if ordering:
+        qs = qs.order_by(ordering)
+
 
     return paginate_queryset(request, qs, UserOutSchema, page_number, page_size)
 
@@ -75,10 +85,19 @@ def create_entity(request, payload: EntityCreateSchema):
 
 # Read Users (List)
 @router.get("/entities/", response=PaginatedResponseSchema)
-def entities(request,  page: int = Query(1), page_size: int = Query(10)):
+def entities(request,  page: int = Query(1), page_size: int = Query(10), search: str = None, entity_type:str = None , ordering: str = None,):
     qs = Entity.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
+
+    if entity_type:
+        qs = qs.filter(entity_type=entity_type)
+
+    if search:
+        qs = qs.filter(name__icontains=search)
+    
+    if ordering:
+        qs = qs.order_by(ordering)
 
     return paginate_queryset(request, qs, EntityOutSchema, page_number, page_size)
 
@@ -105,6 +124,7 @@ def delete_entity(request, entity_id: int):
     entity.delete()
     return {"success": True}
 
+
 ######################### Shipping Address #################
 
 
@@ -112,19 +132,25 @@ def delete_entity(request, entity_id: int):
 @router.post("/shipping_addresses/", response=ShippingAddressOutSchema)
 def create_shipping_address(request, payload: ShippingAddressCreateSchema):
 
-    # locality = get_object_or_404(Locality, id=payload.locality_id)
-
-    shipping_address = ShippingAddress(**payload.dict())
-        
+    shipping_address = ShippingAddress(**payload.dict())   
     shipping_address.save()
     return shipping_address
 
 # Read ShippingAddresss (List)
 @router.get("/shipping_addresses/", response=PaginatedResponseSchema)
-def shipping_addresses(request,  page: int = Query(1), page_size: int = Query(10)):
+def shipping_addresses(request,  page: int = Query(1), page_size: int = Query(10), user_id:int = None , is_default: bool = None, ordering: str = None,):
     qs = ShippingAddress.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
+
+    if user_id:
+        qs = qs.filter(user__id=user_id)
+
+    if is_default:
+        qs = qs.filter(is_default=is_default)
+
+    if ordering:
+        qs = qs.order_by(ordering)
 
     return paginate_queryset(request, qs, ShippingAddressOutSchema, page_number, page_size)
 

@@ -13,7 +13,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 
 from decouple import config
+from datetime import timedelta
 
+from django.conf import settings
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -44,10 +46,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
+    "ninja_extra",
+    'ninja_jwt',
     'django_cleanup.apps.CleanupConfig',
     "treebeard",
     "users.apps.UsersConfig",
-    "location.apps.LocationConfig",
+    "locations.apps.LocationsConfig",
     "products.apps.ProductsConfig",
     "orders.apps.OrdersConfig",
     "carts.apps.CartsConfig",
@@ -140,3 +144,9 @@ STATIC_ROOT = BASE_DIR / 'static'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+NINJA_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=20),
+}
