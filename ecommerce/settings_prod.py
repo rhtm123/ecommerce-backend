@@ -3,6 +3,9 @@ from ecommerce.settings import *
 ALLOWED_HOSTS += ['kb.up.railway.app','kb.thelearningsetu.com']
 
 
+CSRF_TRUSTED_ORIGINS = ['https://kb.thelearningsetu.com']
+
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
