@@ -153,8 +153,8 @@ class ProductListingImage(models.Model):
 class Feature(models.Model):
     listing = models.ForeignKey(ProductListing, on_delete=models.CASCADE, related_name='product_listing_features')
     feature_group = models.CharField(max_length=255)  # e.g., 'general', 'camera'
-    name = models.CharField(max_length=255)     # e.g., 'ram'
-    value = models.CharField(max_length=255)    # e.g., '6gb'
+    name = models.CharField(max_length=255, db_index=True)     # e.g., 'ram'
+    value = models.CharField(max_length=255, db_index=True)    # e.g., '6gb'
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
