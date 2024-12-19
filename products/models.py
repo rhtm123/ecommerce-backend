@@ -7,6 +7,8 @@ from imagekit.processors import ResizeToFill
 from imagekit.models import ImageSpecField
 
 from treebeard.mp_tree import MP_Node
+from taxations.models import TaxCategory
+
 
 class Category(MP_Node):
     name = models.CharField(max_length=255, unique=True)
@@ -54,6 +56,8 @@ class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='category_products')
     manufacturer = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="manufacturer_products", null=True, blank=True)
     brand = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="brand_products", null=True, blank=True)
+
+    tax_category = models.ForeignKey(TaxCategory, on_delete=models.SET_NULL, null=True,blank=True)
 
     country_of_origin = models.CharField(max_length=255, default="India")
 

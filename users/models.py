@@ -16,10 +16,10 @@ class User(AbstractUser):
 
     ROLE_CHOICES = [
         ('buyer', 'Buyer'),
-        ('seller', 'Seller'),
+        ('entity', 'Entity'),
     ]
     role = models.CharField(max_length=32, choices=ROLE_CHOICES, default='buyer',
-        help_text="available choices -> buyer, seller"                
+        help_text="available choices -> buyer, entity"                
     )
 
     groups = models.ManyToManyField(

@@ -5,6 +5,7 @@ from django.db import models
 class Address(models.Model):
     line1 = models.CharField(max_length=255)  # Flat/Apartment/Building
     line2 = models.CharField(max_length=255, blank=True, null=True)
+    landmark = models.CharField(max_length=255, blank=True, null=True)
     city = models.CharField(max_length=255, blank=True)
     country = models.CharField(max_length=255, blank=True, default="India")
     pin = models.CharField(max_length=255, blank=True)

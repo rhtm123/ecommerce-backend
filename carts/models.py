@@ -1,11 +1,14 @@
 from django.db import models
 
-from users.models import User
+# from users.models import User
 from products.models import ProductListing
+
+from django.conf import settings
+
 # Create your models here.
 
 class Cart(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL , related_name="user_carts", null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL , related_name="user_carts", null=True, blank=True)
     purchased = models.BooleanField(default=False)
 
     created = models.DateTimeField(auto_now_add=True)
@@ -20,7 +23,7 @@ class CartItem(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
 class Wishlist(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL , related_name="user_wishlists", null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL , related_name="user_wishlists", null=True, blank=True)
     name = models.CharField(max_length=255, default="My Wishlist")
 
     created = models.DateTimeField(auto_now_add=True)
