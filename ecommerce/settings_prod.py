@@ -1,10 +1,8 @@
 from ecommerce.settings import *
 
-ALLOWED_HOSTS += ['kb.up.railway.app','kb.thelearningsetu.com']
+ALLOWED_HOSTS += ['kb.up.railway.app','kb.thelearningsetu.com', "emotional-cecily-codingchaska-5e686914.koyeb.app"]
 
-
-CSRF_TRUSTED_ORIGINS = ['https://kb.thelearningsetu.com']
-
+CSRF_TRUSTED_ORIGINS = ['https://kb.thelearningsetu.com', "https://emotional-cecily-codingchaska-5e686914.koyeb.app"]
 
 DATABASES = {
     'default': {
