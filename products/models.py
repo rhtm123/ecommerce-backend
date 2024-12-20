@@ -42,6 +42,9 @@ class FeatureGroup(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.name
+
 
 class FeatureTemplate(models.Model):
     name = models.CharField(max_length=255)  # E.g., 'RAM', 'Storage'
@@ -50,6 +53,8 @@ class FeatureTemplate(models.Model):
     possible_values = models.JSONField(null=True, blank=True)
 
     # { type: "categorical", values: ["2GB", "4GB", "6GB"], }
+    # { "type": "range", "min": 1, "max": 64, "unit": "GB" }
+
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -84,13 +89,13 @@ class Variant(models.Model):
 
 class ProductListing(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_listings', null=True, blank=True)
-    name = models.CharField(max_length=255, null=True, blank=True)
+    name = models.CharField(max_length=255, null=True, blank=True, db_index=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, related_name='category_listings', null=True, blank=True)
     brand = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="brand_product_listings", null=True, blank=True)
     manufacturer = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="manufacturer_product_listings", null=True, blank=True)
 
 
-    slug = models.SlugField(default="", null=False, blank=True)
+    slug = models.SlugField(default="", null=False, blank=True, db_index=True)
 
     box_items = models.TextField(null=True, blank=True)
     features = models.JSONField(null=True, blank=True)
@@ -131,14 +136,7 @@ class ProductListing(models.Model):
     
     def save(self, *args, **kwargs):
 
-        # if self.product.category:
-        #     self.category = self.product.category
-
-        # if self.product.brand:
-        #     self.brand = self.product.brand
-
         new_name = self.product.name
-
         if self.variant:
             new_name = new_name + " [" + self.variant.name + "]"
 
@@ -170,17 +168,16 @@ class ProductListingImage(models.Model):
 class Feature(models.Model):
     listing = models.ForeignKey(ProductListing, on_delete=models.CASCADE, related_name='product_listing_features')
     feature_group = models.CharField(max_length=255)  # e.g., 'general', 'camera'
-    name = models.CharField(max_length=255, db_index=True)     # e.g., 'ram'
+    feature_template = models.ForeignKey(FeatureTemplate, on_delete=models.CASCADE, null=True, blank=True, related_name='features', db_index=True)
+
     value = models.CharField(max_length=255, db_index=True)    # e.g., '6gb'
 
     slug = models.SlugField(default="", null=False, blank=True, db_index=True)
-
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        # Automatically update the level before saving
 
         self.slug = slugify(self.name)
         super(Feature, self).save(*args, **kwargs)
