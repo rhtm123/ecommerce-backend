@@ -195,12 +195,12 @@ def product_listings(
         qs = qs.filter(category__id=category_id)
 
     if search: 
-        qs = qs.filter(product__name__contains=search)
+        qs = qs.filter(name__contains=search)
 
     # Filter by brands
     if brand_ids:
         brand_id_list = brand_ids.split(",")  # Split comma-separated string into list
-        qs = qs.filter(product__brand__id__in=brand_id_list)
+        qs = qs.filter(brand__id__in=brand_id_list)
 
     # Filter by price range
     if min_price is not None:
