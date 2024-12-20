@@ -9,10 +9,16 @@ from imagekit.models import ImageSpecField
 from treebeard.mp_tree import MP_Node
 from taxations.models import TaxCategory
 
+from django.template.defaultfilters import slugify
+
+
 
 class Category(MP_Node):
     name = models.CharField(max_length=255, unique=True)
     description = models.TextField(null=True, blank=True)
+    slug = models.SlugField(default="", null=False, blank=True)
+
+
 
     level = models.PositiveIntegerField(default=1)  # Static field for level
 
@@ -22,7 +28,9 @@ class Category(MP_Node):
     def save(self, *args, **kwargs):
         # Automatically update the level before saving
         self.level = self.get_depth()
-        super().save(*args, **kwargs)
+
+        self.slug = slugify(self.name)
+        super(Category, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.name 
@@ -53,12 +61,8 @@ class Product(models.Model):
     description = models.TextField(blank=True, null=True)
     important_info = models.TextField(blank=True, null=True)
     base_price = models.DecimalField(max_digits=10, decimal_places=2)
-    category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='category_products')
-    manufacturer = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="manufacturer_products", null=True, blank=True)
-    brand = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="brand_products", null=True, blank=True)
 
     tax_category = models.ForeignKey(TaxCategory, on_delete=models.SET_NULL, null=True,blank=True)
-
     country_of_origin = models.CharField(max_length=255, default="India")
 
     created = models.DateTimeField(auto_now_add=True)
@@ -68,30 +72,6 @@ class Product(models.Model):
     def __str__(self):
         return self.name
     # discount
-
-class ProductImage(models.Model):
-    product = models.ForeignKey(
-        Product, on_delete=models.CASCADE, related_name="product_images"
-    )
-    image = ProcessedImageField(
-        upload_to="products/",
-        processors=[ResizeToFill(1200, 1200)],  # Resize to 800x800 pixels
-        format="JPEG",
-        options={"quality": 85},  # Save with 85% quality
-    )
-
-    thumbnail = ImageSpecField(source='avatar',
-                                      processors=[ResizeToFill(240, 240)],
-                                      format='JPEG',
-                                      options={'quality': 60})
-    
-    is_main = models.BooleanField(default=False)  # Indicates the primary image
-    alt_text = models.CharField(max_length=255, blank=True, null=True)  # SEO optimization
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return f"{self.product.name} - {'Main' if self.is_main else 'Gallery'} Image"
 
 
 class Variant(models.Model):
@@ -104,7 +84,13 @@ class Variant(models.Model):
 
 class ProductListing(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_listings', null=True, blank=True)
+    name = models.CharField(max_length=255, null=True, blank=True)
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, related_name='category_listings', null=True, blank=True)
+    brand = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="brand_product_listings", null=True, blank=True)
+    manufacturer = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="manufacturer_product_listings", null=True, blank=True)
+
+
+    slug = models.SlugField(default="", null=False, blank=True)
 
     box_items = models.TextField(null=True, blank=True)
     features = models.JSONField(null=True, blank=True)
@@ -112,6 +98,19 @@ class ProductListing(models.Model):
     approved = models.BooleanField(default=False)
 
     listed = models.BooleanField(default=False)
+
+    main_image = ProcessedImageField(
+        upload_to="kb/product_listings/",
+        processors=[ResizeToFill(1200, 1200)],  # Resize to 800x800 pixels
+        format="WEBP",
+        options={"quality": 85},  # Save with 85% quality
+        null=True, blank=True
+    )
+
+    thumbnail = ImageSpecField(source='main_image',
+                                      processors=[ResizeToFill(360, 360)],
+                                      format='WEBP',)
+
     # features text // json
     variant = models.OneToOneField(Variant, on_delete=models.SET_NULL, related_name="variant_listing", null=True, blank=True)
     seller = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name='seller_listings', null=True, blank=True)
@@ -119,29 +118,47 @@ class ProductListing(models.Model):
     importer = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="importer_listings", null=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     mrp = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    rating = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
+    popularity = models.IntegerField(default=100)
+
     stock = models.PositiveIntegerField(default=0)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.product.name} - {self.seller.name}"
+        return f"{self.product.name}"
+    
+    def save(self, *args, **kwargs):
+
+        # if self.product.category:
+        #     self.category = self.product.category
+
+        # if self.product.brand:
+        #     self.brand = self.product.brand
+
+        new_name = self.product.name
+
+        if self.variant:
+            new_name = new_name + " [" + self.variant.name + "]"
+
+        self.slug = slugify(new_name)
+        self.name = new_name
+
+        super(ProductListing, self).save(*args, **kwargs)
+
     
 class ProductListingImage(models.Model):
     listing = models.ForeignKey(
         ProductListing, on_delete=models.CASCADE, related_name="images"
     )
     image = ProcessedImageField(
-        upload_to="listings/",
-        processors=[ResizeToFill(800, 800)],  # Resize to 800x800 pixels
-        format="JPEG",
+        upload_to="kb/product_listings/",
+        processors=[ResizeToFill(1200, 1200)],  # Resize to 800x800 pixels
+        format="WEBP",
         options={"quality": 85},  # Save with 85% quality
     )
 
-    thumbnail = ImageSpecField(source='avatar',
-                                      processors=[ResizeToFill(100, 50)],
-                                      format='JPEG',
-                                      options={'quality': 60})
-    is_main = models.BooleanField(default=False)  # Primary image for the listing
     alt_text = models.CharField(max_length=255, blank=True, null=True)  # SEO optimization
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -156,5 +173,14 @@ class Feature(models.Model):
     name = models.CharField(max_length=255, db_index=True)     # e.g., 'ram'
     value = models.CharField(max_length=255, db_index=True)    # e.g., '6gb'
 
+    slug = models.SlugField(default="", null=False, blank=True, db_index=True)
+
+
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        # Automatically update the level before saving
+
+        self.slug = slugify(self.name)
+        super(Feature, self).save(*args, **kwargs)
