@@ -82,7 +82,7 @@ class Product(models.Model):
 class Variant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_variants')
     name = models.CharField(max_length=255) # example "Red, 128GB"
-    attributes = models.JSONField() # { "color": "Red", "storage": "128GB"}
+    attributes = models.JSONField() # { "color": {"name":"Red", "value":"#ff0000"}, "storage": {"name":"128GB", "value":"128"}}
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -133,6 +133,9 @@ class ProductListing(models.Model):
 
     def __str__(self):
         return f"{self.product.name}"
+    
+    class Meta:
+        ordering = ['-id']
     
     def save(self, *args, **kwargs):
 

@@ -4,6 +4,10 @@ ALLOWED_HOSTS += ['kb.up.railway.app','kb.thelearningsetu.com', "emotional-cecil
 
 CSRF_TRUSTED_ORIGINS = ['https://kb.thelearningsetu.com', "https://emotional-cecily-codingchaska-5e686914.koyeb.app"]
 
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5173',
+]
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
