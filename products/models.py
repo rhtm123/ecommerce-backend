@@ -143,7 +143,7 @@ class ProductListing(models.Model):
         if self.variant:
             new_name = new_name + " [" + self.variant.name + "]"
 
-        self.slug = slugify(new_name)
+        self.slug = slugify(new_name) + "-" + str(self.id) + "kb"
         self.name = new_name
 
         super(ProductListing, self).save(*args, **kwargs)

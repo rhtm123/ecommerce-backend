@@ -17,6 +17,7 @@ admin.site.register(Category, MyAdmin)
 from django.contrib import admin
 from .models import Product, ProductListing, ProductListingImage, Variant
 
+admin.site.register(Variant)
 
 class VariantInline(admin.TabularInline):
     model = Variant

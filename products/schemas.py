@@ -130,18 +130,20 @@ class ProductListingOutSchema(Schema):
         """
         Resolves the URL for the dynamically generated thumbnail.
         """
-        if obj.thumbnail:
-            return obj.thumbnail.url  # Ensure the thumbnail URL is returned
-        return None
+        try:
+            return obj.thumbnail.url if obj.thumbnail else None
+        except:
+            return None
 
     @staticmethod
     def resolve_main_image(obj: ProductListing) -> Optional[str]:
         """
         Resolves the URL for the main image.
         """
-        if obj.main_image:
-            return obj.main_image.url  # Ensure the main image URL is returned
-        return None
+        try:
+            return obj.main_image.url if obj.main_image else None
+        except:
+            return None
 
 class ProductListingOneOutSchema(Schema):
     id: int

@@ -250,7 +250,7 @@ def get_sidebar_filters(
     # Filter by brands
     if brand_ids:
         brand_id_list = brand_ids.split(",")  # Split comma-separated string into list
-        qs = qs.filter(product__brand__id__in=brand_id_list)
+        qs = qs.filter(brand__id__in=brand_id_list)
 
     # Filter by price range
     if min_price is not None:
@@ -259,20 +259,22 @@ def get_sidebar_filters(
         qs = qs.filter(price__lte=max_price)
 
     # Filter by features
-    if feature_filters:
-        try:
-            feature_dict = json.loads(feature_filters)  # Parse JSON string to dictionary
-            for feature_name, values in feature_dict.items():
-                qs = qs.filter(features__contains={feature_name: values})
-        except json.JSONDecodeError:
-            return {"error": "Invalid JSON format for feature_filters"}
+    # if feature_filters:
+    #     try:
+    #         feature_dict = json.loads(feature_filters)  # Parse JSON string to dictionary
+    #         for feature_name, values in feature_dict.items():
+    #             qs = qs.filter(features__contains={feature_name: values})
+    #     except json.JSONDecodeError:
+    #         return {"error": "Invalid JSON format for feature_filters"}
     
     # Get brand filters
-    filters['brands'] = (
-        qs.values('product__brand__id', 'product__brand__name')
+    filters['brands'] = list(
+        qs.values('brand__id', 'brand__name')
         .annotate(count=Count('id'))
         .order_by('-count')
     )
+
+    # print(filters)
     
     # Get price range
     price_range = qs.aggregate(
@@ -285,25 +287,25 @@ def get_sidebar_filters(
     }
     
     # Get feature filters
-    features = Feature.objects.filter(listing__in=qs).values(
-        'feature_category', 'name', 'value'
-    ).annotate(count=Count('id'))
+    # features = Feature.objects.filter(listing__in=qs).values(
+    #      'name', 'value'
+    # ).annotate(count=Count('id'))
     
-    # Group features by category
-    feature_filters = {}
-    for feature in features:
-        category = feature['feature_category']
-        if category not in feature_filters:
-            feature_filters[category] = {}
-        feature_name = feature['name']
-        if feature_name not in feature_filters[category]:
-            feature_filters[category][feature_name] = []
-        feature_filters[category][feature_name].append({
-            "value": feature['value'],
-            "count": feature['count']
-        })
+    # # Group features by category
+    # feature_filters = {}
+    # for feature in features:
+    #     category = feature['feature_category']
+    #     if category not in feature_filters:
+    #         feature_filters[category] = {}
+    #     feature_name = feature['name']
+    #     if feature_name not in feature_filters[category]:
+    #         feature_filters[category][feature_name] = []
+    #     feature_filters[category][feature_name].append({
+    #         "value": feature['value'],
+    #         "count": feature['count']
+    #     })
     
-    filters['features'] = feature_filters
+    # filters['features'] = feature_filters
 
     return filters
 
