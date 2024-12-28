@@ -104,10 +104,27 @@ class ProductListing(models.Model):
 
     listed = models.BooleanField(default=False)
 
+    # main_image = CloudinaryField(
+    #     "image",
+    #     folder="kb/product_listings/",
+    #     transformation={
+    #         "width": 1200,
+    #         "height": 1200,
+    #         "crop": "fill",
+    #     },
+    #     blank=True,
+    #     null=True,
+    # )
+    # thumbnail = ImageSpecField(
+    #     source='main_image',
+    #     processors=[ResizeToFill(360, 360)],
+    #     format='WEBP',
+    # )
+
     main_image = ProcessedImageField(
         upload_to="kb/product_listings/",
         processors=[ResizeToFill(1200, 1200)],  # Resize to 800x800 pixels
-        format="WEBP",
+        format="JPEG",
         options={"quality": 85},  # Save with 85% quality
         null=True, blank=True
     )

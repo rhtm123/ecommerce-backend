@@ -1,6 +1,13 @@
 from ecommerce.settings import *
+import cloudinary
 
-ALLOWED_HOSTS += ['kb.up.railway.app','kb.thelearningsetu.com', "emotional-cecily-codingchaska-5e686914.koyeb.app"]
+
+ALLOWED_HOSTS += [
+    'kb.up.railway.app',
+    'kb.thelearningsetu.com', 
+    "emotional-cecily-codingchaska-5e686914.koyeb.app",
+    "localhost"
+]
 
 CSRF_TRUSTED_ORIGINS = ['https://kb.thelearningsetu.com', "https://emotional-cecily-codingchaska-5e686914.koyeb.app"]
 
@@ -25,5 +32,11 @@ CLOUDINARY_STORAGE = {
     'API_KEY': config('CLN_API_KEY'),
     'API_SECRET': config('CLN_API_SECRET'),
 }
+
+cloudinary.config(
+    cloud_name=CLOUDINARY_STORAGE['CLOUD_NAME'],
+    api_key=CLOUDINARY_STORAGE['API_KEY'],
+    api_secret=CLOUDINARY_STORAGE['API_SECRET']
+)
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
