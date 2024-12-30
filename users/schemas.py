@@ -37,6 +37,14 @@ class EntityOutSchema(Schema):
     updated: datetime
 
 
+class EntityOut2Schema(Schema):
+    id: int
+    name: str 
+    gst_number: Optional[str] = None
+    user: Optional[int] = None
+    created: datetime
+    updated: datetime
+
 class EntityCreateSchema(Schema):
     user_id: int
     name: str
