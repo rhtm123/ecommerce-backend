@@ -111,12 +111,52 @@ class ProductListingOutSchema(Schema):
 
 class ProductListingOneOutSchema(Schema):
     id: int
-    product_id: int
+    name: Optional[str] = None
+    product: Optional[ProductOutSchema] = None
+    brand: Optional[EntityOut2Schema] = None
+    seller: Optional[EntityOut2Schema] = None
+    slug: Optional[str] = None
+
+    box_items: Optional[str] = None
+    features: Optional[dict] = None
+
+    rating: Optional[float] = None
+    popularity : Optional[int] = None
+
+
+
     # seller_id: int
     price: float
     stock: int
+
+
+    main_image: Optional[str] = Field(None, description="URL for the main product image")
+    thumbnail: Optional[str] = Field(None, description="URL for the dynamically generated thumbnail")
+
     created: datetime
     updated: datetime
+
+    @staticmethod
+    def resolve_thumbnail(obj: ProductListing) -> Optional[str]:
+        """
+        Resolves the URL for the dynamically generated thumbnail.
+        """
+        try:
+            return obj.thumbnail.url if obj.thumbnail else None
+        except:
+            return None
+
+    @staticmethod
+    def resolve_main_image(obj: ProductListing) -> Optional[str]:
+        """
+        Resolves the URL for the main image.
+        """
+        try:
+            # print(obj.main_image)
+            # print(obj.main_image.url)
+            return obj.main_image.url if obj.main_image else None
+        except:
+            return None
 
 class ProductListingCreateSchema(Schema):
     product_id: int

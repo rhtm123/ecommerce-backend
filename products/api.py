@@ -9,7 +9,7 @@ from .schemas import (
     FeatureGroupOutSchema,
     FeatureTemplateOutSchema,
     ProductCreateSchema, ProductOutSchema, ProductUpdateSchema,
-    ProductListingUpdateSchema, ProductListingCreateSchema, ProductListingOutSchema,
+    ProductListingUpdateSchema, ProductListingCreateSchema, ProductListingOutSchema, ProductListingOneOutSchema,
     FeatureOutSchema,
 )
 from django.shortcuts import get_object_or_404
@@ -311,7 +311,7 @@ def get_sidebar_filters(
 
 
 # Read Single ProductListing (Retrieve)
-@router.get("/product_listings/{product_listing_id}/", response=ProductListingOutSchema)
+@router.get("/product_listings/{product_listing_id}/", response=ProductListingOneOutSchema)
 def retrieve_product_listing(request, product_listing_id: int):
     product_listing = get_object_or_404(ProductListing, id=product_listing_id)
     return product_listing

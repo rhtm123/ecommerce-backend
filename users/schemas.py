@@ -41,7 +41,7 @@ class EntityOut2Schema(Schema):
     id: int
     name: str 
     gst_number: Optional[str] = None
-    user: Optional[int] = None
+    user_id: Optional[int] = None
     created: datetime
     updated: datetime
 
