@@ -11,6 +11,11 @@ from taxations.models import TaxCategory
 
 from django.template.defaultfilters import slugify
 
+from decouple import config
+ 
+from cloudinary.models import CloudinaryField
+
+
 
 
 class Category(MP_Node):
@@ -104,34 +109,31 @@ class ProductListing(models.Model):
 
     listed = models.BooleanField(default=False)
 
-    # main_image = CloudinaryField(
-    #     "image",
-    #     folder="kb/product_listings/",
-    #     transformation={
-    #         "width": 1200,
-    #         "height": 1200,
-    #         "crop": "fill",
-    #     },
-    #     blank=True,
-    #     null=True,
-    # )
+    main_image = CloudinaryField(
+        "image",
+        folder="kb/product_listings/",
+        transformation={"width": 1200, "height": 1200, "crop": "fill"},
+        blank=True,
+        null=True,
+    )
+
     # thumbnail = ImageSpecField(
     #     source='main_image',
     #     processors=[ResizeToFill(360, 360)],
     #     format='WEBP',
     # )
 
-    main_image = ProcessedImageField(
-        upload_to="kb/product_listings/",
-        processors=[ResizeToFill(1200, 1200)],  # Resize to 800x800 pixels
-        format="JPEG",
-        options={"quality": 85},  # Save with 85% quality
-        null=True, blank=True
-    )
+    # main_image = ProcessedImageField(
+    #     upload_to="kb/product_listings/",
+    #     processors=[ResizeToFill(1200, 1200)],  # Resize to 800x800 pixels
+    #     format="JPEG",
+    #     options={"quality": 85},  # Save with 85% quality
+    #     null=True, blank=True
+    # )
 
-    thumbnail = ImageSpecField(source='main_image',
-                                      processors=[ResizeToFill(360, 360)],
-                                      format='WEBP',)
+    # thumbnail = ImageSpecField(source='main_image',
+    #                                   processors=[ResizeToFill(360, 360)],
+    #                                   format='WEBP',)
 
     # features text // json
     variant = models.OneToOneField(Variant, on_delete=models.SET_NULL, related_name="variant_listing", null=True, blank=True)
@@ -164,6 +166,16 @@ class ProductListing(models.Model):
         self.name = new_name
 
         super(ProductListing, self).save(*args, **kwargs)
+
+    def get_full_main_image_url(self):
+        """
+        Returns the full URL for the main image stored in Cloudinary.
+        """
+        if self.main_image:
+            # Assuming Cloudinary's URL format (update accordingly if needed)
+            cloudinary_base_url = f"https://res.cloudinary.com/{config('CLN_CLOUD_NAME')}/image/upload/"
+            return self.main_image.url
+        return None
 
     
 class ProductListingImage(models.Model):

@@ -141,9 +141,12 @@ class ProductListingOutSchema(Schema):
         Resolves the URL for the main image.
         """
         try:
+            # print(obj.main_image)
+            # print(obj.main_image.url)
             return obj.main_image.url if obj.main_image else None
         except:
             return None
+
 
 class ProductListingOneOutSchema(Schema):
     id: int
