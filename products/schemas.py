@@ -14,7 +14,7 @@ class CategoryOutSchema(Schema):
     name: str
 
     description: Optional[str] = None
-    feature_names: Optional[dict] = None
+    # feature_names: Optional[dict] = None
 
     level: int 
     
@@ -24,7 +24,7 @@ class CategoryOutSchema(Schema):
 class CategoryCreateSchema(Schema):
     name: str
     description: Optional[str] = None
-    feature_names: Optional[dict] = None
+    # feature_names: Optional[dict] = None
     parent_id: Optional[int] = None
  
 class CategoryUpdateSchema(Schema):
@@ -76,6 +76,8 @@ class ProductListingOutSchema(Schema):
     brand: Optional[EntityOut2Schema] = None  # Assuming EntityOutSchema handles the `brand` details
     slug: str
 
+    category: Optional[CategoryOutSchema] = None
+
     main_image: Optional[str] = Field(None, description="URL for the main product image")
     thumbnail: Optional[str] = Field(None, description="URL for the dynamically generated thumbnail")
 
@@ -116,6 +118,7 @@ class ProductListingOneOutSchema(Schema):
     brand: Optional[EntityOut2Schema] = None
     seller: Optional[EntityOut2Schema] = None
     slug: Optional[str] = None
+    category: Optional[CategoryOutSchema] = None
 
     box_items: Optional[str] = None
     features: Optional[dict] = None
