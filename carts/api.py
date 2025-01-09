@@ -35,13 +35,16 @@ def create_cart(request, payload: CartCreateSchema):
 
 # Read Carts (List)
 @router.get("/carts/", response=PaginatedResponseSchema)
-def carts(request,  page: int = Query(1), page_size: int = Query(10), user_id: int = None, ordering: str = None,):
+def carts(request,  page: int = Query(1), page_size: int = Query(10), user_id: int = None, purchased: bool = None ,ordering: str = None,):
     qs = Cart.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
 
     if user_id:
         qs = qs.filter(user__id=user_id)
+
+    if purchased:
+        qs = qs.filter(purchased=purchased)
     
     if ordering:
         qs = qs.order_by(ordering)

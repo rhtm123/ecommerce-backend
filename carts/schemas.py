@@ -3,6 +3,9 @@ from typing import List, Optional
 
 from ninja import Schema
 
+from products.schemas import ProductListingOutSchema
+
+
 
 class CartOutSchema(Schema):
     id: int
@@ -23,7 +26,7 @@ class CartUpdateSchema(Schema):
 class CartItemOutSchema(Schema):
     id: int
     cart_id: Optional[int] = None
-    product_listing_id: Optional[int] = None
+    product_listing: Optional[ProductListingOutSchema] = None
     quantity: int
     created: datetime
     updated: datetime
@@ -56,7 +59,8 @@ class WishlistUpdateSchema(Schema):
 class WishlistItemOutSchema(Schema):
     id: int
     wishlist_id: Optional[int] = None
-    product_listing_id: Optional[int] = None
+    product_listing: Optional[ProductListingOutSchema] = None
+
     created: datetime
     updated: datetime
 

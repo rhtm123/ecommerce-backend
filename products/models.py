@@ -117,24 +117,6 @@ class ProductListing(models.Model):
         null=True,
     )
 
-    # thumbnail = ImageSpecField(
-    #     source='main_image',
-    #     processors=[ResizeToFill(360, 360)],
-    #     format='WEBP',
-    # )
-
-    # main_image = ProcessedImageField(
-    #     upload_to="kb/product_listings/",
-    #     processors=[ResizeToFill(1200, 1200)],  # Resize to 800x800 pixels
-    #     format="JPEG",
-    #     options={"quality": 85},  # Save with 85% quality
-    #     null=True, blank=True
-    # )
-
-    # thumbnail = ImageSpecField(source='main_image',
-    #                                   processors=[ResizeToFill(360, 360)],
-    #                                   format='WEBP',)
-
     # features text // json
     variant = models.OneToOneField(Variant, on_delete=models.SET_NULL, related_name="variant_listing", null=True, blank=True)
     seller = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name='seller_listings', null=True, blank=True)
