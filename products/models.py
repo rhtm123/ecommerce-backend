@@ -57,6 +57,9 @@ class FeatureTemplate(models.Model):
     key_feature = models.BooleanField(default=False)
     possible_values = models.JSONField(null=True, blank=True)
 
+    def __str__(self):
+        return self.name
+
     # { type: "categorical", values: ["2GB", "4GB", "6GB"], }
     # { "type": "range", "min": 1, "max": 64, "unit": "GB" }
 
@@ -191,7 +194,10 @@ class Feature(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.feature_template.name + "-" +self.value
+
     def save(self, *args, **kwargs):
 
-        self.slug = slugify(self.name)
+        self.slug = "kb" + str(self.id) + slugify(self.feature_template.name)
         super(Feature, self).save(*args, **kwargs)

@@ -186,7 +186,7 @@ def product_listings(
     brand_ids: str = Query(None, description="Comma-separated brand IDs"),  # Example: '1,2,3'
     min_price: float = Query(None, description="Minimum price"),
     max_price: float = Query(None, description="Maximum price"),
-    feature_filters: str = Query(None, description="Feature filters as JSON string"),  # Example: '{"ram": ["4GB", "6GB"], "storage": ["128GB"]}'
+    feature_filters: str = Query(None, description="Feature filters as JSON string"),  # Example: '{"1": ["4GB", "6GB"], "2": ["128GB"]}' ## 1 -> filter_template id
     ):
     qs = ProductListing.objects.all()
 
@@ -211,11 +211,13 @@ def product_listings(
     # Filter by features
     if feature_filters:
         try:
-            feature_dict = json.loads(feature_filters)  # Parse JSON string to dictionary
-            for feature_name, values in feature_dict.items():
-                qs = qs.filter(features__contains={feature_name: values})
-        except json.JSONDecodeError:
-            return {"error": "Invalid JSON format for feature_filters"}
+            for feature_template_id, values in feature_filters.items():
+                qs = qs.filter(
+                    product_listing_features__feature_template__id=feature_template_id,
+                    product_listing_features__value__in=values,
+                )
+        except Exception as e:
+            return {"error": f"Feature filter error: {str(e)}"}
 
     # Ordering
     if ordering:
@@ -226,14 +228,14 @@ def product_listings(
 
 
 
-@router.get("/filters/", tags=["Filters"])
+@router.get("/sidebar_filters/", tags=["Sidebar filters"])
 def get_sidebar_filters(
     request, 
     category_id: str = None,
     brand_ids: str = Query(None, description="Comma-separated brand IDs"),  # Example: '1,2,3'
     min_price: float = Query(None, description="Minimum price"),
     max_price: float = Query(None, description="Maximum price"),
-    feature_filters: str = Query(None, description="Feature filters as JSON string"),  # Example: '{"ram": ["4GB", "6GB"], "storage": ["128GB"]}'
+    feature_filters: str = Query(None, description="Feature filters as JSON string"),  # Example: '{"1": ["4GB", "6GB"], "2": ["128GB"]}'
     ):
     """
     API to fetch sidebar filters for product listings.
@@ -258,18 +260,25 @@ def get_sidebar_filters(
     if max_price is not None:
         qs = qs.filter(price__lte=max_price)
 
-    # Filter by features
-    # if feature_filters:
-    #     try:
-    #         feature_dict = json.loads(feature_filters)  # Parse JSON string to dictionary
-    #         for feature_name, values in feature_dict.items():
-    #             qs = qs.filter(features__contains={feature_name: values})
-    #     except json.JSONDecodeError:
-    #         return {"error": "Invalid JSON format for feature_filters"}
-    
+    if feature_filters:
+        try:
+            for feature_template_id, values in feature_filters.items():
+                qs = qs.filter(
+                    product_listing_features__feature_template__id=feature_template_id,
+                    product_listing_features__value__in=values,
+                )
+        except Exception as e:
+            return {"error": f"Feature filter error: {str(e)}"}
+
     # Get brand filters
     filters['brands'] = list(
         qs.values('brand__id', 'brand__name')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+
+    filters['features'] = list(
+        qs.values('product_listing_features__feature_template__id', 'product_listing_features__feature_template__name','product_listing_features__value')
         .annotate(count=Count('id'))
         .order_by('-count')
     )
@@ -281,31 +290,11 @@ def get_sidebar_filters(
         min_price=Min('price'),
         max_price=Max('price')
     )
+
     filters['price_range'] = {
         "min_price": price_range.get('min_price', 0),
         "max_price": price_range.get('max_price', 0)
     }
-    
-    # Get feature filters
-    # features = Feature.objects.filter(listing__in=qs).values(
-    #      'name', 'value'
-    # ).annotate(count=Count('id'))
-    
-    # # Group features by category
-    # feature_filters = {}
-    # for feature in features:
-    #     category = feature['feature_category']
-    #     if category not in feature_filters:
-    #         feature_filters[category] = {}
-    #     feature_name = feature['name']
-    #     if feature_name not in feature_filters[category]:
-    #         feature_filters[category][feature_name] = []
-    #     feature_filters[category][feature_name].append({
-    #         "value": feature['value'],
-    #         "count": feature['count']
-    #     })
-    
-    # filters['features'] = feature_filters
 
     return filters
 

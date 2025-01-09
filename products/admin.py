@@ -17,6 +17,12 @@ admin.site.register(Category, MyAdmin)
 from django.contrib import admin
 from .models import Product, ProductListing, ProductListingImage, Variant
 
+from .models import FeatureGroup, FeatureTemplate, Feature
+
+admin.site.register(FeatureGroup)
+admin.site.register(FeatureTemplate)
+admin.site.register(Feature)
+
 admin.site.register(Variant)
 
 class VariantInline(admin.TabularInline):
@@ -27,12 +33,12 @@ class VariantInline(admin.TabularInline):
 class ProductListingImageInline(admin.TabularInline):
     model = ProductListingImage
     extra = 1
-    readonly_fields = ["image_preview"]
+    # readonly_fields = ["image_preview"]
 
-    def image_preview(self, obj):
-        if obj.image:
-            return mark_safe(f'<img src="{obj.image.url}" style="height: 75px;" />')
-        return "No Image"
+    # def image_preview(self, obj):
+    #     if obj.image:
+    #         return mark_safe(f'<img src="{obj.image.url}" style="height: 75px;" />')
+    #     return "No Image"
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
