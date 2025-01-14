@@ -27,7 +27,13 @@ from ninja_jwt.authentication import JWTAuth
 
 
 # Create Cart
-@router.post("/carts/", response=CartOutSchema, auth=JWTAuth())
+# @router.post("/carts/", response=CartOutSchema, auth=JWTAuth())
+# def create_cart(request, payload: CartCreateSchema):
+#     cart = Cart(**payload.dict())
+#     cart.save()
+#     return cart
+
+@router.post("/carts/", response=CartOutSchema)
 def create_cart(request, payload: CartCreateSchema):
     cart = Cart(**payload.dict())
     cart.save()
