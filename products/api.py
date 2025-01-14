@@ -64,6 +64,12 @@ def retrieve_category(request, category_id: int):
     category = get_object_or_404(Category, id=category_id)
     return category
 
+
+@router.get("/categories/{category_slug}/", response=CategoryOutSchema)
+def retrieve_category(request, category_slug: str):
+    category = get_object_or_404(Category, slug=category_slug)
+    return category
+
 # Update User
 @router.put("/categories/{category_id}/", response=CategoryOutSchema)
 def update_category(request, category_id: int, payload: CategoryUpdateSchema):
@@ -277,6 +283,12 @@ def get_sidebar_filters(
         .order_by('-count')
     )
 
+    # filters['categories'] = list(
+    #     qs.values('category__id', 'category__name')
+    #     .annotate(count=Count('id'))
+    #     .order_by('-count')
+    # )
+
     filters['features'] = list(
         qs.values('product_listing_features__feature_template__id', 'product_listing_features__feature_template__name','product_listing_features__value')
         .annotate(count=Count('id'))
@@ -303,6 +315,11 @@ def get_sidebar_filters(
 @router.get("/product_listings/{product_listing_id}/", response=ProductListingOneOutSchema)
 def retrieve_product_listing(request, product_listing_id: int):
     product_listing = get_object_or_404(ProductListing, id=product_listing_id)
+    return product_listing
+
+@router.get("/product_listings/{product_listing_slug}/", response=ProductListingOneOutSchema)
+def retrieve_product_listing(request, product_listing_slug: str):
+    product_listing = get_object_or_404(ProductListing, slug=product_listing_slug)
     return product_listing
 
 # Update ProductListing
