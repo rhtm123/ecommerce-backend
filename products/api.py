@@ -51,10 +51,13 @@ def create_category(request, payload: CategoryCreateSchema):
 
 # Read Users (List)
 @router.get("/categories/", response=PaginatedResponseSchema)
-def categories(request,  page: int = Query(1), page_size: int = Query(10)):
+def categories(request,  page: int = Query(1), page_size: int = Query(10), level: int = None):
     qs = Category.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
+
+    if level:
+        qs = qs.filter(level=level)
 
     return paginate_queryset(request, qs, CategoryOutSchema, page_number, page_size)
 
@@ -65,8 +68,8 @@ def retrieve_category(request, category_id: int):
     return category
 
 
-@router.get("/categories/{category_slug}/", response=CategoryOutSchema)
-def retrieve_category(request, category_slug: str):
+@router.get("/categories/slug/{category_slug}/", response=CategoryOutSchema)
+def retrieve_category_slug(request, category_slug: str):
     category = get_object_or_404(Category, slug=category_slug)
     return category
 
@@ -317,8 +320,8 @@ def retrieve_product_listing(request, product_listing_id: int):
     product_listing = get_object_or_404(ProductListing, id=product_listing_id)
     return product_listing
 
-@router.get("/product_listings/{product_listing_slug}/", response=ProductListingOneOutSchema)
-def retrieve_product_listing(request, product_listing_slug: str):
+@router.get("/product_listings/slug/{product_listing_slug}/", response=ProductListingOneOutSchema)
+def retrieve_product_listing_slug(request, product_listing_slug: str):
     product_listing = get_object_or_404(ProductListing, slug=product_listing_slug)
     return product_listing
 

@@ -13,6 +13,8 @@ class CategoryOutSchema(Schema):
     id: int
     name: str
 
+    slug: str
+
     description: Optional[str] = None
     # feature_names: Optional[dict] = None
 
