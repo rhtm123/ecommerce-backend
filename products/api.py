@@ -6,6 +6,7 @@ from .models import Category, FeatureGroup, FeatureTemplate, Product, ProductLis
 from .schemas import ( 
     CategoryCreateSchema, CategoryOutSchema, CategoryUpdateSchema,
     # CategoryFeatureValuesOutSchema,
+    CategorySchema, CategoryParentChildrenOutSchema,
     FeatureGroupOutSchema,
     FeatureTemplateOutSchema,
     ProductCreateSchema, ProductOutSchema, ProductUpdateSchema,
@@ -60,6 +61,29 @@ def categories(request,  page: int = Query(1), page_size: int = Query(10), level
         qs = qs.filter(level=level)
 
     return paginate_queryset(request, qs, CategoryOutSchema, page_number, page_size)
+
+@router.get("/categories/parents_children/{category_id}/", response=CategoryParentChildrenOutSchema)
+def retrieve_category_parents_children(request, category_id: int):
+    category = get_object_or_404(Category, id=category_id)
+
+    def get_all_parents(category):
+        parents = []
+        while category.get_parent():
+            category = category.get_parent()
+            parents.insert(0,category)
+        return parents
+    
+    parents = get_all_parents(category)
+
+    # Get the children categories
+    children = category.get_children()
+
+    return {
+        "parents": [CategorySchema.from_orm(parent) for parent in parents],
+        "children": [CategorySchema.from_orm(child) for child in children],
+    }
+
+
 
 # Read Single User (Retrieve)
 @router.get("/categories/{category_id}/", response=CategoryOutSchema)

@@ -1,6 +1,6 @@
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from ninja import Schema
 from ninja.schema import Field
 
@@ -22,6 +22,18 @@ class CategoryOutSchema(Schema):
     
     created: datetime
     updated: datetime
+
+class CategorySchema(Schema):
+    id: int
+    name: str
+    slug: str
+    level: int
+    # created: str
+    # updated: str
+
+class CategoryParentChildrenOutSchema(Schema):
+    parents: List[CategorySchema]
+    children: List[CategorySchema]
 
 class CategoryCreateSchema(Schema):
     name: str
