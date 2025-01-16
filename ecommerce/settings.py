@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "orders.apps.OrdersConfig",
     "carts.apps.CartsConfig",
     "taxations.apps.TaxationsConfig",
+    'qna.apps.QnaConfig',
 ]
 
 MIDDLEWARE = [
