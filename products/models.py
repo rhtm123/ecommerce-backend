@@ -164,7 +164,7 @@ class ProductListing(models.Model):
 
     
 class ProductListingImage(models.Model):
-    listing = models.ForeignKey(
+    product_listing = models.ForeignKey(
         ProductListing, on_delete=models.CASCADE, related_name="images"
     )
     image = ProcessedImageField(
@@ -179,11 +179,11 @@ class ProductListingImage(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.listing.product.name} - {self.listing.seller.name} Listing Image"
+        return f"{self.product_listing.product.name} - {self.product_listing.seller.name} Listing Image"
 
     
 class Feature(models.Model):
-    listing = models.ForeignKey(ProductListing, on_delete=models.CASCADE, related_name='product_listing_features')
+    product_listing = models.ForeignKey(ProductListing, on_delete=models.CASCADE, related_name='product_listing_features')
     feature_group = models.CharField(max_length=255)  # e.g., 'general', 'camera'
     feature_template = models.ForeignKey(FeatureTemplate, on_delete=models.CASCADE, null=True, blank=True, related_name='features', db_index=True)
 

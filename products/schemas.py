@@ -187,7 +187,7 @@ class ProductListingUpdateSchema(Schema):
 
 class FeatureOutSchema(Schema):
     id: int
-    listing_id: Optional[int] = None
+    product_listing_id: Optional[int] = None
     feature_group: str
     name: str
     value: str

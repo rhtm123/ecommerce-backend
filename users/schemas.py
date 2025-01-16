@@ -20,9 +20,9 @@ class UserUpdateSchema(Schema):
 class UserOutSchema(Schema):
     id: int
     username: str
-    email: Optional[str] = None
-    mobile: Optional[str] = None
-    alternate_mobile: Optional[str] = None
+    # email: Optional[str] = None
+    # mobile: Optional[str] = None
+    # alternate_mobile: Optional[str] = None
     role: str
     created: datetime
     updated: datetime

@@ -368,13 +368,13 @@ def delete_product_listing(request, product_listing_id: int):
 
 
 @router.get("/features/", response=PaginatedResponseSchema)
-def features(request,  page: int = Query(1), page_size: int = Query(10), listing_id: int = None , ordering: str = None,):
+def features(request,  page: int = Query(1), page_size: int = Query(10), product_listing_id: int = None , ordering: str = None,):
     qs = Feature.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
 
-    if listing_id:
-        qs = qs.filter(listing__id=listing_id)
+    if product_listing_id:
+        qs = qs.filter(product_listing_id__id=product_listing_id)
 
     if ordering:
         qs = qs.order_by(ordering)
