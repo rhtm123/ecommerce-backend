@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     "taxations.apps.TaxationsConfig",
     'qna.apps.QnaConfig',
     "reviews.apps.ReviewsConfig",
+    "blogs.apps.BlogsConfig",
 ]
 
 MIDDLEWARE = [

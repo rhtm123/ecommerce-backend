@@ -31,6 +31,8 @@ from products.api import router as products_api
 from qna.api import router as qna_api
 from reviews.api import router as reviews_api
 
+from blogs.api import router as blogs_api
+
 from django.conf import settings
 
 from django.conf.urls.static import static
@@ -61,7 +63,7 @@ api.add_router("cart/", carts_api, tags=['Carts API'])
 api.add_router("order/", orders_api, tags=['Orders API'])
 api.add_router("qna/", qna_api, tags=['Questions and Answers API'])
 api.add_router("reviews/", reviews_api, tags=['Reviews API'])
-
+api.add_router("blogs/", blogs_api, tags=['blogs API'])
 
 urlpatterns = [
     path('admin/', admin.site.urls),
