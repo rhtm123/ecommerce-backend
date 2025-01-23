@@ -27,7 +27,7 @@ def blogs(request, page: int = Query(1), page_size: int = Query(10), category_id
     return paginate_queryset(request, qs, BlogOutSchema, page_number, page_size)
 
 
-@router.get("/blogs/{page_id}", response=BlogOutSchema)
-def blog(request, page_id: int):
-    page = get_object_or_404(Blog, id=page_id)
+@router.get("/blogs/{blog_id}", response=BlogOutSchema)
+def blog(request, blog_id: int):
+    page = get_object_or_404(Blog, id=blog_id)
     return page
