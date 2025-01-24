@@ -34,7 +34,6 @@ from reviews.api import router as reviews_api
 from blogs.api import router as blogs_api
 
 from django.conf import settings
-
 from django.conf.urls.static import static
 
 

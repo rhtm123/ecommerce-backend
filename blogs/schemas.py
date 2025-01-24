@@ -16,7 +16,6 @@ from products.schemas import CategoryOutSchema
 # class BlogInSchema(Schema):
 #     id: int  # Optional for output, required for update
 #     title: str
-#     domain_name: str = None
 #     seo_title: str = None
 #     seo_description: str = None
 #     content: str
@@ -37,7 +36,6 @@ class BlogOutSchema(Schema):
     id: int  # Optional for output, required for update
     title: str
     category: Optional[CategoryOutSchema] = None # Uncomment if you add a Category model
-    domain_name: Optional[str] = None
     seo_title: str = None
     seo_description: str = None
     content: str

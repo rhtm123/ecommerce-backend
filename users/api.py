@@ -12,8 +12,71 @@ from typing import List
 from django.shortcuts import get_object_or_404
 
 from utils.pagination import PaginatedResponseSchema, paginate_queryset
+from decouple import config
 
 router = Router()
+
+GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID")
+
+from ninja_jwt.tokens import RefreshToken
+from google.oauth2 import id_token
+from google.auth.transport import requests
+
+from django.conf import settings
+
+from ninja.security import HttpBearer
+from pydantic import BaseModel
+
+from users.models import User
+
+class TokenSchema(BaseModel):
+    token: str
+
+class AuthBearer(HttpBearer):
+    def authenticate(self, request, token):
+        try:
+            # Verify the Google ID token
+            idinfo = id_token.verify_oauth2_token(token, requests.Request(), GOOGLE_CLIENT_ID)
+            return idinfo
+        except ValueError:
+            return None
+
+@router.post("/auth/google/", tags=['token'])
+def google_auth(request, payload: TokenSchema):
+    try:
+        # Validate Google ID token
+        idinfo = id_token.verify_oauth2_token(payload.token, requests.Request(), GOOGLE_CLIENT_ID)
+        
+        if "email" not in idinfo or not idinfo.get("email_verified"):
+            return {"error": "Invalid Google account"}
+
+        email = idinfo["email"]
+
+        first_name = idinfo.get("given_name", "")  # Default to empty string if not provided
+        last_name = idinfo.get("family_name", "")  # Default to empty string if not provided
+
+        # Check if the user exists in the database, if not, create them
+        user, created = User.objects.get_or_create(username=email, defaults={"email": email})
+
+        if not created:
+            user.first_name = first_name
+            user.last_name = last_name
+            user.save()
+
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+
+        return {
+            "user_id": user.id,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name":user.last_name,
+            "access_token": access_token,
+            "refresh_token": str(refresh),
+        }
+    except ValueError:
+        return {"error": "Invalid Google token"}
 
 # Create User
 @router.post("/users/", response=UserOutSchema)
