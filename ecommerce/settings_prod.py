@@ -15,7 +15,11 @@ CSRF_TRUSTED_ORIGINS = ['https://kb.thelearningsetu.com', "https://emotional-cec
 #     'http://localhost:5173',
 # ]
 
+
+
 CORS_ALLOW_ALL_ORIGINS = True
+
+MIDDLEWARE += [ 'domains.middleware.CustomCORSValidationMiddleware']
 
 DATABASES = {
     'default': {
