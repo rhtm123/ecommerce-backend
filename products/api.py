@@ -217,8 +217,8 @@ def product_listings(
     search: str = None,
     ordering: str = None,
     brand_ids: str = Query(None, description="Comma-separated brand IDs"),  # Example: '1,2,3'
-    min_price: float = Query(None, description="Minimum price"),
-    max_price: float = Query(None, description="Maximum price"),
+    min_price: int = Query(None, description="Minimum price"),
+    max_price: int = Query(None, description="Maximum price"),
     feature_filters: str = Query(None, description="Feature filters as JSON string"),  # Example: '{"1": ["4GB", "6GB"], "2": ["128GB"]}' ## 1 -> filter_template id
     ):
     qs = ProductListing.objects.all()
@@ -242,11 +242,11 @@ def product_listings(
     # Filter by price range
     if min_price is not None:
         qs = qs.filter(price__gte=min_price)
-        query = query + "&min_price=" + min_price
+        query = query + "&min_price=" + str(min_price)
         
     if max_price is not None:
         qs = qs.filter(price__lte=max_price)
-        query = query + "&max_price=" + max_price
+        query = query + "&max_price=" + str(max_price)
 
     # Filter by features
     if feature_filters:
