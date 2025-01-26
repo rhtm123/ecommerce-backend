@@ -3,6 +3,10 @@ from users.models import ShippingAddress
 from products.models import ProductListing
 
 from django.conf import settings
+from users.models import Entity
+
+from estores.models import EStore
+
 
 class Order(models.Model):
     STATUS_CHOICES = [
@@ -12,6 +16,7 @@ class Order(models.Model):
         ('canceled', 'Canceled'),
     ]
 
+    estore = models.ForeignKey(EStore, on_delete=models.CASCADE, null=True, blank=True, related_name="estore_orders")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -30,7 +35,6 @@ class Order(models.Model):
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product_listing = models.ForeignKey(ProductListing, on_delete=models.CASCADE, related_name='order_items')
-
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)  # Price at the time of purchase
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)

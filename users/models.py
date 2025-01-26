@@ -8,11 +8,14 @@ from django.db import models
 # from imagekit.models import ImageSpecField
 
 from locations.models import Address
+from estores.models import EStore
 
 
 class User(AbstractUser):
     mobile = models.CharField(max_length=15, null=True, blank=True)
     alternate_mobile = models.CharField(max_length=15, null=True, blank=True)
+
+    estore = models.ForeignKey(EStore, on_delete=models.CASCADE, null=True, blank=True, related_name="estore_users")
 
     ROLE_CHOICES = [
         ('buyer', 'Buyer'),

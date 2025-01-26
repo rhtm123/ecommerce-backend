@@ -11,14 +11,14 @@ from imagekit.processors import ResizeToFill # type: ignore
 from django.template.defaultfilters import slugify
 
 from products.models import Category
-
+from estores.models import EStore
 
 # Create your models here.
 
 class Tag(models.Model):
     name = models.CharField(max_length=100)
+    estore = models.ForeignKey(EStore, on_delete=models.CASCADE, null=True, blank=True, related_name="estore_tags")
     slug = models.SlugField(max_length=255,null=True, blank=True)
-
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -35,6 +35,7 @@ class Tag(models.Model):
 # Create your models here.
 class Blog(models.Model):
     title = models.CharField(max_length=255)
+    estore = models.ForeignKey(EStore, on_delete=models.CASCADE, null=True, blank=True, related_name="estore_blogs")
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name="category_blogs")
     seo_title = models.TextField(null=True, blank=True, max_length=100)
     seo_description = models.TextField(null=True, blank=True, max_length=255)

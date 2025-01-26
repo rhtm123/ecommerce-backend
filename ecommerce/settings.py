@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     "reviews.apps.ReviewsConfig",
     "blogs.apps.BlogsConfig",
     "domains.apps.DomainsConfig",
+    "estores.apps.EstoresConfig",
 ]
 
 MIDDLEWARE = [

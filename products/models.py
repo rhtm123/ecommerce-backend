@@ -1,6 +1,8 @@
 from django.db import models
 from users.models import Entity
 
+from estores.models import EStore
+
 from imagekit.models import ProcessedImageField
 from imagekit.processors import ResizeToFill
 
@@ -20,6 +22,8 @@ from cloudinary.models import CloudinaryField
 
 class Category(MP_Node):
     name = models.CharField(max_length=255, unique=True)
+    estore = models.ForeignKey(EStore, on_delete=models.CASCADE, null=True, blank=True, related_name="estore_categories")
+    
     description = models.TextField(null=True, blank=True)
     slug = models.SlugField(default="", null=False, blank=True)
 
@@ -102,6 +106,7 @@ class ProductListing(models.Model):
     brand = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="brand_product_listings", null=True, blank=True)
     manufacturer = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="manufacturer_product_listings", null=True, blank=True)
 
+    estore = models.ForeignKey(EStore, on_delete=models.CASCADE, null=True, blank=True, related_name="estore_product_listings")
 
     slug = models.SlugField(default="", null=False, blank=True, db_index=True)
 
