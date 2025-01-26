@@ -222,27 +222,35 @@ def product_listings(
     feature_filters: str = Query(None, description="Feature filters as JSON string"),  # Example: '{"1": ["4GB", "6GB"], "2": ["128GB"]}' ## 1 -> filter_template id
     ):
     qs = ProductListing.objects.all()
-
+    query = ""
     # Filter by category
     if category_id:
         qs = qs.filter(category__id=category_id)
+        query = query + "&category_id=" + category_id
 
     if search: 
         qs = qs.filter(name__contains=search)
+        query = query + "&search=" + search
+
 
     # Filter by brands
     if brand_ids:
         brand_id_list = brand_ids.split(",")  # Split comma-separated string into list
         qs = qs.filter(brand__id__in=brand_id_list)
+        query = query + "&brand_ids=" + brand_ids
 
     # Filter by price range
     if min_price is not None:
         qs = qs.filter(price__gte=min_price)
+        query = query + "&min_price=" + min_price
+        
     if max_price is not None:
         qs = qs.filter(price__lte=max_price)
+        query = query + "&max_price=" + max_price
 
     # Filter by features
     if feature_filters:
+        query = query + "&feature_filters=" + feature_filters
         try:
             for feature_template_id, values in feature_filters.items():
                 qs = qs.filter(
@@ -254,10 +262,11 @@ def product_listings(
 
     # Ordering
     if ordering:
+        query = query + "&ordering=" + ordering
         qs = qs.order_by(ordering)
 
     # Paginate the results
-    return paginate_queryset(request, qs, ProductListingOutSchema, page, page_size)
+    return paginate_queryset(request, qs, ProductListingOutSchema, page, page_size,query)
 
 
 
