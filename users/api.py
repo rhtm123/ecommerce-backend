@@ -94,19 +94,30 @@ def create_user(request, payload: UserCreateSchema):
 
 # Read Users (List)
 @router.get("/users/", response=PaginatedResponseSchema)
-def users(request,  page: int = Query(1), page_size: int = Query(10), search: str = None, role:str = None , ordering: str = None,):
+def users(request,  page: int = Query(1), page_size: int = Query(10), search: str = None, role:str = None , ordering: str = None, estore_id: int = None):
     qs = User.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
 
+    query = ""
+
+    if estore_id:
+        qs = qs.filter(estore__id=estore_id)
+        query = query + "&estore_id=" + str(estore_id)
+
     if role:
         qs = qs.filter(role=role)
+        query = query + "&role=" + role
 
     if search:
         qs = qs.filter(mobile__icontains=search)
+        query = query + "&search=" + search
+
     
     if ordering:
         qs = qs.order_by(ordering)
+        query = query + "&ordering=" + ordering
+
 
 
     return paginate_queryset(request, qs, UserOutSchema, page_number, page_size)
@@ -153,14 +164,22 @@ def entities(request,  page: int = Query(1), page_size: int = Query(10), search:
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
 
+    query = ""
+
     if entity_type:
         qs = qs.filter(entity_type=entity_type)
+        query = query + "&entity_type=" + entity_type
+        
 
     if search:
         qs = qs.filter(name__icontains=search)
+        query = query + "&search=" + search
+
     
     if ordering:
         qs = qs.order_by(ordering)
+        query = query + "&ordering=" + ordering
+
 
     return paginate_queryset(request, qs, EntityOutSchema, page_number, page_size)
 
