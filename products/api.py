@@ -52,13 +52,21 @@ def create_category(request, payload: CategoryCreateSchema):
 
 # Read Users (List)
 @router.get("/categories/", response=PaginatedResponseSchema)
-def categories(request,  page: int = Query(1), page_size: int = Query(10), level: int = None):
+def categories(request,  page: int = Query(1), page_size: int = Query(10), estore_id: int =None ,level: int = None):
     qs = Category.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
 
+    query = ""
+
+    if estore_id is not None:
+        qs = qs.filter(estore__id=estore_id)
+        query = query + "&estore_id=" + str(estore_id)
+
     if level:
         qs = qs.filter(level=level)
+        query = query + "&level=" + str(level)
+
 
     return paginate_queryset(request, qs, CategoryOutSchema, page_number, page_size)
 

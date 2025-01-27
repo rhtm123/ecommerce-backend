@@ -9,8 +9,8 @@ class Address(models.Model):
     city = models.CharField(max_length=255, blank=True)
     country = models.CharField(max_length=255, blank=True, default="India")
     pin = models.CharField(max_length=255, blank=True)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True,)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     google_map_url = models.URLField(max_length=500, blank=True, null=True)
 
     created = models.DateTimeField(auto_now_add=True)

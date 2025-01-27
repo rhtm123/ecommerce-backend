@@ -27,16 +27,25 @@ def create_review(request, payload: ReviewCreateSchema):
 
 # Read Reviews (List)
 @router.get("/reviews/", response=PaginatedResponseSchema)
-def reviews(request,  page: int = Query(1), page_size: int = Query(10), product_listing_id:str = None , ordering: str = None,):
+def reviews(request,  page: int = Query(1), page_size: int = Query(10), product_listing_id:str = None , ordering: str = None, estore_id: int = None):
     qs = Review.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
 
+    query = ""
+    if estore_id:
+        qs = qs.filter(product_listing__estore__id = estore_id)
+        query = query + "&estore_id=" + estore_id
+
     if product_listing_id:
         qs = qs.filter(product_listing__id=product_listing_id)
+        query = query + "&product_listing_id=" + product_listing_id
+
 
     if ordering:
         qs = qs.order_by(ordering)
+        query = query + "&ordering=" + ordering
+        
 
     return paginate_queryset(request, qs, ReviewOutSchema, page_number, page_size)
 
