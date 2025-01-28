@@ -19,6 +19,7 @@ from utils.pagination import PaginatedResponseSchema, paginate_queryset
 import json 
 from django.db.models import Min, Max, Count
 
+from django.db.models import Q
 
 router = Router()
 
@@ -216,6 +217,8 @@ def create_product_listing(request, payload: ProductListingCreateSchema):
 # Read ProductListings (List)
 # /api/product_listings/?category_id=5&brand_ids=1&min_price=2000&feature_filters={"ram":["8GB"]}
 
+
+
 @router.get("/product_listings/", response=PaginatedResponseSchema)
 def product_listings(
     request,
@@ -224,26 +227,33 @@ def product_listings(
     category_id: str = None,
     search: str = None,
     ordering: str = None,
-    brand_ids: str = Query(None, description="Comma-separated brand IDs"),  # Example: '1,2,3'
+    brand_ids: str = Query(None, description="Comma-separated brand IDs"),
     min_price: int = Query(None, description="Minimum price"),
     max_price: int = Query(None, description="Maximum price"),
-    feature_filters: str = Query(None, description="Feature filters as JSON string"),  # Example: '{"1": ["4GB", "6GB"], "2": ["128GB"]}' ## 1 -> filter_template id
-    ):
+    feature_filters: str = Query(None, description="Feature filters as JSON string"),
+):
     qs = ProductListing.objects.all()
     query = ""
-    # Filter by category
+
+    # Filter by category and its children
     if category_id:
-        qs = qs.filter(category__id=category_id)
-        query = query + "&category_id=" + category_id
+        try:
+            category = Category.objects.get(id=category_id)
+            children = category.get_children()
+            descendants = Category.objects.filter(Q(id=category.id) | Q(id__in=children.values_list('id', flat=True)))
+            qs = qs.filter(category__in=descendants)
+            query = query + "&category_id=" + category_id
+        except Category.DoesNotExist:
+            return {"error": "Category not found"}
 
-    if search: 
-        qs = qs.filter(name__contains=search)
+    # Filter by search term
+    if search:
+        qs = qs.filter(Q(name__icontains=search) | Q(product__name__icontains=search))
         query = query + "&search=" + search
-
 
     # Filter by brands
     if brand_ids:
-        brand_id_list = brand_ids.split(",")  # Split comma-separated string into list
+        brand_id_list = brand_ids.split(",")
         qs = qs.filter(brand__id__in=brand_id_list)
         query = query + "&brand_ids=" + brand_ids
 
@@ -251,7 +261,7 @@ def product_listings(
     if min_price is not None:
         qs = qs.filter(price__gte=min_price)
         query = query + "&min_price=" + str(min_price)
-        
+
     if max_price is not None:
         qs = qs.filter(price__lte=max_price)
         query = query + "&max_price=" + str(max_price)
@@ -260,6 +270,7 @@ def product_listings(
     if feature_filters:
         query = query + "&feature_filters=" + feature_filters
         try:
+            feature_filters = json.loads(feature_filters)  # Parse the JSON string
             for feature_template_id, values in feature_filters.items():
                 qs = qs.filter(
                     product_listing_features__feature_template__id=feature_template_id,
@@ -274,8 +285,7 @@ def product_listings(
         qs = qs.order_by(ordering)
 
     # Paginate the results
-    return paginate_queryset(request, qs, ProductListingOutSchema, page, page_size,query)
-
+    return paginate_queryset(request, qs, ProductListingOutSchema, page, page_size, query)
 
 
 @router.get("/sidebar_filters/", tags=["Sidebar filters"])
