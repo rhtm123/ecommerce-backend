@@ -19,6 +19,9 @@ router = Router()
 GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID")
 
 from ninja_jwt.tokens import RefreshToken
+
+from ninja_jwt.authentication import JWTAuth
+
 from google.oauth2 import id_token
 from google.auth.transport import requests
 
@@ -129,9 +132,11 @@ def retrieve_user(request, user_id: int):
     return user
 
 # Update User
-@router.put("/users/{user_id}/", response=UserOutSchema)
+@router.put("/users/{user_id}/", response=UserOutSchema, auth=JWTAuth())
 def update_user(request, user_id: int, payload: UserUpdateSchema):
     user = get_object_or_404(User, id=user_id)
+
+    print(payload.dict());
     for attr, value in payload.dict().items():
         if value is not None:
             setattr(user, attr, value)
@@ -211,7 +216,7 @@ def delete_entity(request, entity_id: int):
 
 
 
-@router.post("/shipping_addresses/", response=ShippingAddressOutSchema)
+@router.post("/shipping_addresses/", response=ShippingAddressOutSchema, auth=JWTAuth())
 def create_shipping_address(request, payload: ShippingAddressCreateSchema):
 
     shipping_address = ShippingAddress(**payload.dict())   
@@ -253,7 +258,7 @@ def update_shipping_address(request, shipping_address_id: int, payload: Shipping
     return shipping_address
 
 # Delete ShippingAddress
-@router.delete("/shipping_addresses/{shipping_address_id}/")
+@router.delete("/shipping_addresses/{shipping_address_id}/", auth=JWTAuth())
 def delete_shipping_address(request, shipping_address_id: int):
     shipping_address = get_object_or_404(ShippingAddress, id=shipping_address_id)
     shipping_address.delete()

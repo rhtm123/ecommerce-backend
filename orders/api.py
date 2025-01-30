@@ -14,7 +14,11 @@ from django.shortcuts import get_object_or_404
 
 from utils.pagination import PaginatedResponseSchema, paginate_queryset
 
+from ninja_jwt.authentication import JWTAuth
+
+
 router = Router()
+
 
 ############## 1 city ###########################
 
@@ -22,7 +26,7 @@ router = Router()
 
 
 # Create Order
-@router.post("/orders/", response=OrderOutSchema)
+@router.post("/orders/", response=OrderOutSchema, auth=JWTAuth())
 def create_order(request, payload: OrderCreateSchema):
 
     # locality = get_object_or_404(Locality, id=payload.locality_id)
@@ -35,17 +39,23 @@ def create_order(request, payload: OrderCreateSchema):
 # Read Orders (List)
 @router.get("/orders/", response=PaginatedResponseSchema)
 def orders(request,  page: int = Query(1), page_size: int = Query(10), user_id: int = None, ordering: str = None):
-    qs = Order.objects.all()
+    # qs = Order.objects.all()
+    qs = Order.objects.prefetch_related("items")  # Fetch order items efficiently
+
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
 
+    query = ""
+
     if user_id:
         qs = qs.filter(user__id=user_id)
+        query = query + "&user_id=" + str(user_id)
 
     if ordering:
         qs = qs.order_by(ordering)
+        query = query + "&ordering=" + ordering
 
-    return paginate_queryset(request, qs, OrderOutSchema, page_number, page_size)
+    return paginate_queryset(request, qs, OrderOutSchema, page_number, page_size, query)
 
 # Read Single Order (Retrieve)
 @router.get("/orders/{order_id}/", response=OrderOutSchema)
@@ -74,7 +84,7 @@ def delete_order(request, order_id: int):
 
 
 # Create OrderItem
-@router.post("/order_items/", response=OrderItemOutSchema)
+@router.post("/order_items/", response=OrderItemOutSchema, auth=JWTAuth())
 def create_order_item(request, payload: OrderItemCreateSchema):
 
     # locality = get_object_or_404(Locality, id=payload.locality_id)
@@ -91,13 +101,16 @@ def order_items(request,  page: int = Query(1), page_size: int = Query(10), orde
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
 
+    query = ""
     if order_id:
         qs = qs.filter(order__id=order_id)
+        query = query + "&order_id=" + str(order_id)
 
     if ordering:
         qs = qs.order_by(ordering)
+        query = query + "&ordering=" + ordering
 
-    return paginate_queryset(request, qs, OrderItemOutSchema, page_number, page_size)
+    return paginate_queryset(request, qs, OrderItemOutSchema, page_number, page_size, query)
 
 # Read Single OrderItem (Retrieve)
 @router.get("/order_items/{order_item_id}/", response=OrderItemOutSchema)

@@ -4,11 +4,11 @@ from django.db import models
 
 class Address(models.Model):
     line1 = models.CharField(max_length=255)  # Flat/Apartment/Building
-    line2 = models.CharField(max_length=255, blank=True, null=True)
+    line2 = models.CharField(max_length=255, blank=True, null=True) # locality
     landmark = models.CharField(max_length=255, blank=True, null=True)
     city = models.CharField(max_length=255, blank=True)
     country = models.CharField(max_length=255, blank=True, default="India")
-    pin = models.CharField(max_length=255, blank=True)
+    pin = models.CharField(max_length=10, blank=True, null=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     google_map_url = models.URLField(max_length=500, blank=True, null=True)

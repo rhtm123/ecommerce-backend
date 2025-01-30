@@ -1,6 +1,32 @@
 from datetime import datetime
 from typing import List, Optional
 from ninja import Schema
+from ninja.schema import Field
+
+
+# from products.schemas import ProductListingOutSchema
+
+class ProductListingSchema(Schema):
+    id: int
+    name: Optional[str] = None
+    slug: str
+
+    price: float
+    stock: int
+    # rating: Optional[float] = None
+    # popularity: Optional[int] = None
+    created: datetime
+    updated: datetime
+
+
+class OrderItemOutSchema(Schema):
+    id: int
+    order_id: int
+    product_listing: Optional[ProductListingSchema] = None
+    # product_listing_product_name: str
+    quantity: int
+    price: float
+    subtotal: float
 
 
 class OrderOutSchema(Schema):
@@ -13,15 +39,17 @@ class OrderOutSchema(Schema):
     tracking_number: Optional[str] = None
     notes: Optional[str] = None
     # discount: float
-    created_at: datetime
-    updated_at: datetime
-    # items: List['OrderItemOutSchema']  # Nested items schema
+    created: datetime
+    updated: datetime
+    # items: List[OrderItemOutSchema]  # Nested items schema
 
 class OrderCreateSchema(Schema):
     user_id: int
     shipping_address_id: Optional[int] = None
-    notes: Optional[str] = None
-    discount: Optional[float] = 0.00
+    estore_id: Optional[int] = None
+    # notes: Optional[str] = None
+    # discount: Optional[float] = 0.00
+    total_amount: Optional[float] = 0.00
 
 class OrderUpdateSchema(Schema):
     status: Optional[str] = None
@@ -33,21 +61,14 @@ class OrderUpdateSchema(Schema):
 
 ####################### Order Item ###########################
 
-class OrderItemOutSchema(Schema):
-    id: int
-    order_id: int
-    product_listing_id: int
-    product_name: str
-    quantity: int
-    price: float
-    subtotal: float
+
 
 class OrderItemCreateSchema(Schema):
     order_id: int
     product_listing_id: int
-    product_name: str
     quantity: int
     price: float
+    subtotal: float
 
 class OrderItemUpdateSchema(Schema):
     quantity: Optional[int] = None

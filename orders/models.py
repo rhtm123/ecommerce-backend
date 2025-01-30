@@ -44,5 +44,5 @@ class OrderItem(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.product_name} ({self.quantity})"
+        return f"{self.product_listing.name} ({self.quantity})"
 

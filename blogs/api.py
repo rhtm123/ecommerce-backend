@@ -17,14 +17,16 @@ def blogs(request, page: int = Query(1), page_size: int = Query(10), category_id
     qs = Blog.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
-
+    query = ""
     if category_id:
         qs = qs.filter(category__id = category_id)
+        query = query + "&category_id=" + str(category_id)
 
     if tag_id:
         qs = qs.filter(tags__id = tag_id)
+        query = query + "&tag_id=" + str(tag_id)
 
-    return paginate_queryset(request, qs, BlogOutSchema, page_number, page_size)
+    return paginate_queryset(request, qs, BlogOutSchema, page_number, page_size, query)
 
 
 @router.get("/blogs/{blog_id}", response=BlogOutSchema)

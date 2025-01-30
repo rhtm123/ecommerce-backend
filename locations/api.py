@@ -12,19 +12,18 @@ from utils.pagination import PaginatedResponseSchema, paginate_queryset
 
 router = Router()
 
+from ninja_jwt.authentication import JWTAuth
+
+
 ############## 1 city ###########################
 
 ######################## Address #######################
 
 
 # Create Address
-@router.post("/addresses/", response=AddressOutSchema)
+@router.post("/addresses/", response=AddressOutSchema, auth=JWTAuth())
 def create_address(request, payload: AddressCreateSchema):
-
-    # locality = get_object_or_404(Locality, id=payload.locality_id)
-
     address = Address(**payload.dict())
-        
     address.save()
     return address
 
@@ -63,7 +62,7 @@ def update_address(request, address_id: int, payload: AddressUpdateSchema):
     return address
 
 # Delete Address
-@router.delete("/addresses/{address_id}/")
+@router.delete("/addresses/{address_id}/", auth=JWTAuth())
 def delete_address(request, address_id: int):
     address = get_object_or_404(Address, id=address_id)
     address.delete()

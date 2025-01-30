@@ -15,6 +15,15 @@ class User(AbstractUser):
     mobile = models.CharField(max_length=15, null=True, blank=True)
     alternate_mobile = models.CharField(max_length=15, null=True, blank=True)
 
+    GENDER_CHOICES = [
+        ("",""),
+        ('male', 'male'),
+        ('female', 'female'),
+        ("other", 'other'),
+    ]
+
+    gender = models.CharField(max_length=255, choices=GENDER_CHOICES, null=True, blank=True);
+
     estore = models.ForeignKey(EStore, on_delete=models.CASCADE, null=True, blank=True, related_name="estore_users")
 
     ROLE_CHOICES = [
@@ -61,8 +70,10 @@ class Entity(models.Model):
 
 class ShippingAddress(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
+    name = models.CharField(max_length=255, null=True, blank=True)
+    mobile = models.CharField(max_length=15, null=True, blank=True)
     address = models.ForeignKey(Address, on_delete=models.CASCADE,blank=True, null=True)
-
+    type = models.CharField(max_length=100, default="home", blank=True, null=True)
     is_default = models.BooleanField(default=False)
 
     created = models.DateTimeField(auto_now_add=True)
