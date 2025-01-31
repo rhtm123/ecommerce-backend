@@ -11,6 +11,7 @@ class AddressOutSchema(Schema):
     line1: str
     line2: Optional[str] = None
     city: Optional[str] = None
+    state: Optional[str] = None
     country: Optional[str] = "India"
     pin: Optional[str] = None
     latitude: Optional[float] = None
@@ -23,6 +24,7 @@ class AddressCreateSchema(Schema):
     line1: str
     line2: Optional[str] = None
     city: Optional[str] = None
+    state: Optional[str] = None
     country: Optional[str] = "India"
     pin: Optional[str] = None
     latitude: Optional[float] = None
@@ -34,6 +36,7 @@ class AddressUpdateSchema(Schema):
     line1: Optional[str] = None
     line2: Optional[str] = None
     city: Optional[str] = None
+    state: Optional[str] = None
     country: Optional[str] = None
     pin: Optional[str] = None
     latitude: Optional[float] = None

@@ -7,6 +7,8 @@ class Address(models.Model):
     line2 = models.CharField(max_length=255, blank=True, null=True) # locality
     landmark = models.CharField(max_length=255, blank=True, null=True)
     city = models.CharField(max_length=255, blank=True)
+    state = models.CharField(max_length=255, blank=True)
+
     country = models.CharField(max_length=255, blank=True, default="India")
     pin = models.CharField(max_length=10, blank=True, null=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
