@@ -61,10 +61,9 @@ def google_auth(request, payload: TokenSchema):
         # Check if the user exists in the database, if not, create them
         user, created = User.objects.get_or_create(username=email, defaults={"email": email})
 
-        if not created:
-            user.first_name = first_name
-            user.last_name = last_name
-            user.save()
+        user.first_name = first_name
+        user.last_name = last_name
+        user.save()
 
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
