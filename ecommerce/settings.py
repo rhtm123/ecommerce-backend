@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'ninja_jwt',
     'django_cleanup.apps.CleanupConfig',
     "treebeard",
+    'django_summernote',
     "users.apps.UsersConfig",
     "locations.apps.LocationsConfig",
     "products.apps.ProductsConfig",
@@ -62,6 +63,7 @@ INSTALLED_APPS = [
     "blogs.apps.BlogsConfig",
     "domains.apps.DomainsConfig",
     "estores.apps.EstoresConfig",
+    "versions.apps.VersionsConfig",
 ]
 
 MIDDLEWARE = [
