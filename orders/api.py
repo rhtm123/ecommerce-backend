@@ -46,7 +46,7 @@ from .models import OrderItem
 
 router = Router()
 
-@router.get("/analytics", tags=["Analytics"])
+@router.get("/seller-analytics", tags=["Analytics"])
 def analytics(request, seller_id: int = None, period: str = "lifetime"):
     """API for seller analytics with optional time filtering (week/month/lifetime)"""
 
@@ -89,7 +89,7 @@ def analytics(request, seller_id: int = None, period: str = "lifetime"):
     }
 
 
-@router.get("/analytics/sales-breakdown", tags=["Analytics"])
+@router.get("/seller-analytics/sales-breakdown", tags=["Analytics"])
 def sales_breakdown(request, period: str, seller_id: int = None):
     """API for daily sales breakdown over the last week or month
     period possible values > weekly, monthly
