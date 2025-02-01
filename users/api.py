@@ -65,6 +65,18 @@ def google_auth(request, payload: TokenSchema):
         user.last_name = last_name
         user.save()
 
+        entity = None
+        try: 
+            entity_object = Entity.objects.get(user=user)
+            entity = {
+                "id": entity_object.id,
+                "entity_type": entity_object.entity_type,
+                "name": entity_object.name,
+            }
+
+        except:
+            pass
+
         # Generate JWT tokens
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
@@ -76,6 +88,7 @@ def google_auth(request, payload: TokenSchema):
             "last_name":user.last_name,
             "access_token": access_token,
             "refresh_token": str(refresh),
+            "entity": entity
         }
     except ValueError:
         return {"error": "Invalid Google token"}

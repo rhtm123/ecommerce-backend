@@ -36,8 +36,21 @@ class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
     product_listing = models.ForeignKey(ProductListing, on_delete=models.CASCADE, related_name='order_items')
     quantity = models.PositiveIntegerField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)  # Price at the time of purchase
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered'),
+        ('canceled', 'Canceled'),
+    ]
+
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
+
+    price = models.DecimalField(max_digits=10, decimal_places=2)  # Price of 1 Item 
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+
+    created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    updated = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         self.subtotal = self.quantity * self.price

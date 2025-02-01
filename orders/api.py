@@ -12,9 +12,14 @@ from .schemas import (
 
 from django.shortcuts import get_object_or_404
 
+from django.db.models import Sum, Count, F, Avg
+
+
 from utils.pagination import PaginatedResponseSchema, paginate_queryset
 
 from ninja_jwt.authentication import JWTAuth
+
+from datetime import datetime, timedelta
 
 
 router = Router()
@@ -23,6 +28,108 @@ router = Router()
 ############## 1 city ###########################
 
 ######################## Order #######################
+
+
+
+from datetime import datetime, timedelta
+from django.db.models import Sum, Avg
+from ninja import Router
+from .models import OrderItem
+
+router = Router()
+
+
+from datetime import datetime, timedelta
+from django.db.models import Sum, Avg, Count
+from ninja import Router
+from .models import OrderItem
+
+router = Router()
+
+@router.get("/analytics", tags=["Analytics"])
+def analytics(request, seller_id: int = None, period: str = "lifetime"):
+    """API for seller analytics with optional time filtering (week/month/lifetime)"""
+
+    qs = OrderItem.objects.all()
+
+    # Ensure seller_id is filtered through product_listing
+    if seller_id:
+        qs = qs.filter(product_listing__seller_id=seller_id)
+
+    # Handle time-based filtering
+    if period != "lifetime":
+        if period == "week":
+            start_date = datetime.now() - timedelta(days=7)
+        elif period == "month":
+            start_date = datetime.now() - timedelta(days=30)
+        else:
+            return {"error": "Invalid period. Use 'week', 'month', or 'lifetime'."}
+
+        qs = qs.filter(created__gte=start_date)
+
+    # Aggregations
+    total_items = qs.count()
+    total_revenue = qs.aggregate(total_revenue=Sum("subtotal"))["total_revenue"] or 0
+    total_orders = qs.values("order").distinct().count()  # Count unique orders
+
+    print(total_orders)
+
+    orders = (
+        qs.values("order")
+        .annotate(order_total=Sum("subtotal"))
+        .aggregate(average_order_value=Avg("order_total"))
+    )
+    average_order_value = orders["average_order_value"] or 0
+
+    return {
+        "total_orders": total_orders,
+        "average_order_value": average_order_value,
+        "total_items": total_items,
+        "total_revenue": total_revenue,
+    }
+
+
+@router.get("/analytics/sales-breakdown", tags=["Analytics"])
+def sales_breakdown(request, period: str, seller_id: int = None):
+    """API for daily sales breakdown over the last week or month
+    period possible values > weekly, monthly
+    """
+     
+    # Determine the date range
+    if period == "weekly":
+        days = 7
+    elif period == "monthly":
+        days = 30
+    else:
+        return {"error": "Invalid period. Use 'weekly' or 'monthly'."}
+
+    start_date = datetime.now() - timedelta(days=days)
+
+    qs = OrderItem.objects.filter(created__gte=start_date)
+
+    # Ensure seller_id filtering
+    if seller_id:
+        qs = qs.filter(product_listing__seller_id=seller_id)
+
+    # Aggregate daily sales: revenue + count
+    daily_sales = (
+        qs.values("created__date")
+        .annotate(
+            total_revenue=Sum("subtotal"),
+            total_quantity=Sum("quantity"),
+            total_orders=Count("order", distinct=True)
+        )
+        .order_by("created__date")
+    )
+
+    return {"period": period, "sales_breakdown": list(daily_sales)}
+
+
+
+
+
+
+
 
 
 # Create Order
@@ -96,7 +203,7 @@ def create_order_item(request, payload: OrderItemCreateSchema):
 
 # Read OrderItems (List)
 @router.get("/order_items/", response=PaginatedResponseSchema)
-def order_items(request,  page: int = Query(1), page_size: int = Query(10), order_id: int = None, ordering: str = None):
+def order_items(request,  page: int = Query(1), page_size: int = Query(10), order_id: int = None, seller_id:int = None , status:str = None , ordering: str = None):
     qs = OrderItem.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
@@ -105,6 +212,14 @@ def order_items(request,  page: int = Query(1), page_size: int = Query(10), orde
     if order_id:
         qs = qs.filter(order__id=order_id)
         query = query + "&order_id=" + str(order_id)
+
+    if status:
+        qs = qs.filter(status=status)
+        query = query + "&status=" + str(status)
+
+    if seller_id:
+        qs = qs.filter(product_listing__seller__id=seller_id)
+        query = query + "&seller_id=" + str(seller_id)
 
     if ordering:
         qs = qs.order_by(ordering)

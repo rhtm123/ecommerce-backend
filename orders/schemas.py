@@ -27,6 +27,10 @@ class OrderItemOutSchema(Schema):
     quantity: int
     price: float
     subtotal: float
+    status: Optional[str] = "pending"
+    created: datetime
+    updated: datetime
+
 
 
 class OrderOutSchema(Schema):
