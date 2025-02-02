@@ -63,6 +63,7 @@ class OrderUpdateSchema(Schema):
     discount: Optional[float] = None
 
 
+
 ####################### Order Item ###########################
 
 
@@ -77,3 +78,5 @@ class OrderItemCreateSchema(Schema):
 class OrderItemUpdateSchema(Schema):
     quantity: Optional[int] = None
     price: Optional[float] = None
+    status: str
+

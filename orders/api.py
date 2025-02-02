@@ -234,7 +234,7 @@ def retrieve_order_item(request, order_item_id: int):
     return order_item
 
 # Update OrderItem
-@router.put("/order_items/{order_item_id}/", response=OrderItemOutSchema)
+@router.put("/order_items/{order_item_id}/", response=OrderItemOutSchema, auth=JWTAuth())
 def update_order_item(request, order_item_id: int, payload: OrderItemUpdateSchema):
     order_item = get_object_or_404(OrderItem, id=order_item_id)
     for attr, value in payload.dict().items():
