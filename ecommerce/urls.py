@@ -61,8 +61,8 @@ api.add_router("product/", products_api, tags=['Products API'])
 api.add_router("cart/", carts_api, tags=['Carts API'])
 api.add_router("order/", orders_api, tags=['Orders API'])
 api.add_router("qna/", qna_api, tags=['Questions and Answers API'])
-api.add_router("reviews/", reviews_api, tags=['Reviews API'])
-api.add_router("blogs/", blogs_api, tags=['blogs API'])
+api.add_router("review/", reviews_api, tags=['Reviews API'])
+api.add_router("blog/", blogs_api, tags=['blogs API'])
 
 urlpatterns = [
     path('admin/', admin.site.urls),

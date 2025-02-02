@@ -3,13 +3,25 @@ from ninja import Schema
 from typing import Optional, List
 from datetime import datetime  # Import datetime
 
-from .models import Blog
+from .models import Blog, Tag
 
 from users.schemas import UserOutSchema
 
 from .models import Category
 
 from products.schemas import CategoryOutSchema
+
+
+
+class TagOutSchema(Schema):
+    id: int
+    slug: str
+    name: str
+
+    estore_id: Optional[int] = None
+
+    created: datetime
+    updated: datetime
 
 
 
@@ -49,7 +61,7 @@ class BlogOutSchema(Schema):
     read_time: int  # Minutes
     likes: int
     dislikes: int
-    # tags: List[TagSchema] = []  # List of nested Tag schemas
+    tags: List[TagOutSchema] = []  # List of nested Tag schemas
     created: datetime
     updated: datetime
 

@@ -21,6 +21,9 @@ from django.db.models import Min, Max, Count
 
 from django.db.models import Q
 
+from typing import Optional
+
+
 router = Router()
 
 ############################ Category ############################
@@ -53,7 +56,14 @@ def create_category(request, payload: CategoryCreateSchema):
 
 # Read Users (List)
 @router.get("/categories/", response=PaginatedResponseSchema)
-def categories(request,  page: int = Query(1), page_size: int = Query(10), estore_id: int =None ,level: int = None):
+def categories(
+        request,
+        page: int = Query(1, description="Page number"),
+        page_size: int = Query(10, description="Number of items per page"),
+        estore_id: Optional[int] = Query(None, description="Filter by EStore ID"),
+        level: Optional[int] = Query(None, description="Filter by category level"),
+        has_blogs: Optional[bool] = Query(None, description="Filter categories that have associated blogs"),
+    ):
     qs = Category.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
@@ -68,6 +78,9 @@ def categories(request,  page: int = Query(1), page_size: int = Query(10), estor
         qs = qs.filter(level=level)
         query = query + "&level=" + str(level)
 
+    if has_blogs:
+        qs = qs.filter(category_blogs__isnull=False).distinct()
+        query = query + "&has_blogs=" + str(has_blogs)
 
     return paginate_queryset(request, qs, CategoryOutSchema, page_number, page_size)
 
