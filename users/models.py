@@ -55,9 +55,12 @@ class User(AbstractUser):
 
 
 class Entity(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="user_entities")  # Foreign key to the User model
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="user_entities", null=True, blank=True)  # Foreign key to the User model
     name = models.CharField(max_length=255, help_text="Name of the entity")
     gst_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
+    website = models.URLField(null=True, blank=True)
+    details = models.TextField(null=True, blank=True)
+    
     entity_type = models.CharField(max_length=255) # brand, seller, manufacturer, packager
     address = models.ForeignKey(Address, on_delete=models.CASCADE, blank=True, null=True)
     
