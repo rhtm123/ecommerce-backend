@@ -14,6 +14,8 @@ class ReviewOutSchema(Schema):
     user: Optional[UserOutSchema] = None
     product_listing_id: int
     comment: Optional[str] = None
+    title: Optional[str] = None
+
     rating: int
 
     created: datetime
@@ -24,8 +26,11 @@ class ReviewCreateSchema(Schema):
     user_id: Optional[int] = None
     product_listing_id: int
     rating: int
+    title: Optional[str] = None
+
 
 
  
 class ReviewUpdateSchema(Schema):
     comment: Optional[str] = None
+    title: Optional[str] = None
