@@ -12,9 +12,22 @@ class Question(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+
+        if len(self.question_text) > 48:
+            return self.question_text[:48]
+        return self.question_text
+
 class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="question_answers")
     user = models.ForeignKey(User, on_delete=models.SET_NULL, related_name="user_answers", null=True,blank=True)
     answer_text = models.TextField()
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+
+        if len(self.answer_text) > 48:
+            return self.answer_text[:48]
+        return self.answer_text
+
