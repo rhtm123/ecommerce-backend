@@ -7,6 +7,7 @@ from .models import Order, OrderItem
 from .schemas import (
     OrderCreateSchema, OrderOutSchema, OrderUpdateSchema,
     OrderItemCreateSchema, OrderItemUpdateSchema, OrderItemOutSchema,
+    OrderItemOutOneSchema
     
 )
 
@@ -202,8 +203,18 @@ def create_order_item(request, payload: OrderItemCreateSchema):
     return order_item
 
 # Read OrderItems (List)
+
 @router.get("/order_items/", response=PaginatedResponseSchema)
-def order_items(request,  page: int = Query(1), page_size: int = Query(10), order_id: int = None, seller_id:int = None , status:str = None , ordering: str = None):
+def order_items(
+    request,  
+    page: int = Query(1), 
+    page_size: int = Query(10), 
+    order_id: int = None, 
+    seller_id: int = None, 
+    status: str = None, 
+    ordering: str = None, 
+    need_reviews: bool = False,
+):
     qs = OrderItem.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
@@ -211,27 +222,92 @@ def order_items(request,  page: int = Query(1), page_size: int = Query(10), orde
     query = ""
     if order_id:
         qs = qs.filter(order__id=order_id)
-        query = query + "&order_id=" + str(order_id)
+        query += f"&order_id={order_id}"
 
     if status:
         qs = qs.filter(status=status)
-        query = query + "&status=" + str(status)
+        query += f"&status={status}"
 
     if seller_id:
         qs = qs.filter(product_listing__seller__id=seller_id)
-        query = query + "&seller_id=" + str(seller_id)
+        query += f"&seller_id={seller_id}"
 
     if ordering:
         qs = qs.order_by(ordering)
-        query = query + "&ordering=" + ordering
+        query += f"&ordering={ordering}"
+
+    # Fetch data and add review details
+
+    if need_reviews:
+        order_items_data = []
+        for item in qs:
+            review = getattr(item, 'order_item_reviews', None)  # Access OneToOneField safely
+
+            order_items_data.append({
+                "id": item.id,
+                "order_id": item.order.id,
+                "product_listing": {
+                    "name":item.product_listing.name,
+                    "id": item.product_listing.id,
+                    "slug":item.product_listing.slug,
+                },
+                "quantity": item.quantity,
+                "price": float(item.price),
+                "subtotal": float(item.subtotal),
+                "status": item.status,
+                "created": item.created,
+                "updated": item.updated,
+                "review": {
+                    "id": review.id,
+                    "rating": review.rating,
+                    "title": review.title,
+                    "comment": review.comment,
+                    "created": review.created,
+                    "updated": review.updated
+                } if review else None  # Include review only if it exists
+            })
+
+        return paginate_queryset(request, order_items_data, OrderItemOutSchema, page_number, page_size, query)
 
     return paginate_queryset(request, qs, OrderItemOutSchema, page_number, page_size, query)
+     
 
 # Read Single OrderItem (Retrieve)
-@router.get("/order_items/{order_item_id}/", response=OrderItemOutSchema)
+
+@router.get("/order_items/{order_item_id}/", response=OrderItemOutOneSchema)
 def retrieve_order_item(request, order_item_id: int):
     order_item = get_object_or_404(OrderItem, id=order_item_id)
-    return order_item
+
+    # Access the review safely
+    review = getattr(order_item, 'order_item_reviews', None)
+
+    return {
+        "id": order_item.id,
+        "order": {
+            "id": order_item.order.id,
+            "user_id": order_item.order.user.id,
+        },
+         "product_listing": {
+                    "name":order_item.product_listing.name,
+                    "id": order_item.product_listing.id,
+                    "slug":order_item.product_listing.slug,
+        }, 
+        "quantity": order_item.quantity,
+        "price": float(order_item.price),
+        "subtotal": float(order_item.subtotal),
+        "status": order_item.status,
+        "created": order_item.created,
+        "updated": order_item.updated,
+        "review": {
+            "id": review.id,
+            "rating": review.rating,
+            "title": review.title,
+            "comment": review.comment,
+            "created": review.created,
+            "updated": review.updated
+        } if review else None  # Include review only if it exists
+    }
+
 
 # Update OrderItem
 @router.put("/order_items/{order_item_id}/", response=OrderItemOutSchema, auth=JWTAuth())

@@ -38,7 +38,7 @@ def tag(request, tag_id: int):
     return page
 
 @router.get("/tags/slug/{tag_slug}", response=TagOutSchema)
-def tag(request, tag_slug: str):
+def tag_slug(request, tag_slug: str):
     page = get_object_or_404(Tag, slug=tag_slug)
     return page
 
@@ -71,6 +71,6 @@ def blog(request, blog_id: int):
     return page
 
 @router.get("/blogs/slug/{blog_slug}", response=BlogOutSchema)
-def blog(request, blog_slug: str):
+def blog_slug(request, blog_slug: str):
     page = get_object_or_404(Blog, slug=blog_slug)
     return page

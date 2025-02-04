@@ -11,10 +11,20 @@ class ProductListingSchema(Schema):
     name: Optional[str] = None
     slug: str
 
-    price: float
-    stock: int
+    price: Optional[float] = None
+    stock: Optional[int] = None
     # rating: Optional[float] = None
     # popularity: Optional[int] = None
+    # created: datetime
+    # updated: datetime
+
+
+
+class ReviewOutSchema(Schema):
+    id: int
+    rating: int
+    title: Optional[str]
+    comment: Optional[str]
     created: datetime
     updated: datetime
 
@@ -23,6 +33,8 @@ class OrderItemOutSchema(Schema):
     id: int
     order_id: int
     product_listing: Optional[ProductListingSchema] = None
+
+    review: Optional[ReviewOutSchema] = None
     # product_listing_product_name: str
     quantity: int
     price: float
@@ -66,6 +78,22 @@ class OrderUpdateSchema(Schema):
 
 ####################### Order Item ###########################
 
+class OrderSchema(Schema):
+    id: int 
+    user_id : int
+
+class OrderItemOutOneSchema(Schema):
+    id: int
+    order: Optional[OrderSchema] = None
+    product_listing: Optional[ProductListingSchema] = None
+    review: Optional[ReviewOutSchema] = None
+    # product_listing_product_name: str
+    quantity: int
+    price: float
+    subtotal: float
+    status: Optional[str] = "pending"
+    created: datetime
+    updated: datetime
 
 
 class OrderItemCreateSchema(Schema):
