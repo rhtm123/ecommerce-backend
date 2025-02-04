@@ -5,7 +5,7 @@ from .models import Order, OrderItem
 
 
 from .schemas import (
-    OrderCreateSchema, OrderOutSchema, OrderUpdateSchema,
+    OrderCreateSchema, OrderOutSchema, OrderUpdateSchema, OrderOutOneSchema,
     OrderItemCreateSchema, OrderItemUpdateSchema, OrderItemOutSchema,
     OrderItemOutOneSchema
     
@@ -166,7 +166,7 @@ def orders(request,  page: int = Query(1), page_size: int = Query(10), user_id: 
     return paginate_queryset(request, qs, OrderOutSchema, page_number, page_size, query)
 
 # Read Single Order (Retrieve)
-@router.get("/orders/{order_id}/", response=OrderOutSchema)
+@router.get("/orders/{order_id}/", response=OrderOutOneSchema)
 def retrieve_order(request, order_id: int):
     order = get_object_or_404(Order, id=order_id)
     return order

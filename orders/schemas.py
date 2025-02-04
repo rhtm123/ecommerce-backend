@@ -4,6 +4,9 @@ from ninja import Schema
 from ninja.schema import Field
 
 
+from users.schemas import ShippingAddressOutSchema
+
+
 # from products.schemas import ProductListingOutSchema
 
 class ProductListingSchema(Schema):
@@ -52,12 +55,37 @@ class OrderOutSchema(Schema):
     total_amount: float
     shipping_address_id: Optional[int] = None
     payment_status: str
-    tracking_number: Optional[str] = None
+    # tracking_number: Optional[str] = None
     notes: Optional[str] = None
     # discount: float
     created: datetime
     updated: datetime
     # items: List[OrderItemOutSchema]  # Nested items schema
+
+
+class UserOutSchema(Schema):
+    id: int
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[str] = None
+    mobile: Optional[str] = None
+    role: str
+    created: datetime
+    updated: datetime
+
+
+class OrderOutOneSchema(Schema):
+    id: int
+    user: Optional[UserOutSchema] = None
+    status: str
+    total_amount: float
+    shipping_address: Optional[ShippingAddressOutSchema] = None
+    payment_status: str
+    # tracking_number: Optional[str] = None
+    notes: Optional[str] = None
+    # discount: float
+    created: datetime
+    updated: datetime
 
 class OrderCreateSchema(Schema):
     user_id: int
