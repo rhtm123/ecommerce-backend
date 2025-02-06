@@ -262,7 +262,7 @@ def product_listings(
         
     if featured:
         qs = qs.filter(featured =featured)
-        query = query + "&featured=" + featured
+        query = query + "&featured=" + str(featured)
 
     # Filter by search term
     if search:
