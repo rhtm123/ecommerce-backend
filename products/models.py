@@ -114,8 +114,8 @@ class ProductListing(models.Model):
     features = models.JSONField(null=True, blank=True)
     # features example -> {"general": [{"name":"ram", "value":"6gb"}, {'name':"storage, "value":"128gb"}], "camera": [{"name":"front camera", "value":"40mp"]} 
     approved = models.BooleanField(default=False)
-
-    listed = models.BooleanField(default=False)
+    featured = models.BooleanField(default=False)
+    # listed = models.BooleanField(default=False)
 
     main_image = CloudinaryField(
         "image",

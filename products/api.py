@@ -240,12 +240,13 @@ def product_listings(
     category_id: str = None,
     search: str = None,
     ordering: str = None,
+    featured: bool = None,
     brand_ids: str = Query(None, description="Comma-separated brand IDs"),
     min_price: int = Query(None, description="Minimum price"),
     max_price: int = Query(None, description="Maximum price"),
     feature_filters: str = Query(None, description="Feature filters as JSON string"),
 ):
-    qs = ProductListing.objects.all()
+    qs = ProductListing.objects.filter(approved=True)
     query = ""
 
     # Filter by category and its children
@@ -258,6 +259,10 @@ def product_listings(
             query = query + "&category_id=" + category_id
         except Category.DoesNotExist:
             return {"error": "Category not found"}
+        
+    if featured:
+        qs = qs.filter(featured =featured)
+        query = query + "&featured=" + featured
 
     # Filter by search term
     if search:
