@@ -14,6 +14,8 @@ from orders.models import OrderItem
 class Review(models.Model):
     product_listing = models.ForeignKey(ProductListing, on_delete=models.CASCADE, related_name="listing_reviews")
     order_item = models.OneToOneField(OrderItem, on_delete=models.SET_NULL, null=True, blank=True,related_name="order_item_reviews")
+    approved = models.BooleanField(default=False)
+
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True , blank=True, related_name="user_reviews")
     rating = models.PositiveSmallIntegerField()  # 1 to 5 scale
     title = models.CharField(max_length=255, null=True, blank=True)
