@@ -26,8 +26,14 @@ class Category(MP_Node):
     
     description = models.TextField(null=True, blank=True)
     slug = models.SlugField(default="", null=False, blank=True)
-
-
+    
+    image = CloudinaryField(
+        "image",
+        folder="kb/product_listings/",
+        transformation={"width": 400, "height": 400, "crop": "fill"},
+        blank=True,
+        null=True,
+    )
 
     level = models.PositiveIntegerField(default=1)  # Static field for level
 
