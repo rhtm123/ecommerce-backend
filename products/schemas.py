@@ -109,8 +109,11 @@ class ProductListingOutSchema(Schema):
     thumbnail: Optional[str] = Field(None, description="URL for the dynamically generated thumbnail")
 
     price: float
+    mrp: float
     stock: int
     rating: Optional[float] = None
+    review_count: int
+
     popularity: Optional[int] = None
     created: datetime
     updated: datetime
@@ -151,12 +154,14 @@ class ProductListingOneOutSchema(Schema):
     features: Optional[dict] = None
 
     rating: Optional[float] = None
+    review_count: int
     popularity : Optional[int] = None
 
 
 
     # seller_id: int
     price: float
+    mrp: float
     stock: int
 
 
