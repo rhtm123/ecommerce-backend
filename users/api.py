@@ -1,4 +1,4 @@
-from ninja import  Router, Query
+from ninja import  Router, Query, Schema
 
 # router.py
 from .models import User, Entity, ShippingAddress
@@ -31,6 +31,12 @@ from ninja.security import HttpBearer
 from pydantic import BaseModel
 
 from users.models import User
+from django.http import JsonResponse
+
+from utils.send_email import send_mail_thread
+from django.core.exceptions import ObjectDoesNotExist
+
+
 
 class TokenSchema(BaseModel):
     token: str
@@ -43,6 +49,39 @@ class AuthBearer(HttpBearer):
             return idinfo
         except ValueError:
             return None
+
+
+class ContactEmailSchema(Schema):
+    user_id: int
+    html_content: str
+
+
+@router.post("/send-contact-email/", tags=['Email Notification'])
+def send_notification_email(request, payload: ContactEmailSchema):
+    try:
+        user = User.objects.get(id=payload.user_id)
+        name = f"{user.first_name} {user.last_name}"
+        from_email = user.email
+        subject = f"Naigaon Market notification: {name} has contacted"
+        text_content = subject
+
+        send_mail_thread(
+            subject=subject,
+            body=text_content,
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[from_email],  # Modify as needed
+            html=payload.html_content
+        )
+
+        return {"success": True}
+
+    except ObjectDoesNotExist:
+        return JsonResponse({"error": "User not found"}, status=404)
+
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+    
+
 
 @router.post("/auth/google/", tags=['token'])
 def google_auth(request, payload: TokenSchema):
