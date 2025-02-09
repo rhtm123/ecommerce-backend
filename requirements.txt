@@ -14,3 +14,4 @@ django-cloudinary-storage==0.3.0
 django-ninja-jwt==5.3.5
 google-auth==2.38.0
 django_summernote==0.8.20.0
+twilio==9.4.4
