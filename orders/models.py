@@ -8,6 +8,9 @@ from users.models import Entity
 from estores.models import EStore
 
 
+
+
+
 class Order(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
@@ -23,6 +26,8 @@ class Order(models.Model):
     shipping_address = models.ForeignKey(ShippingAddress, on_delete=models.SET_NULL, null=True, blank=True)
     payment_status = models.CharField(max_length=50, default='pending')
     tracking_number = models.CharField(max_length=255, blank=True, null=True)
+
+    total_items = models.PositiveIntegerField(default=1, null=True, blank=True)
     notes = models.TextField(blank=True, null=True)
     # discount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     created = models.DateTimeField(auto_now_add=True)
@@ -30,6 +35,8 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order #{self.id} - {self.user.username}"
+    
+
     
 
 class OrderItem(models.Model):

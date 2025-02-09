@@ -15,6 +15,8 @@ class User(AbstractUser):
     mobile = models.CharField(max_length=15, null=True, blank=True)
     alternate_mobile = models.CharField(max_length=15, null=True, blank=True)
 
+    google_picture = models.URLField(blank=True, null=True)
+
     GENDER_CHOICES = [
         ("",""),
         ('male', 'male'),

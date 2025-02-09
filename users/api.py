@@ -51,38 +51,6 @@ class AuthBearer(HttpBearer):
             return None
 
 
-class ContactEmailSchema(Schema):
-    user_id: int
-    html_content: str
-
-
-@router.post("/send-contact-email/", tags=['Email Notification'])
-def send_notification_email(request, payload: ContactEmailSchema):
-    try:
-        user = User.objects.get(id=payload.user_id)
-        name = f"{user.first_name} {user.last_name}"
-        from_email = user.email
-        subject = f"Naigaon Market notification: {name} has contacted"
-        text_content = subject
-
-        send_mail_thread(
-            subject=subject,
-            body=text_content,
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=[from_email],  # Modify as needed
-            html=payload.html_content
-        )
-
-        return {"success": True}
-
-    except ObjectDoesNotExist:
-        return JsonResponse({"error": "User not found"}, status=404)
-
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
-    
-
-
 @router.post("/auth/google/", tags=['token'])
 def google_auth(request, payload: TokenSchema):
     try:
@@ -96,6 +64,7 @@ def google_auth(request, payload: TokenSchema):
 
         first_name = idinfo.get("given_name", "")  # Default to empty string if not provided
         last_name = idinfo.get("family_name", "")  # Default to empty string if not provided
+        google_picture = idinfo.get("picture", "") # Default to empty
 
         # Check if the user exists in the database, if not, create them
         user, created = User.objects.get_or_create(username=email, defaults={"email": email})
@@ -103,6 +72,7 @@ def google_auth(request, payload: TokenSchema):
         if created:
             user.first_name = first_name
             user.last_name = last_name
+            user.google_picture = google_picture
             user.save()
 
         entity = None

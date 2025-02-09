@@ -36,6 +36,8 @@ from blogs.api import router as blogs_api
 from django.conf import settings
 from django.conf.urls.static import static
 
+# from notifications.api import router as notifications_api
+
 
 from ninja_jwt.controller import NinjaJWTDefaultController
 from ninja_extra import NinjaExtraAPI
@@ -63,6 +65,7 @@ api.add_router("order/", orders_api, tags=['Orders API'])
 api.add_router("qna/", qna_api, tags=['Questions and Answers API'])
 api.add_router("review/", reviews_api, tags=['Reviews API'])
 api.add_router("blog/", blogs_api, tags=['blogs API'])
+# api.add_router("notifications/", notifications_api, tags=['Notifications API'])
 
 urlpatterns = [
     path('admin/', admin.site.urls),
