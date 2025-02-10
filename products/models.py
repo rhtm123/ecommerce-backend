@@ -17,6 +17,8 @@ from decouple import config
  
 from cloudinary.models import CloudinaryField
 
+# from taxations.models import TaxCategory
+
 
 
 
@@ -85,7 +87,11 @@ class Product(models.Model):
     important_info = models.TextField(blank=True, null=True)
     base_price = models.DecimalField(max_digits=10, decimal_places=2)
 
-    tax_category = models.ForeignKey(TaxCategory, on_delete=models.SET_NULL, null=True,blank=True)
+    tax_category = models.ForeignKey(
+        TaxCategory, 
+        related_name="tax_category_products",
+        on_delete=models.SET_NULL, null=True,blank=True
+    )
     country_of_origin = models.CharField(max_length=255, default="India")
 
     created = models.DateTimeField(auto_now_add=True)
@@ -118,8 +124,10 @@ class ProductListing(models.Model):
 
     box_items = models.TextField(null=True, blank=True)
     features = models.JSONField(null=True, blank=True)
+    
     # features example -> {"general": [{"name":"ram", "value":"6gb"}, {'name':"storage, "value":"128gb"}], "camera": [{"name":"front camera", "value":"40mp"]} 
-    approved = models.BooleanField(default=False)
+
+    approved = models.BooleanField(default=False, help_text="Product_listing will be shown on the website/app")
     featured = models.BooleanField(default=False)
     # listed = models.BooleanField(default=False)
 
