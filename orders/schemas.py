@@ -3,7 +3,6 @@ from typing import List, Optional
 from ninja import Schema
 from ninja.schema import Field
 
-
 from users.schemas import ShippingAddressOutSchema
 
 
@@ -15,7 +14,7 @@ class ProductListingSchema(Schema):
     slug: str
 
     price: Optional[float] = None
-    stock: Optional[int] = None
+    # stock: Optional[int] = None
     # rating: Optional[float] = None
     # popularity: Optional[int] = None
     # created: datetime
@@ -51,7 +50,7 @@ class OrderItemOutSchema(Schema):
 class OrderOutSchema(Schema):
     id: int
     user_id: int
-    status: str
+    # status: str
     total_amount: float
     shipping_address_id: Optional[int] = None
     payment_status: str
@@ -77,7 +76,7 @@ class UserOutSchema(Schema):
 class OrderOutOneSchema(Schema):
     id: int
     user: Optional[UserOutSchema] = None
-    status: str
+    # status: str
     total_amount: float
     shipping_address: Optional[ShippingAddressOutSchema] = None
     payment_status: str
@@ -96,9 +95,9 @@ class OrderCreateSchema(Schema):
     total_amount: Optional[float] = 0.00
 
 class OrderUpdateSchema(Schema):
-    status: Optional[str] = None
+    # status: Optional[str] = None
     payment_status: Optional[str] = None
-    tracking_number: Optional[str] = None
+    # tracking_number: Optional[str] = None
     notes: Optional[str] = None
     discount: Optional[float] = None
 
@@ -135,4 +134,45 @@ class OrderItemUpdateSchema(Schema):
     quantity: Optional[int] = None
     price: Optional[float] = None
     status: str
+
+# #############
+
+class DeliveryPackageCreateSchema(Schema):
+    pass 
+
+class DeliveryPackageUpdateSchema(Schema):
+    pass 
+
+class DeliveryPackageOutSchema(Schema):
+    id: int 
+    status: str
+    order_id: int
+    tracking_number: str 
+    product_listing_count: int 
+    total_units: int 
+    shipped_date: Optional[datetime] = None
+    delivered: Optional[datetime] = None
+
+
+class OrderItemSchema(Schema):
+    id: int
+    # order: Optional[OrderSchema] = None
+    product_listing: Optional[ProductListingSchema] = None
+    # review: Optional[ReviewOutSchema] = None
+    # product_listing_product_name: str
+    # quantity: int
+    # price: float
+    # subtotal: float
+    # status: Optional[str] = "pending"
+    created: datetime
+    updated: datetime
+
+
+class PackageItemOutSchema(Schema):
+    id: int 
+    package_id: int 
+    quantity: int 
+    order_item: Optional[OrderItemSchema] = None 
+
+
 

@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import Order, OrderItem
+from .models import Order, OrderItem, DeliveryPackage, PackageItem
 
 
 class OrderItemInline(admin.TabularInline):
@@ -12,3 +12,11 @@ class OrderItemInline(admin.TabularInline):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     inlines = [OrderItemInline,]
+
+
+class PackageItemInline(admin.TabularInline):
+    model = PackageItem 
+
+@admin.register(DeliveryPackage)
+class DeliveryPackageAdmin(admin.ModelAdmin):
+    inlines = [PackageItemInline,]

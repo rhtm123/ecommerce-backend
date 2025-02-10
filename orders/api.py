@@ -1,13 +1,16 @@
 from ninja import  Router, Query
 
 # router.py
-from .models import Order, OrderItem
+from .models import Order, OrderItem, DeliveryPackage, PackageItem
 
 
 from .schemas import (
     OrderCreateSchema, OrderOutSchema, OrderUpdateSchema, OrderOutOneSchema,
     OrderItemCreateSchema, OrderItemUpdateSchema, OrderItemOutSchema,
-    OrderItemOutOneSchema
+    OrderItemOutOneSchema,
+    DeliveryPackageOutSchema,
+    PackageItemOutSchema, 
+
     
 )
 
@@ -148,7 +151,7 @@ def create_order(request, payload: OrderCreateSchema):
 @router.get("/orders/", response=PaginatedResponseSchema)
 def orders(request,  page: int = Query(1), page_size: int = Query(10), user_id: int = None, ordering: str = None):
     # qs = Order.objects.all()
-    qs = Order.objects.prefetch_related("items")  # Fetch order items efficiently
+    qs = Order.objects.prefetch_related("order_items")  # Fetch order items efficiently
 
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
@@ -325,3 +328,68 @@ def delete_order_item(request, order_item_id: int):
     order_item = get_object_or_404(OrderItem, id=order_item_id)
     order_item.delete()
     return {"success": True}
+
+
+#### delivery 
+
+
+
+
+
+# Read Orders (List)
+@router.get("/delivery-packages/", response=PaginatedResponseSchema)
+def delivery_packages(request,  page: int = Query(1), page_size: int = Query(10), order_id: int = None, ordering: str = None):
+    # qs = Order.objects.all()
+    qs = DeliveryPackage.objects.all()  # Fetch order items efficiently
+
+    page_number = request.GET.get('page', 1)
+    page_size = request.GET.get('page_size', 10)
+
+    query = ""
+
+    if order_id:
+        qs = qs.filter(order__id=order_id)
+        query = query + "&order_id=" + str(order_id)
+
+    if ordering:
+        qs = qs.order_by(ordering)
+        query = query + "&ordering=" + ordering
+
+    return paginate_queryset(request, qs, DeliveryPackageOutSchema, page_number, page_size, query)
+
+# Read Single Order (Retrieve)
+@router.get("/delivery-packages/{package_id}/", response=DeliveryPackageOutSchema)
+def retrieve_delivery_package(request, package_id: int):
+    package = get_object_or_404(DeliveryPackage, id=package_id)
+    return package
+
+
+
+
+
+# Read Orders (List)
+@router.get("/package-items/", response=PaginatedResponseSchema)
+def package_items(request,  page: int = Query(1), page_size: int = Query(10), package_id: int = None, ordering: str = None):
+    # qs = Order.objects.all()
+    qs = PackageItem.objects.all()  # Fetch order items efficiently
+
+    page_number = request.GET.get('page', 1)
+    page_size = request.GET.get('page_size', 10)
+
+    query = ""
+
+    if package_id:
+        qs = qs.filter(package__id=package_id)
+        query = query + "&package_id=" + str(package_id)
+
+    if ordering:
+        qs = qs.order_by(ordering)
+        query = query + "&ordering=" + ordering
+
+    return paginate_queryset(request, qs, PackageItemOutSchema, page_number, page_size, query)
+
+# Read Single Order (Retrieve)
+@router.get("/package-items/{package_item_id}/", response=DeliveryPackageOutSchema)
+def retrieve_package_item(request, package_item_id: int):
+    package_item = get_object_or_404(PackageItem, id=package_item_id)
+    return package_item
