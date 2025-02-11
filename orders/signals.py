@@ -15,7 +15,7 @@ def send_order_notification(sender, instance, created, **kwargs):
         receiver_email = instance.user.email
         name = f"{instance.user.first_name} {instance.user.last_name}"
         order_id = str(instance.id)
-        total_items = str(instance.total_items)
+        total_units = str(instance.product_listing_count)
         # print(name, order_id, total_items)
 
         try:
@@ -26,13 +26,13 @@ def send_order_notification(sender, instance, created, **kwargs):
                 text_content = subject
                 
                 # Uncomment to send email
-                send_mail_thread(
-                    subject=subject,
-                    body=text_content,
-                    from_email=settings.EMAIL_HOST_USER,
-                    recipient_list=[receiver_email],  # Modify as needed
-                    html=formatted_email
-                )
+                # send_mail_thread(
+                #     subject=subject,
+                #     body=text_content,
+                #     from_email=settings.EMAIL_HOST_USER,
+                #     recipient_list=[receiver_email],  # Modify as needed
+                #     html=formatted_email
+                # )
         except Exception as e:
             print(f"Email send failed: {e}")
 

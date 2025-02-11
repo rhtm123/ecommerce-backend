@@ -84,6 +84,7 @@ class OrderItem(models.Model):
     def save(self, *args, **kwargs):
         self.subtotal = self.quantity * self.price
         super().save(*args, **kwargs)
+        self.order.update_totals()
 
     def __str__(self):
         return f"{self.product_listing.name} ({self.quantity})"
