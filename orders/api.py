@@ -1,4 +1,6 @@
-from ninja import  Router, Query
+from ninja import  Router, Query, Schema
+from typing import List, Optional
+
 
 # router.py
 from .models import Order, OrderItem, DeliveryPackage, PackageItem
@@ -25,30 +27,61 @@ from ninja_jwt.authentication import JWTAuth
 
 from datetime import datetime, timedelta
 
-
 router = Router()
+from .schemas import OrderDeliveryStatusSchema
 
 
-############## 1 city ###########################
-
-######################## Order #######################
-
-
-
-from datetime import datetime, timedelta
-from django.db.models import Sum, Avg
-from ninja import Router
-from .models import OrderItem
-
-router = Router()
-
-
-from datetime import datetime, timedelta
-from django.db.models import Sum, Avg, Count
-from ninja import Router
-from .models import OrderItem
-
-router = Router()
+@router.get("/delivery-status/{order_number}", response=OrderDeliveryStatusSchema)
+def get_order_delivery_status(request, order_number: int):
+    order = get_object_or_404(Order, order_number=order_number)
+    
+    # Fetch all packages associated with the order
+    packages = order.packages.all()
+    package_data = []
+    for package in packages:
+        package_items = package.package_items.all()
+        package_item_data = [{
+            "order_item": {
+                "product_listing": item.order_item.product_listing.name,
+                "quantity": item.order_item.quantity,
+                "status": item.order_item.status,
+                "price": float(item.order_item.price),
+                "subtotal": float(item.order_item.subtotal),
+            },
+            "quantity": item.quantity,
+        } for item in package_items]
+        
+        package_data.append({
+            "tracking_number": package.tracking_number,
+            "status": package.status,
+            "product_listing_count": package.product_listing_count,
+            "total_units": package.total_units,
+            "shipped_date": package.shipped_date.isoformat() if package.shipped_date else None,
+            "delivered_date": package.delivered_date.isoformat() if package.delivered_date else None,
+            "package_items": package_item_data,
+        })
+    
+    # Fetch items that are not in any package
+    items_without_package = []
+    for order_item in order.order_items.all():
+        if not PackageItem.objects.filter(order_item=order_item).exists():
+            items_without_package.append({
+                "product_listing": order_item.product_listing.name,
+                "quantity": order_item.quantity,
+                "status": order_item.status,
+                "price": float(order_item.price),
+                "subtotal": float(order_item.subtotal),
+            })
+    
+    return {
+        "order_id": order.id,
+        "order_number": order.order_number,
+        "user": order.user.username,
+        "total_amount": float(order.total_amount),
+        "payment_status": order.payment_status,
+        "packages": package_data,
+        "items_without_package": items_without_package,
+    }
 
 @router.get("/seller-analytics", tags=["Analytics"])
 def analytics(request, seller_id: int = None, period: str = "lifetime"):
@@ -148,10 +181,16 @@ def create_order(request, payload: OrderCreateSchema):
     return order
 
 # Read Orders (List)
+
 @router.get("/orders/", response=PaginatedResponseSchema)
-def orders(request,  page: int = Query(1), page_size: int = Query(10), user_id: int = None, ordering: str = None):
-    # qs = Order.objects.all()
-    qs = Order.objects.prefetch_related("order_items")  # Fetch order items efficiently
+def orders(request, 
+           page: int = Query(1), 
+           page_size: int = Query(10), 
+           user_id: int = None, 
+           ordering: str = None, 
+    ):
+
+    qs = Order.objects.all()
 
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
@@ -160,13 +199,13 @@ def orders(request,  page: int = Query(1), page_size: int = Query(10), user_id: 
 
     if user_id:
         qs = qs.filter(user__id=user_id)
-        query = query + "&user_id=" + str(user_id)
+        query += f"&user_id={user_id}"
 
     if ordering:
         qs = qs.order_by(ordering)
-        query = query + "&ordering=" + ordering
+        query += f"&ordering={ordering}"
 
-    return paginate_queryset(request, qs, OrderOutSchema, page_number, page_size, query)
+    return paginate_queryset(request, qs, OrderOutSchema, page_number, page_size, query, items_required=items_required)
 
 # Read Single Order (Retrieve)
 @router.get("/orders/{order_id}/", response=OrderOutOneSchema)

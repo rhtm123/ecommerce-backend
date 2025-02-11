@@ -48,17 +48,7 @@ class Order(models.Model):
         self.product_listing_count = self.order_items.count()
         self.total_units = sum(item.quantity for item in self.order_items.all())
         self.save(update_fields=['product_listing_count', 'total_units'])
-    
-    # @property
-    # def product_listing_count(self):
-    #     """Count of distinct product listings in the order"""
-    #     return self.items.count()
 
-    # @property
-    # def total_units(self):
-    #     """Total quantity of all items in the order"""
-    #     return sum(item.quantity for item in self.items.all())
-    
 
 STATUS_CHOICES = [
     ('pending', 'pending'),
@@ -87,7 +77,7 @@ class OrderItem(models.Model):
         self.order.update_totals()
 
     def __str__(self):
-        return f"{self.product_listing.name} ({self.quantity})"
+        return f"Order_ID: {self.order.id} {self.product_listing.name} ({self.quantity})"
 
 
 PACKAGE_STATUS_CHOICES = [
@@ -136,7 +126,7 @@ class DeliveryPackage(models.Model):
 class PackageItem(models.Model):
     package = models.ForeignKey(DeliveryPackage, on_delete=models.CASCADE, related_name="package_items")
     order_item = models.ForeignKey(OrderItem, on_delete=models.CASCADE, related_name="order_item_package_item")
-    quantity = models.PositiveIntegerField(help_text="Number of units included in this package")
+    quantity = models.PositiveIntegerField(default=0,help_text="Number of units included in this package")
 
     def save(self, *args, **kwargs):
         self.quantity = self.order_item.quantity
@@ -147,9 +137,9 @@ class PackageItem(models.Model):
         super().delete(*args, **kwargs)
         self.package.update_package_metrics()  # Update after delete ✅
 
-    def clean(self):
-        if self.quantity > self.order_item.quantity:
-            raise ValidationError("Package quantity cannot exceed the order item quantity.")
+    # def clean(self):
+    #     if self.quantity > self.order_item.quantity:
+    #         raise ValidationError("Package quantity cannot exceed the order item quantity.")
 
     def __str__(self):
         return f"{self.order_item.product_listing.name} ({self.quantity}) in Package #{self.package.id}"

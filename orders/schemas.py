@@ -47,9 +47,18 @@ class OrderItemOutSchema(Schema):
 
 
 
+class OrderItemSchema(Schema):
+    id: int
+    product_listing_name: Optional[str] = None 
+    quantity: Optional[int] = None
+    status: Optional[str] = None
+    price: Optional[float] = None
+    subtotal: Optional[float] = None
+
 class OrderOutSchema(Schema):
     id: int
     user_id: int
+    order_number: Optional[str] = None
     # status: str
     total_amount: float
     shipping_address_id: Optional[int] = None
@@ -59,7 +68,8 @@ class OrderOutSchema(Schema):
     # discount: float
     created: datetime
     updated: datetime
-    # items: List[OrderItemOutSchema]  # Nested items schema
+
+    items: Optional[List[OrderItemSchema]] = None  # Include only if `items_required=True`
 
 
 class UserOutSchema(Schema):
@@ -77,6 +87,8 @@ class OrderOutOneSchema(Schema):
     id: int
     user: Optional[UserOutSchema] = None
     # status: str
+    order_number: Optional[str] = None
+
     total_amount: float
     shipping_address: Optional[ShippingAddressOutSchema] = None
     payment_status: str
@@ -174,5 +186,40 @@ class PackageItemOutSchema(Schema):
     quantity: int 
     order_item: Optional[OrderItemSchema] = None 
 
+
+
+#####
+
+
+
+class OrderItemSchema(Schema):
+    product_listing: str
+    quantity: int
+    status: str
+    price: float
+    subtotal: float
+
+class PackageItemSchema(Schema):
+    order_item: OrderItemSchema
+    quantity: int
+
+class DeliveryPackageSchema(Schema):
+    tracking_number: Optional[str]
+    status: str
+    product_listing_count: int
+    total_units: int
+    shipped_date: Optional[str]
+    delivered_date: Optional[str]
+    package_items: List[PackageItemSchema]
+
+class OrderDeliveryStatusSchema(Schema):
+    order_id: int
+    order_number: str
+    user: str
+    total_amount: float
+    payment_status: str
+    packages: List[DeliveryPackageSchema]
+    items_without_package: List[OrderItemSchema]
+    
 
 
