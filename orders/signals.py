@@ -15,7 +15,7 @@ def send_order_notification(sender, instance, created, **kwargs):
         receiver_email = instance.user.email
         name = f"{instance.user.first_name} {instance.user.last_name}"
         order_id = str(instance.id)
-        total_units = str(instance.product_listing_count)
+        total_items = str(instance.product_listing_count)
         # print(name, order_id, total_items)
 
         try:
