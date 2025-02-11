@@ -32,7 +32,7 @@ from .schemas import OrderDeliveryStatusSchema
 
 
 @router.get("/delivery-status/{order_number}", response=OrderDeliveryStatusSchema)
-def get_order_delivery_status(request, order_number: int):
+def get_order_delivery_status(request, order_number: str):
     order = get_object_or_404(Order, order_number=order_number)
     
     # Fetch all packages associated with the order
@@ -205,7 +205,7 @@ def orders(request,
         qs = qs.order_by(ordering)
         query += f"&ordering={ordering}"
 
-    return paginate_queryset(request, qs, OrderOutSchema, page_number, page_size, query, items_required=items_required)
+    return paginate_queryset(request, qs, OrderOutSchema, page_number, page_size, query)
 
 # Read Single Order (Retrieve)
 @router.get("/orders/{order_id}/", response=OrderOutOneSchema)
