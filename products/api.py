@@ -2,7 +2,7 @@
 from ninja import  Router, Query
 
 # router.py
-from .models import Category, FeatureGroup, FeatureTemplate, Product, ProductListing, Feature
+from .models import ProductListingImage, Category, FeatureGroup, FeatureTemplate, Product, ProductListing, Feature
 from .schemas import ( 
     CategoryCreateSchema, CategoryOutSchema, CategoryUpdateSchema,
     # CategoryFeatureValuesOutSchema,
@@ -12,6 +12,7 @@ from .schemas import (
     ProductCreateSchema, ProductOutSchema, ProductUpdateSchema,
     ProductListingUpdateSchema, ProductListingCreateSchema, ProductListingOutSchema, ProductListingOneOutSchema,
     FeatureOutSchema,
+    ProductListingImageOutSchema
 )
 from django.shortcuts import get_object_or_404
 from utils.pagination import PaginatedResponseSchema, paginate_queryset
@@ -425,3 +426,20 @@ def features(request,  page: int = Query(1), page_size: int = Query(10), product
         qs = qs.order_by(ordering)
 
     return paginate_queryset(request, qs, FeatureOutSchema, page_number, page_size)
+
+
+
+@router.get("/product_listing_images/", response=PaginatedResponseSchema)
+def product_listing_images(request,  page: int = Query(1), page_size: int = Query(10), product_listing_id: int = None , ordering: str = None,):
+    qs = ProductListingImage.objects.all()
+    page_number = request.GET.get('page', 1)
+    page_size = request.GET.get('page_size', 10)
+
+
+    if product_listing_id:
+        qs = qs.filter(product_listing_id__id=product_listing_id)
+
+    if ordering:
+        qs = qs.order_by(ordering)
+
+    return paginate_queryset(request, qs, ProductListingImageOutSchema, page_number, page_size)

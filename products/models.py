@@ -184,16 +184,18 @@ class ProductListing(models.Model):
             return self.main_image.url
         return None
 
+# quality: You can set this to a specific value (e.g., 80 for 80% quality) or use Cloudinary's automatic quality feature ("auto" or "auto:good", "auto:best", etc.).
     
 class ProductListingImage(models.Model):
     product_listing = models.ForeignKey(
         ProductListing, on_delete=models.CASCADE, related_name="images"
     )
-    image = ProcessedImageField(
-        upload_to="kb/product_listings/",
-        processors=[ResizeToFill(1200, 1200)],  # Resize to 800x800 pixels
-        format="WEBP",
-        options={"quality": 85},  # Save with 85% quality
+    image = CloudinaryField(
+        "image",
+        folder="kb/product_listings/",
+        transformation={"width": 1200, "height": 1200, "crop": "fill", "quality": "auto:good"},
+        blank=True,
+        null=True,
     )
 
     alt_text = models.CharField(max_length=255, blank=True, null=True)  # SEO optimization

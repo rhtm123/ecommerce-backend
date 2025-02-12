@@ -4,7 +4,7 @@ from typing import Optional, List
 from ninja import Schema
 from ninja.schema import Field
 
-from .models import ProductListing, Category
+from .models import ProductListing, Category, ProductListingImage
 
 from users.schemas import EntityOut2Schema
 
@@ -211,3 +211,25 @@ class FeatureOutSchema(Schema):
     value: str
     created: datetime
     updated: datetime
+
+
+class ProductListingImageOutSchema(Schema):
+    id: int 
+    product_listing_id: Optional[int] = None
+    alt_text: Optional[str] = None
+
+    image: Optional[str] = Field(None, description="URL for the main product image")
+
+    @staticmethod
+    def resolve_image(obj: ProductListingImage) -> Optional[str]:
+        """
+        Resolves the URL for the main image.
+        """
+        try:
+            # print(obj.main_image)
+            # print(obj.main_image.url)
+            # small_image_url = product.main_image.format(width=300, height=300, crop="fill")
+
+            return obj.image.url if obj.image else None
+        except:
+            return None
