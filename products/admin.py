@@ -46,7 +46,7 @@ class ProductListingImageInline(admin.TabularInline):
 
 @admin.register(Product)
 class ProductAdmin(SummernoteModelAdmin):
-    summernote_fields = ['about','description','important_info']
+    summernote_fields = ['description',]
     inlines = [VariantInline,]
 
 @admin.register(ProductListing)
