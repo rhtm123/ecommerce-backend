@@ -19,11 +19,15 @@ from .models import Product, ProductListing, ProductListingImage, Variant
 
 from .models import FeatureGroup, FeatureTemplate, Feature
 
+from django_summernote.admin import SummernoteModelAdmin
+
+
 admin.site.register(FeatureGroup)
 admin.site.register(FeatureTemplate)
 admin.site.register(Feature)
 
 admin.site.register(Variant)
+
 
 class VariantInline(admin.TabularInline):
     model = Variant
@@ -41,7 +45,8 @@ class ProductListingImageInline(admin.TabularInline):
     #     return "No Image"
 
 @admin.register(Product)
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(SummernoteModelAdmin):
+    summernote_fields = ['about','description','important_info']
     inlines = [VariantInline,]
 
 @admin.register(ProductListing)

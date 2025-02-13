@@ -42,6 +42,8 @@ from django.conf.urls.static import static
 from ninja_jwt.controller import NinjaJWTDefaultController
 from ninja_extra import NinjaExtraAPI
 
+from django.urls import include
+
 
 
 
@@ -70,6 +72,8 @@ api.add_router("blog/", blogs_api, tags=['blogs API'])
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', api.urls),
+    path('summernote/', include('django_summernote.urls')),
+
 ]
 
 

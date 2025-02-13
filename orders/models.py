@@ -54,6 +54,7 @@ STATUS_CHOICES = [
     ('pending', 'pending'),
     ("processing", 'processing'),
     ('shipped', 'shipped'),
+    ('ready_for_delivery', 'Ready for Delivery'),
     ('delivered', 'delivered'),
     ('canceled', 'canceled'),
 ]
@@ -81,12 +82,12 @@ class OrderItem(models.Model):
 
 
 PACKAGE_STATUS_CHOICES = [
-    ('processing', 'Processing'),
-    ('ready_to_ship', 'Ready to Ship'),
-    ('shipped', 'Shipped'),
+    # ('processing', 'Processing'),
+    # ('ready_to_deliver', 'Ready to Deliver'),
+    ('ready_for_delivery', 'Ready for Delivery'),
     ('out_for_delivery', 'Out for Delivery'),
     ('delivered', 'Delivered'),
-    ('canceled', 'Canceled'),
+    # ('canceled', 'Canceled'),
 ]
 
 
@@ -94,7 +95,7 @@ class DeliveryPackage(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="packages")
     tracking_number = models.CharField(max_length=255, unique=True, blank=True, null=True)
     status = models.CharField(
-        max_length=50, choices=STATUS_CHOICES, default="processing"
+        max_length=50, choices=PACKAGE_STATUS_CHOICES, default="ready_for_delivery"
     )
 
     product_listing_count = models.PositiveIntegerField(default=0, help_text="Number of distinct products in this package")
@@ -110,10 +111,24 @@ class DeliveryPackage(models.Model):
         return f"Package #{self.id} for Order #{self.order.id}"
     
     def save(self, *args, **kwargs):
+        # Generate tracking number if it doesn't exist
         if not self.tracking_number:
             self.tracking_number = generate_tracking_number()
+        
+        # Check if the status is being updated
+        if self.pk:  # Check if the package already exists (i.e., this is an update)
+            previous_package = DeliveryPackage.objects.get(pk=self.pk)
+            if previous_package.status != self.status:  # Status has changed
+                self.update_order_items_status()
+        
         super().save(*args, **kwargs)
     
+    def update_order_items_status(self):
+        """Update the status of all related OrderItems to match the package status."""
+        for package_item in self.package_items.all():
+            order_item = package_item.order_item
+            order_item.status = self.status
+            order_item.save()
     
     def update_package_metrics(self):
         """Update counts based on package items"""
