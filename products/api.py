@@ -85,7 +85,7 @@ def categories(
 
     return paginate_queryset(request, qs, CategoryOutSchema, page_number, page_size)
 
-@router.get("/categories/parents_children/{category_id}/", response=CategoryParentChildrenOutSchema)
+@router.get("/categories/parents-children/{category_id}/", response=CategoryParentChildrenOutSchema)
 def retrieve_category_parents_children(request, category_id: int):
     category = get_object_or_404(Category, id=category_id)
 
@@ -138,7 +138,7 @@ def delete_category(request, category_id: int):
     return {"success": True}
 
 
-@router.get("/feature_groups/", response=PaginatedResponseSchema)
+@router.get("/feature-groups/", response=PaginatedResponseSchema)
 def featuregroups(request,  page: int = Query(1), page_size: int = Query(10), category_id:str = None , ordering: str = None,):
     qs = FeatureGroup.objects.all()
     page_number = request.GET.get('page', 1)
@@ -154,7 +154,7 @@ def featuregroups(request,  page: int = Query(1), page_size: int = Query(10), ca
 
 
 
-@router.get("/feature_templates/", response=PaginatedResponseSchema)
+@router.get("/feature-templates/", response=PaginatedResponseSchema)
 def featuretemplates(request,  page: int = Query(1), page_size: int = Query(10), feature_group_id:str = None , ordering: str = None,):
     qs = FeatureTemplate.objects.all()
     page_number = request.GET.get('page', 1)
@@ -220,7 +220,7 @@ def delete_product(request, product_id: int):
 ############################ Product Listing ####################
 
 
-@router.post("/product_listings/", response=ProductListingOutSchema)
+@router.post("/product-listings/", response=ProductListingOutSchema)
 def create_product_listing(request, payload: ProductListingCreateSchema):
 
     product_listing = ProductListing(**payload.dict())
@@ -233,7 +233,7 @@ def create_product_listing(request, payload: ProductListingCreateSchema):
 
 
 
-@router.get("/product_listings/", response=PaginatedResponseSchema)
+@router.get("/product-listings/", response=PaginatedResponseSchema)
 def product_listings(
     request,
     page: int = Query(1),
@@ -307,7 +307,7 @@ def product_listings(
     return paginate_queryset(request, qs, ProductListingOutSchema, page, page_size, query)
 
 
-@router.get("/sidebar_filters/", tags=["Sidebar filters"])
+@router.get("/sidebar-filters/", tags=["Sidebar filters"])
 def get_sidebar_filters(
     request, 
     category_id: str = None,
@@ -385,18 +385,18 @@ def get_sidebar_filters(
 
 
 # Read Single ProductListing (Retrieve)
-@router.get("/product_listings/{product_listing_id}/", response=ProductListingOneOutSchema)
+@router.get("/product-listings/{product_listing_id}/", response=ProductListingOneOutSchema)
 def retrieve_product_listing(request, product_listing_id: int):
     product_listing = get_object_or_404(ProductListing, id=product_listing_id)
     return product_listing
 
-@router.get("/product_listings/slug/{product_listing_slug}/", response=ProductListingOneOutSchema)
+@router.get("/product-listings/slug/{product_listing_slug}/", response=ProductListingOneOutSchema)
 def retrieve_product_listing_slug(request, product_listing_slug: str):
     product_listing = get_object_or_404(ProductListing, slug=product_listing_slug)
     return product_listing
 
 # Update ProductListing
-@router.put("/product_listings/{product_listing_id}/", response=ProductListingOutSchema)
+@router.put("/product-listings/{product_listing_id}/", response=ProductListingOutSchema)
 def update_product_listing(request, product_listing_id: int, payload: ProductListingUpdateSchema):
     product_listing = get_object_or_404(ProductListing, id=product_listing_id)
     for attr, value in payload.dict().items():
@@ -406,7 +406,7 @@ def update_product_listing(request, product_listing_id: int, payload: ProductLis
     return product_listing
 
 # Delete ProductListing
-@router.delete("/product_listings/{product_listing_id}/")
+@router.delete("/product-listings/{product_listing_id}/")
 def delete_product_listing(request, product_listing_id: int):
     product_listing = get_object_or_404(ProductListing, id=product_listing_id)
     product_listing.delete()
@@ -429,7 +429,7 @@ def features(request,  page: int = Query(1), page_size: int = Query(10), product
 
 
 
-@router.get("/product_listing_images/", response=PaginatedResponseSchema)
+@router.get("/product-listing-images/", response=PaginatedResponseSchema)
 def product_listing_images(request,  page: int = Query(1), page_size: int = Query(10), product_listing_id: int = None , ordering: str = None,):
     qs = ProductListingImage.objects.all()
     page_number = request.GET.get('page', 1)

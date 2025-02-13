@@ -84,7 +84,7 @@ def delete_cart(request, cart_id: int):
 
 
 # Create CartItem
-@router.post("/cart_items/", response=CartItemOutSchema)
+@router.post("/cart-items/", response=CartItemOutSchema)
 def create_cart_item(request, payload: CartItemCreateSchema):
 
     # locality = get_object_or_404(Locality, id=payload.locality_id)
@@ -95,7 +95,7 @@ def create_cart_item(request, payload: CartItemCreateSchema):
     return cart_item
 
 # Read CartItems (List)
-@router.get("/cart_items/", response=PaginatedResponseSchema)
+@router.get("/cart-items/", response=PaginatedResponseSchema)
 def cart_items(request,  page: int = Query(1), page_size: int = Query(10), product_listing_id: int = None ,cart_id: int = None, ordering: str = None):
     qs = CartItem.objects.all()
     page_number = request.GET.get('page', 1)
@@ -113,13 +113,13 @@ def cart_items(request,  page: int = Query(1), page_size: int = Query(10), produ
     return paginate_queryset(request, qs, CartItemOutSchema, page_number, page_size)
 
 # Read Single CartItem (Retrieve)
-@router.get("/cart_items/{cart_item_id}/", response=CartItemOutSchema)
+@router.get("/cart-items/{cart_item_id}/", response=CartItemOutSchema)
 def retrieve_cart_item(request, cart_item_id: int):
     cart_item = get_object_or_404(CartItem, id=cart_item_id)
     return cart_item
 
 # Update CartItem
-@router.put("/cart_items/{cart_item_id}/", response=CartItemOutSchema)
+@router.put("/cart-items/{cart_item_id}/", response=CartItemOutSchema)
 def update_cart_item(request, cart_item_id: int, payload: CartItemUpdateSchema):
     cart_item = get_object_or_404(CartItem, id=cart_item_id)
     for attr, value in payload.dict().items():
@@ -129,7 +129,7 @@ def update_cart_item(request, cart_item_id: int, payload: CartItemUpdateSchema):
     return cart_item
 
 # Delete CartItem
-@router.delete("/cart_items/{cart_item_id}/")
+@router.delete("/cart-items/{cart_item_id}/")
 def delete_cart_item(request, cart_item_id: int):
     cart_item = get_object_or_404(CartItem, id=cart_item_id)
     cart_item.delete()

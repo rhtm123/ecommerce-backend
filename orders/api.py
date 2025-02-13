@@ -234,7 +234,7 @@ def delete_order(request, order_id: int):
 
 
 # Create OrderItem
-@router.post("/order_items/", response=OrderItemOutSchema, auth=JWTAuth())
+@router.post("/order-items/", response=OrderItemOutSchema, auth=JWTAuth())
 def create_order_item(request, payload: OrderItemCreateSchema):
 
     # locality = get_object_or_404(Locality, id=payload.locality_id)
@@ -246,7 +246,7 @@ def create_order_item(request, payload: OrderItemCreateSchema):
 
 # Read OrderItems (List)
 
-@router.get("/order_items/", response=PaginatedResponseSchema)
+@router.get("/order-items/", response=PaginatedResponseSchema)
 def order_items(
     request,  
     page: int = Query(1), 
@@ -316,7 +316,7 @@ def order_items(
 
 # Read Single OrderItem (Retrieve)
 
-@router.get("/order_items/{order_item_id}/", response=OrderItemOutOneSchema)
+@router.get("/order-items/{order_item_id}/", response=OrderItemOutOneSchema)
 def retrieve_order_item(request, order_item_id: int):
     order_item = get_object_or_404(OrderItem, id=order_item_id)
 
@@ -352,7 +352,7 @@ def retrieve_order_item(request, order_item_id: int):
 
 
 # Update OrderItem
-@router.put("/order_items/{order_item_id}/", response=OrderItemOutSchema, auth=JWTAuth())
+@router.put("/order-items/{order_item_id}/", response=OrderItemOutSchema, auth=JWTAuth())
 def update_order_item(request, order_item_id: int, payload: OrderItemUpdateSchema):
     order_item = get_object_or_404(OrderItem, id=order_item_id)
     for attr, value in payload.dict().items():
@@ -362,7 +362,7 @@ def update_order_item(request, order_item_id: int, payload: OrderItemUpdateSchem
     return order_item
 
 # Delete OrderItem
-@router.delete("/order_items/{order_item_id}/")
+@router.delete("/order-items/{order_item_id}/")
 def delete_order_item(request, order_item_id: int):
     order_item = get_object_or_404(OrderItem, id=order_item_id)
     order_item.delete()

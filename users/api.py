@@ -95,6 +95,7 @@ def google_auth(request, payload: TokenSchema):
             "user_id": user.id,
             "email": user.email,
             "first_name": user.first_name,
+            "google_picture": user.google_picture,
             "last_name":user.last_name,
             "access_token": access_token,
             "refresh_token": str(refresh),
@@ -238,7 +239,7 @@ def delete_entity(request, entity_id: int):
 
 
 
-@router.post("/shipping_addresses/", response=ShippingAddressOutSchema, auth=JWTAuth())
+@router.post("/shipping-addresses/", response=ShippingAddressOutSchema, auth=JWTAuth())
 def create_shipping_address(request, payload: ShippingAddressCreateSchema):
 
     shipping_address = ShippingAddress(**payload.dict())   
@@ -246,7 +247,7 @@ def create_shipping_address(request, payload: ShippingAddressCreateSchema):
     return shipping_address
 
 # Read ShippingAddresss (List)
-@router.get("/shipping_addresses/", response=PaginatedResponseSchema)
+@router.get("/shipping-addresses/", response=PaginatedResponseSchema)
 def shipping_addresses(request,  page: int = Query(1), page_size: int = Query(10), user_id:int = None , is_default: bool = None, ordering: str = None,):
     qs = ShippingAddress.objects.all()
     page_number = request.GET.get('page', 1)
@@ -264,13 +265,13 @@ def shipping_addresses(request,  page: int = Query(1), page_size: int = Query(10
     return paginate_queryset(request, qs, ShippingAddressOutSchema, page_number, page_size)
 
 # Read Single ShippingAddress (Retrieve)
-@router.get("/shipping_addresses/{shipping_address_id}/", response=ShippingAddressOutSchema)
+@router.get("/shipping-addresses/{shipping_address_id}/", response=ShippingAddressOutSchema)
 def retrieve_shipping_address(request, shipping_address_id: int):
     shipping_address = get_object_or_404(ShippingAddress, id=shipping_address_id)
     return shipping_address
 
 # Update ShippingAddress
-@router.put("/shipping_addresses/{shipping_address_id}/", response=ShippingAddressOutSchema)
+@router.put("/shipping-addresses/{shipping_address_id}/", response=ShippingAddressOutSchema)
 def update_shipping_address(request, shipping_address_id: int, payload: ShippingAddressUpdateSchema):
     shipping_address = get_object_or_404(ShippingAddress, id=shipping_address_id)
     for attr, value in payload.dict().items():
@@ -280,7 +281,7 @@ def update_shipping_address(request, shipping_address_id: int, payload: Shipping
     return shipping_address
 
 # Delete ShippingAddress
-@router.delete("/shipping_addresses/{shipping_address_id}/", auth=JWTAuth())
+@router.delete("/shipping-addresses/{shipping_address_id}/", auth=JWTAuth())
 def delete_shipping_address(request, shipping_address_id: int):
     shipping_address = get_object_or_404(ShippingAddress, id=shipping_address_id)
     shipping_address.delete()
