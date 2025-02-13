@@ -32,6 +32,7 @@ class UserOutSchema(Schema):
     email: Optional[str] = None
     mobile: Optional[str] = None
     alternate_mobile: Optional[str] = None
+    google_picture: Optional[str] = None
     role: str
     created: datetime
     updated: datetime

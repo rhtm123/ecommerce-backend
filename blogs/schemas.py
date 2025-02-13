@@ -7,7 +7,7 @@ from .models import Blog, Tag
 
 from users.schemas import UserOutSchema
 
-from .models import Category
+# from .models import Category
 
 from products.schemas import CategoryOutSchema
 
@@ -64,6 +64,16 @@ class BlogOutSchema(Schema):
     tags: List[TagOutSchema] = []  # List of nested Tag schemas
     created: datetime
     updated: datetime
+
+    @staticmethod
+    def resolve_img(obj: Blog) -> Optional[str]:
+        """
+        Resolves the URL for the main image.
+        """
+        try:
+            return obj.img.url if obj.img else None
+        except:
+            return None
 
     class Config:
         model = Blog

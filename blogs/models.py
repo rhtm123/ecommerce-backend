@@ -13,6 +13,8 @@ from django.template.defaultfilters import slugify
 from products.models import Category
 from estores.models import EStore
 
+from cloudinary.models import CloudinaryField
+
 # Create your models here.
 
 class Tag(models.Model):
@@ -43,7 +45,16 @@ class Blog(models.Model):
     slug = models.SlugField(max_length=255,null=True, blank=True)
     is_published = models.BooleanField(default=False)
 
-    img = ProcessedImageField(upload_to='kb/blog/', processors=[ResizeToFill(1280, 720)], format='JPEG',options={'quality': 70 }, null=True,  blank=True)
+    img = CloudinaryField(
+        "image",
+        folder="kb/blog/",
+        transformation={"width": 1280, "height": 720, "crop": "fill", "quality": "auto:good"},
+        blank=True,
+        null=True,
+    )
+
+
+    # img = ProcessedImageField(upload_to='kb/blog/', processors=[ResizeToFill(1280, 720)], format='JPEG',options={'quality': 70 }, null=True,  blank=True)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     
     views = models.IntegerField(default=0)
