@@ -14,6 +14,8 @@ def send_wa_msg(content_template_sid, variables, receiver):
         auth_token = config('TWILIO_AUTH_TOKEN')
         sender = config('TWILIO_SENDER_NUMBER')
 
+        print(sender);
+
         if receiver:
             if receiver.startswith("0"):
                 receiver = receiver[1:]

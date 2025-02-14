@@ -11,13 +11,18 @@ from django.core.exceptions import ValidationError
 
 from utils.generate import generate_tracking_number, generate_order_number
 
+# import datetime
+
+from django.utils import timezone
+
+
 
 class Order(models.Model):
 
-    estore = models.ForeignKey(EStore, on_delete=models.CASCADE, null=True, blank=True, related_name="estore_orders")
+    estore = models.ForeignKey(EStore, on_delete=models.SET_NULL, null=True, blank=True, related_name="estore_orders")
 
     order_number = models.CharField(max_length=24, null=True,blank=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True , blank=True, related_name='orders')
     # status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, help_text="Total price of all items including taxes and discounts")
     shipping_address = models.ForeignKey(ShippingAddress, on_delete=models.SET_NULL, null=True, blank=True)
@@ -98,13 +103,14 @@ class DeliveryPackage(models.Model):
         max_length=50, choices=PACKAGE_STATUS_CHOICES, default="ready_for_delivery"
     )
 
+    delivery_executive = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True ,related_name='de_packages')
+
     product_listing_count = models.PositiveIntegerField(default=0, help_text="Number of distinct products in this package")
     total_units = models.PositiveIntegerField(default=0, help_text="Total number of items in this package")
 
-
-    shipped_date = models.DateTimeField(null=True, blank=True)
+    delivery_out_date = models.DateTimeField(null=True, blank=True)
     delivered_date = models.DateTimeField(null=True, blank=True)
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(auto_now_add=True) ## ready for delivery date
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -120,7 +126,12 @@ class DeliveryPackage(models.Model):
             previous_package = DeliveryPackage.objects.get(pk=self.pk)
             if previous_package.status != self.status:  # Status has changed
                 self.update_order_items_status()
-        
+
+        if self.status == "out_for_delivery":
+            self.delivery_out_date = timezone.now()
+        elif self.status == "delivered":
+            self.delivered_date = timezone.now()
+
         super().save(*args, **kwargs)
     
     def update_order_items_status(self):
