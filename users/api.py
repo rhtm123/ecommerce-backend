@@ -17,6 +17,7 @@ from decouple import config
 router = Router()
 
 GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID")
+TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN')
 
 from ninja_jwt.tokens import RefreshToken
 
@@ -25,17 +26,52 @@ from ninja_jwt.authentication import JWTAuth
 from google.oauth2 import id_token
 from google.auth.transport import requests
 
-from django.conf import settings
 
 from ninja.security import HttpBearer
 from pydantic import BaseModel
 
+from django.conf import settings
+from django.http import HttpResponse
+from twilio.request_validator import RequestValidator
+from twilio.twiml.messaging_response import MessagingResponse
+
+
 from users.models import User
-from django.http import JsonResponse
+# from django.http import JsonResponse
 
-from utils.send_email import send_mail_thread
-from django.core.exceptions import ObjectDoesNotExist
+# from utils.send_email import send_mail_thread
+# from django.core.exceptions import ObjectDoesNotExist
 
+
+
+
+
+@router.post("/twilio/webhook/", tags=['Twilio Webhook'])
+def twilio_whatsapp_webhook(request):
+    """Handles incoming WhatsApp messages from Twilio"""
+
+    # Verify Twilio request
+    validator = RequestValidator(TWILIO_AUTH_TOKEN)
+    signature = request.headers.get("X-Twilio-Signature", "")
+
+    url = request.build_absolute_uri()
+    post_data = request.POST.dict()  # Convert QueryDict to a standard dict
+
+    if not validator.validate(url, post_data, signature):
+        return HttpResponse("Unauthorized", status=403)
+
+    # Process Incoming Message
+    from_number = post_data.get("From", "")
+    body = post_data.get("Body", "").strip().lower()
+
+    # Auto-response logic
+    response = MessagingResponse()
+    if "hello" in body:
+        response.message(f"Hi there! How can I assist you today?")
+    else:
+        response.message(f"Sorry, I didn't understand that. Type 'hello' to start.")
+
+    return HttpResponse(str(response), content_type="application/xml")
 
 
 class TokenSchema(BaseModel):
