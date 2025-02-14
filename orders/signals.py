@@ -47,7 +47,7 @@ def send_order_notification(sender, instance, created, **kwargs):
             }
             # Uncomment to send WhatsApp message
             print("WA message sent!!")
-            # send_wa_msg(content_template_sid, variables, mobile)
+            send_wa_msg(content_template_sid, variables, mobile)
         except Exception as e:
             print(f"WhatsApp message send failed: {e}")
 
@@ -111,7 +111,6 @@ def send_order_notification(sender, instance, created, **kwargs):
             print(f"WhatsApp message send failed: {e}")
 
     if status== "delivered":
-        
         try:
             ## email send 
             pass 
