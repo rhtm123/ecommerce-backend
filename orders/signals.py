@@ -9,7 +9,7 @@ from utils.send_email import send_mail_thread
 
 @receiver(post_save, sender=Order)
 def send_order_notification(sender, instance, created, **kwargs):
-    print("Sending order notification")
+    # print("Sending order notification")
     if created:  # The instance is new (not yet saved)
         mobile = instance.user.mobile
         receiver_email = instance.user.email
@@ -54,8 +54,10 @@ def send_order_notification(sender, instance, created, **kwargs):
 
 
 @receiver(post_save, sender=DeliveryPackage)
-def send_order_notification(sender, instance, created, **kwargs):
-    # print("Sending Package notification")
+def send_package_notification(sender, instance, created, **kwargs):
+    if kwargs.get("update_fields") == {"product_listing_count", "total_units"}:
+        return  # Ignore saves triggered by update_package_metrics
+
     mobile = instance.order.user.mobile
     receiver_email = instance.order.user.email
     name = f"{instance.order.user.first_name} {instance.order.user.last_name}"
@@ -69,33 +71,20 @@ def send_order_notification(sender, instance, created, **kwargs):
     else:
         de_name = "Naigaon Market"
         de_mobile = "9518901902"
-    # print(name, order_id, total_items)
 
-    if status=="out_for_delivery":
-        print ("Out for Delivery Notification")
-
+    if status == "out_for_delivery":
+        print("Out for Delivery Notification")
         try:
             with open("./utils/htmlemails/html_order.html", "r", encoding="utf-8") as file:
                 email_content = file.read()
                 formatted_email = email_content.replace("{name}", name).replace("{tracking_number}", tracking_number).replace("{total_items}", total_items)
                 subject = f"Naigaon Market notification: #Order{tracking_number} placed successfully"
-                text_content = subject
-
                 print("Email sent successfully")
-                
-                # Uncomment to send email
-                # send_mail_thread(
-                #     subject=subject,
-                #     body=text_content,
-                #     from_email=settings.EMAIL_HOST_USER,
-                #     recipient_list=[receiver_email],  # Modify as needed
-                #     html=formatted_email
-                # )
+                # send_mail_thread(subject, text_content, settings.EMAIL_HOST_USER, [receiver_email], html=formatted_email)
         except Exception as e:
             print(f"Email send failed: {e}")
 
         try:
-
             content_template_sid = wa_content_templates["delivery_out_sid"]
             variables = {
                 'name': name,
@@ -104,20 +93,17 @@ def send_order_notification(sender, instance, created, **kwargs):
                 'de_name': de_name,
                 'de_mobile': de_mobile
             }
-            # Uncomment to send WhatsApp message
             print("WA message sent!!")
             send_wa_msg(content_template_sid, variables, mobile)
         except Exception as e:
             print(f"WhatsApp message send failed: {e}")
 
-    if status== "delivered":
+    elif status == "delivered":
         try:
-            ## email send 
-            pass 
+            pass  # Email logic here
         except:
-            pass 
-            
-        
+            pass
+
         try:
             content_template_sid = wa_content_templates["delivered_sid"]
             variables = {
@@ -126,8 +112,8 @@ def send_order_notification(sender, instance, created, **kwargs):
                 'no_of_items': total_items,
                 'feedback_link': "https://naigaonmarket.com",
             }
-            # Uncomment to send WhatsApp message
             print("WA message sent!!")
             send_wa_msg(content_template_sid, variables, mobile)
         except Exception as e:
             print(f"WhatsApp message send failed: {e}")
+

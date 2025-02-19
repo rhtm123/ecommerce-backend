@@ -9,5 +9,5 @@ from .models import AllowedDomain
 
 @receiver([post_save, post_delete], sender=AllowedDomain)
 def update_cache_on_change(sender, **kwargs):
-    from domain.utils import update_allowed_domains_cache
+    from domains.utils import update_allowed_domains_cache
     update_allowed_domains_cache()

@@ -3,11 +3,11 @@ from users.models import ShippingAddress
 from products.models import ProductListing
 
 from django.conf import settings
-from users.models import Entity
+# from users.models import Entity
 
 from estores.models import EStore
 
-from django.core.exceptions import ValidationError
+# from django.core.exceptions import ValidationError
 
 from utils.generate import generate_tracking_number, generate_order_number
 
@@ -97,31 +97,25 @@ PACKAGE_STATUS_CHOICES = [
 
 
 class DeliveryPackage(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="packages")
+    order = models.ForeignKey("Order", on_delete=models.CASCADE, related_name="packages")
     tracking_number = models.CharField(max_length=255, unique=True, blank=True, null=True)
-    status = models.CharField(
-        max_length=50, choices=PACKAGE_STATUS_CHOICES, default="ready_for_delivery"
-    )
-
-    delivery_executive = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True ,related_name='de_packages')
-
+    status = models.CharField(max_length=50, choices=PACKAGE_STATUS_CHOICES, default="ready_for_delivery")
+    delivery_executive = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='de_packages')
     product_listing_count = models.PositiveIntegerField(default=0, help_text="Number of distinct products in this package")
     total_units = models.PositiveIntegerField(default=0, help_text="Total number of items in this package")
-
     delivery_out_date = models.DateTimeField(null=True, blank=True)
     delivered_date = models.DateTimeField(null=True, blank=True)
-    created = models.DateTimeField(auto_now_add=True) ## ready for delivery date
+    created = models.DateTimeField(auto_now_add=True)  # ready for delivery date
     updated = models.DateTimeField(auto_now=True)
+
+    _updating = False  # Flag to track recursive saves
 
     def __str__(self):
         return f"Package #{self.id} for Order #{self.order.id}"
-    
     def save(self, *args, **kwargs):
-        # Generate tracking number if it doesn't exist
         if not self.tracking_number:
             self.tracking_number = generate_tracking_number()
-        
-        # Check if the status is being updated
+
         if self.pk:  # Check if the package already exists (i.e., this is an update)
             previous_package = DeliveryPackage.objects.get(pk=self.pk)
             if previous_package.status != self.status:  # Status has changed
@@ -132,36 +126,43 @@ class DeliveryPackage(models.Model):
         elif self.status == "delivered":
             self.delivered_date = timezone.now()
 
-        super().save(*args, **kwargs)
-    
+        if not self._updating:  # Prevent infinite loop
+            self._updating = True
+            super().save(*args, **kwargs)
+            self._updating = False
+        else:
+            super().save(*args, **kwargs)
+
     def update_order_items_status(self):
         """Update the status of all related OrderItems to match the package status."""
         for package_item in self.package_items.all():
             order_item = package_item.order_item
             order_item.status = self.status
             order_item.save()
-    
+
     def update_package_metrics(self):
-        """Update counts based on package items"""
+        """Update counts based on package items."""
         self.product_listing_count = self.package_items.count()
         self.total_units = self.package_items.aggregate(total=models.Sum('quantity'))['total'] or 0
         self.save(update_fields=['product_listing_count', 'total_units'])
-
     
 
 class PackageItem(models.Model):
     package = models.ForeignKey(DeliveryPackage, on_delete=models.CASCADE, related_name="package_items")
     order_item = models.ForeignKey(OrderItem, on_delete=models.CASCADE, related_name="order_item_package_item")
-    quantity = models.PositiveIntegerField(default=0,help_text="Number of units included in this package")
+    quantity = models.PositiveIntegerField(default=0, help_text="Number of units included in this package")
 
     def save(self, *args, **kwargs):
         self.quantity = self.order_item.quantity
         super().save(*args, **kwargs)
-        self.package.update_package_metrics()  # Update total_items ✅
+
+        # Batch update metrics for multiple items instead of triggering multiple saves
+        self.package.update_package_metrics()
 
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
-        self.package.update_package_metrics()  # Update after delete ✅
+        self.package.update_package_metrics()
+
 
     # def clean(self):
     #     if self.quantity > self.order_item.quantity:
