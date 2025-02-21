@@ -54,6 +54,9 @@ class User(AbstractUser):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
+
 
 
 class Entity(models.Model):
@@ -69,6 +72,10 @@ class Entity(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
+
+
     def __str__(self):
         return self.name
 
@@ -83,3 +90,6 @@ class ShippingAddress(models.Model):
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'

@@ -14,6 +14,9 @@ class Cart(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
+
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.SET_NULL, related_name="cart_items", null=True, blank=True)
     product_listing = models.ForeignKey(ProductListing, on_delete=models.SET_NULL, null=True, blank=True)
@@ -28,6 +31,10 @@ class Wishlist(models.Model):
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
+
+
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
 
 class WishlistItem(models.Model):
     wishlist = models.ForeignKey(Wishlist, on_delete=models.SET_NULL, related_name="wishlist_items", null=True, blank=True)

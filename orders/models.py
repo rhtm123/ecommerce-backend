@@ -44,6 +44,8 @@ class Order(models.Model):
             self.order_number = generate_order_number()
         super().save(*args, **kwargs)
 
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
 
     def __str__(self):
         return f"Order #{self.id} - {self.user.username}"
@@ -84,6 +86,9 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"Order_ID: {self.order.id} {self.product_listing.name} ({self.quantity})"
+    
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
 
 
 PACKAGE_STATUS_CHOICES = [
@@ -145,6 +150,10 @@ class DeliveryPackage(models.Model):
         self.product_listing_count = self.package_items.count()
         self.total_units = self.package_items.aggregate(total=models.Sum('quantity'))['total'] or 0
         self.save(update_fields=['product_listing_count', 'total_units'])
+
+    
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
     
 
 class PackageItem(models.Model):
@@ -170,3 +179,7 @@ class PackageItem(models.Model):
 
     def __str__(self):
         return f"{self.order_item.product_listing.name} ({self.quantity}) in Package #{self.package.id}"
+    
+
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'

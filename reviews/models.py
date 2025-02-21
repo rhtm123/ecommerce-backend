@@ -24,6 +24,10 @@ class Review(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
+
     def __str__(self):
         return  self.title if self.title else "-"
     

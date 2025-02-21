@@ -13,6 +13,9 @@ class TaxCategory(models.Model):
     created = models.DateTimeField(auto_now_add=True, null=True)
     updated = models.DateTimeField(auto_now=True, null=True)
 
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
+
     def save(self, *args, **kwargs):
         """ Automatically set IGST as CGST + SGST before saving """
         self.igst_rate = self.cgst_rate + self.sgst_rate

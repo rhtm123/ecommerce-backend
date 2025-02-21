@@ -3,7 +3,7 @@ from ninja import  Router, Query, Schema
 # router.py
 from .models import User, Entity, ShippingAddress
 from .schemas import UserCreateSchema, UserUpdateSchema, UserOutSchema
-from .schemas import EntityCreateSchema, EntityUpdateSchema, EntityOutSchema
+from .schemas import EntityCreateSchema, EntityUpdateSchema, EntityOutSchema, EntityOutOneSchema
 from .schemas import ShippingAddressCreateSchema, ShippingAddressUpdateSchema, ShippingAddressOutSchema
 
 
@@ -229,7 +229,7 @@ def delete_user(request, user_id: int):
 
 
 # Create Entity
-@router.post("/entities/", response=EntityOutSchema)
+@router.post("/entities/", response=EntityOutOneSchema)
 def create_entity(request, payload: EntityCreateSchema):
     entity = Entity(**payload.dict())
 
@@ -260,10 +260,10 @@ def entities(request,  page: int = Query(1), page_size: int = Query(10), search:
         query = query + "&ordering=" + ordering
 
 
-    return paginate_queryset(request, qs, EntityOutSchema, page_number, page_size)
+    return paginate_queryset(request, qs, EntityOutSchema, page_number, page_size, query)
 
 # Read Single User (Retrieve)
-@router.get("/entities/{entity_id}/", response=EntityOutSchema)
+@router.get("/entities/{entity_id}/", response=EntityOutOneSchema)
 def retrieve_entity(request, entity_id: int):
     entity = get_object_or_404(Entity, id=entity_id)
     return entity

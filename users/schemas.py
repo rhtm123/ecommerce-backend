@@ -42,10 +42,22 @@ class EntityOutSchema(Schema):
     id: int
     name: str 
     gst_number: Optional[str] = None
-    user: UserOutSchema | None = None
+    user_id: Optional[int] = None
     created: datetime
     updated: datetime
+    entity_type: Optional[str] = None
+    website: Optional[str] = None
 
+class EntityOutOneSchema(Schema):
+    id: int
+    name: str 
+    gst_number: Optional[str] = None
+    user: Optional[UserOutSchema] = None
+    created: datetime
+    updated: datetime
+    entity_type: Optional[str] = None
+    website: Optional[str] = None
+    details: Optional[str] = None
 
 class EntityOut2Schema(Schema):
     id: int

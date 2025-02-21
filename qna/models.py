@@ -17,6 +17,10 @@ class Question(models.Model):
         if len(self.question_text) > 48:
             return self.question_text[:48]
         return self.question_text
+    
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
+
 
 class Answer(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="question_answers")
@@ -30,4 +34,7 @@ class Answer(models.Model):
         if len(self.answer_text) > 48:
             return self.answer_text[:48]
         return self.answer_text
+    
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
 

@@ -32,6 +32,9 @@ class Tag(models.Model):
         self.slug = slugify(self.name)
         super(Tag, self).save(*args, **kwargs)
 
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
+
 
 
 # Create your models here.
@@ -73,4 +76,7 @@ class Blog(models.Model):
 
     def __str__(self):
         return self.title
+    
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
     

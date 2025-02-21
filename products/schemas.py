@@ -4,6 +4,9 @@ from typing import Optional, List
 from ninja import Schema
 from ninja.schema import Field
 
+from typing import Dict
+
+
 from .models import ProductListing, Category, ProductListingImage
 
 from users.schemas import EntityOut2Schema
@@ -75,6 +78,27 @@ class FeatureTemplateOutSchema(Schema):
     updated: datetime
 
 
+class VariantSchema(Schema):
+    id: int
+    name: str
+    attributes: Dict  # JSONField in the model, represented as a dict in Python
+    created: datetime
+    updated: datetime
+
+
+class ProductOutOneSchema(Schema):
+    id: int
+    name: str
+    about: Optional[str]  # blank=True, null=True in model
+    description: Optional[str]  # blank=True, null=True
+    important_info: Optional[str]  # blank=True, null=True
+    base_price: float   # DecimalField in model
+    tax_category: Optional[int]  # ForeignKey, using ID, nullable
+    country_of_origin: str
+    created: datetime
+    updated: datetime
+    variants: List[VariantSchema]  # List of variants related to the product
+
 class ProductOutSchema(Schema):
     id: int
     name: str
@@ -87,8 +111,12 @@ class ProductOutSchema(Schema):
 class ProductCreateSchema(Schema):
     name: str
     description: Optional[str] = None
-    base_price: float
-    # category_id: int
+    # base_price: float
+    category_id: Optional[int] = None
+    brand_id: Optional[int] = None
+    tax_category_id: Optional[int] = None
+    country_of_origin: Optional[str] = "India"
+    
 
 class ProductUpdateSchema(Schema):
     name: Optional[str] = None

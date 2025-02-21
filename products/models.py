@@ -50,7 +50,10 @@ class Category(MP_Node):
         super(Category, self).save(*args, **kwargs)
 
     def __str__(self):
-        return self.name 
+        return self.name
+    
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
 
 class FeatureGroup(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="category_feature_groups", null=True, blank=True)
@@ -85,7 +88,10 @@ class Product(models.Model):
     about = models.TextField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     important_info = models.TextField(blank=True, null=True)
-    base_price = models.DecimalField(max_digits=10, decimal_places=2)
+    base_price = models.DecimalField(default=0,max_digits=10, decimal_places=2)
+
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, related_name='category_products', null=True, blank=True)
+    brand = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="brand_products", null=True, blank=True)
 
     tax_category = models.ForeignKey(
         TaxCategory, 
@@ -102,6 +108,9 @@ class Product(models.Model):
         return self.name
     # discount
 
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
+
 
 class Variant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_variants')
@@ -110,13 +119,22 @@ class Variant(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
+
 
 class ProductListing(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_listings', null=True, blank=True)
     name = models.CharField(max_length=255, null=True, blank=True, db_index=True)
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, related_name='category_listings', null=True, blank=True)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, related_name='category_product_listings', null=True, blank=True)
     brand = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="brand_product_listings", null=True, blank=True)
     manufacturer = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="manufacturer_product_listings", null=True, blank=True)
+
+    tax_category = models.ForeignKey(
+        TaxCategory, 
+        related_name="tax_category_product_listings",
+        on_delete=models.SET_NULL, null=True,blank=True
+    )
 
     estore = models.ForeignKey(EStore, on_delete=models.CASCADE, null=True, blank=True, related_name="estore_product_listings")
 
@@ -150,10 +168,11 @@ class ProductListing(models.Model):
     rating = models.DecimalField(default=5,max_digits=4, decimal_places=2, null=True, blank=True)
 
     review_count = models.IntegerField(default=1, null=True, blank=True)
-
     popularity = models.IntegerField(default=100)
-
     stock = models.PositiveIntegerField(default=0)
+
+    buy_limit = models.PositiveIntegerField(default=10, help_text="Maximum limit for this product in an order")
+
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -169,7 +188,7 @@ class ProductListing(models.Model):
         if self.variant:
             new_name = new_name + " [" + self.variant.name + "]"
 
-        self.slug = slugify(new_name) + "-" + str(self.id) + "kb"
+        self.slug = slugify(new_name) + "-" + str(self.id) + "nm"
         self.name = new_name
 
         super(ProductListing, self).save(*args, **kwargs)
@@ -204,6 +223,9 @@ class ProductListingImage(models.Model):
 
     def __str__(self):
         return f"{self.product_listing.product.name} - {self.product_listing.seller.name} Listing Image"
+    
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
 
     
 class Feature(models.Model):
@@ -225,3 +247,6 @@ class Feature(models.Model):
 
         self.slug = "kb" + str(self.id) + slugify(self.feature_template.name)
         super(Feature, self).save(*args, **kwargs)
+
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'

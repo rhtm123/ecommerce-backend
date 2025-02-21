@@ -9,7 +9,7 @@ from .schemas import (
     CategorySchema, CategoryParentChildrenOutSchema,
     FeatureGroupOutSchema,
     FeatureTemplateOutSchema,
-    ProductCreateSchema, ProductOutSchema, ProductUpdateSchema,
+    ProductCreateSchema, ProductOutSchema, ProductOutOneSchema, ProductUpdateSchema,
     ProductListingUpdateSchema, ProductListingCreateSchema, ProductListingOutSchema, ProductListingOneOutSchema,
     FeatureOutSchema,
     ProductListingImageOutSchema
@@ -21,6 +21,8 @@ import json
 from django.db.models import Min, Max, Count
 
 from django.db.models import Q
+
+from ninja_jwt.authentication import JWTAuth
 
 from typing import Optional
 
@@ -169,12 +171,10 @@ def featuretemplates(request,  page: int = Query(1), page_size: int = Query(10),
     return paginate_queryset(request, qs, FeatureTemplateOutSchema , page_number, page_size)
 
 ############################ Product ############################
-@router.post("/products/", response=ProductOutSchema)
+@router.post("/products/", response=ProductOutSchema,  auth=JWTAuth())
 def create_product(request, payload: ProductCreateSchema):
-
     # locality = get_object_or_404(Locality, id=payload.locality_id)
     product = Product(**payload.dict())
-        
     product.save()
     return product
 
@@ -185,19 +185,38 @@ def products(request,  page: int = Query(1), page_size: int = Query(10), categor
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
 
+    query = ""
+
     if category_id:
         qs = qs.filter(category__id=category_id)
+        query = query + "&category_id=" + category_id
 
     if ordering:
         qs = qs.order_by(ordering)
+        query = query + "&ordering=" + ordering
 
-    return paginate_queryset(request, qs, ProductOutSchema, page_number, page_size)
+    return paginate_queryset(request, qs, ProductOutSchema, page_number, page_size, query)
 
 # Read Single Product (Retrieve)
-@router.get("/products/{product_id}/", response=ProductOutSchema)
+@router.get("/products/{product_id}/", response=ProductOutOneSchema)
 def retrieve_product(request, product_id: int):
-    product = get_object_or_404(Product, id=product_id)
-    return product
+    # product = get_object_or_404(Product, id=product_id)
+
+    product = Product.objects.prefetch_related('product_variants').get(id=product_id)
+
+    return {
+        'id': product.id,
+        'name': product.name,
+        'about': product.about,
+        'description': product.description,
+        'important_info': product.important_info,
+        'base_price': product.base_price,
+        'tax_category': product.tax_category_id if product.tax_category else None,
+        'country_of_origin': product.country_of_origin,
+        'created': product.created,
+        'updated': product.updated,
+        'variants': product.product_variants.all()  # Queryset of Variant instances
+    }
 
 # Update Product
 @router.put("/products/{product_id}/", response=ProductOutSchema)
