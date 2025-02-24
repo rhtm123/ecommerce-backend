@@ -122,6 +122,9 @@ class Variant(models.Model):
     class Meta:
         ordering = ['-id']  # Default ordering by 'id'
 
+    def __str__(self):
+        return self.name 
+
 
 class ProductListing(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_listings', null=True, blank=True)
@@ -138,7 +141,7 @@ class ProductListing(models.Model):
 
     estore = models.ForeignKey(EStore, on_delete=models.CASCADE, null=True, blank=True, related_name="estore_product_listings")
 
-    slug = models.SlugField(default="", null=False, blank=True, db_index=True)
+    slug = models.SlugField(default="", max_length=255, null=False, blank=True, db_index=True)
 
     box_items = models.TextField(null=True, blank=True)
     features = models.JSONField(null=True, blank=True)
@@ -177,7 +180,7 @@ class ProductListing(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.product.name}"
+        return f"{self.name}"
     
     class Meta:
         ordering = ['-id']
@@ -190,6 +193,8 @@ class ProductListing(models.Model):
 
         self.slug = slugify(new_name) + "-" + str(self.id) + "nm"
         self.name = new_name
+
+        # print(new_name)
 
         super(ProductListing, self).save(*args, **kwargs)
 
