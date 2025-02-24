@@ -187,6 +187,16 @@ class ProductListing(models.Model):
     
     def save(self, *args, **kwargs):
 
+        if self.product.category:
+            self.category = self.product.category
+        
+        if self.product.tax_category:
+            self.tax_category = self.product.tax_category
+
+        if self.product.brand:
+            self.brand = self.product.brand
+
+
         new_name = self.product.name
         if self.variant:
             new_name = new_name + " [" + self.variant.name + "]"

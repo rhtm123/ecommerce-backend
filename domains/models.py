@@ -15,5 +15,6 @@ class AllowedDomain(models.Model):
     def __str__(self):
         return self.domain
     
+    
     class Meta:
         ordering = ['-id']  # Default ordering by 'id'

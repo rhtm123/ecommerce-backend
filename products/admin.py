@@ -5,7 +5,7 @@ from .models import Category
 
 from django.contrib import admin
 from .models import Category
-from django.utils.safestring import mark_safe
+# from django.utils.safestring import mark_safe
 
 
 class MyAdmin(TreeAdmin):
@@ -48,8 +48,14 @@ class ProductListingImageInline(admin.TabularInline):
 class ProductAdmin(SummernoteModelAdmin):
     summernote_fields = ['description',]
     inlines = [VariantInline,]
+    # raw_id_fields = ("brand",)
+    search_fields = ("name",)
+    list_filter = ("category",)
 
 @admin.register(ProductListing)
 class ProductListingAdmin(admin.ModelAdmin):
     inlines = [ProductListingImageInline]
+    readonly_fields = ("name", "tax_category", "brand", "slug", "category", )
+    search_fields = ("name",)
+    list_filter = ("category", 'brand', 'seller', 'approved')
 

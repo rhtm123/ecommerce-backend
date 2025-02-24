@@ -7,7 +7,6 @@ class DomainsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'domains'
 
+    def ready(self):
+        import domains.signals  # Import signals when the app is ready
 
-    # def ready(self):
-    #     from domain.utils import update_allowed_domains_cache
-    #     update_allowed_domains_cache()
