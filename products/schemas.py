@@ -141,6 +141,7 @@ class ProductListingOutSchema(Schema):
     stock: int
     rating: Optional[float] = None
     review_count: int
+    buy_limit: int
 
     popularity: Optional[int] = None
     created: datetime
@@ -185,7 +186,7 @@ class ProductListingOneOutSchema(Schema):
     review_count: int
     popularity : Optional[int] = None
 
-
+    buy_limit: int
 
     # seller_id: int
     price: float

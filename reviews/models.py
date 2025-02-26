@@ -34,7 +34,7 @@ class Review(models.Model):
     def update_product_listing_reviews(self):
         """Updates the review count and rating in ProductListing"""
         product = self.product_listing
-        reviews = product.product_listing_reviews.filter(approved=True)
+        reviews = product.product_listing_reviews.filter()
         product.review_count = reviews.count()
         product.rating = round(reviews.aggregate(avg_rating=models.Avg("rating"))["avg_rating"] or 0, 1)
         product.save()
