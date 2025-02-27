@@ -4,6 +4,13 @@ from typing import Optional
 from datetime import datetime
 from locations.schemas import AddressOutSchema
 
+from ninja.schema import Field
+
+from .models import Entity
+
+
+from pydantic import BaseModel, Field
+
 
 class UserCreateSchema(Schema):
     username: str
@@ -47,6 +54,20 @@ class EntityOutSchema(Schema):
     updated: datetime
     entity_type: Optional[str] = None
     website: Optional[str] = None
+
+    logo: Optional[str] = None
+
+    
+    @staticmethod
+    def resolve_logo(obj: Entity) -> Optional[str]:
+        """
+        Resolves the URL for the main image.
+        """
+        try:
+            return obj.logo.url if obj.logo else None
+        except:
+            return None
+        
 
 class EntityOutOneSchema(Schema):
     id: int
