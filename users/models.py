@@ -3,12 +3,11 @@
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
 
-# from imagekit.models import ProcessedImageField
-# from imagekit.processors import ResizeToFill
-# from imagekit.models import ImageSpecField
-
 from locations.models import Address
 from estores.models import EStore
+
+from cloudinary.models import CloudinaryField
+
 
 
 class User(AbstractUser):
@@ -68,6 +67,14 @@ class Entity(models.Model):
     
     entity_type = models.CharField(max_length=255) # brand, seller, manufacturer, packager
     address = models.ForeignKey(Address, on_delete=models.CASCADE, blank=True, null=True)
+
+    logo = CloudinaryField(
+        "image",
+        folder="kb/entity/",
+        transformation={"width": 600, "height": 600, "crop": "fill"},
+        blank=True,
+        null=True,
+    )
     
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)

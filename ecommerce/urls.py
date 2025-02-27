@@ -16,9 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-# from ninja_simple_jwt.auth.views.api import mobile_auth_router, web_auth_router
 
-from ninja import NinjaAPI
 
 from users.api import router as users_api
 from locations.api import router as locations_api
@@ -33,10 +31,10 @@ from reviews.api import router as reviews_api
 
 from blogs.api import router as blogs_api
 
+from estores.api import router as estores_api
+
 from django.conf import settings
 from django.conf.urls.static import static
-
-# from notifications.api import router as notifications_api
 
 
 from ninja_jwt.controller import NinjaJWTDefaultController
@@ -45,17 +43,9 @@ from ninja_extra import NinjaExtraAPI
 from django.urls import include
 
 
-
-
-# api = NinjaAPI()
-
-
 api = NinjaExtraAPI()
 api.register_controllers(NinjaJWTDefaultController)
 
-
-# api.add_router("/auth/mobile/", mobile_auth_router)
-# api.add_router("/auth/web/", web_auth_router)
 
 
 api.add_router("user/", users_api, tags=["Users API"])
@@ -67,7 +57,7 @@ api.add_router("order/", orders_api, tags=['Orders API'])
 api.add_router("qna/", qna_api, tags=['Questions and Answers API'])
 api.add_router("review/", reviews_api, tags=['Reviews API'])
 api.add_router("blog/", blogs_api, tags=['blogs API'])
-# api.add_router("notifications/", notifications_api, tags=['Notifications API'])
+api.add_router("estore/", estores_api, tags=['Estores API'])
 
 urlpatterns = [
     path('admin/', admin.site.urls),
