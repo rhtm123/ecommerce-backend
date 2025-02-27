@@ -162,8 +162,8 @@ class DeliveryPackageOutSchema(Schema):
     tracking_number: str 
     product_listing_count: int 
     total_units: int 
-    shipped_date: Optional[datetime] = None
-    delivered: Optional[datetime] = None
+    delivery_out_date: Optional[datetime] = None
+    delivered_date: Optional[datetime] = None
 
 
 class OrderItemSchema(Schema):
@@ -208,8 +208,8 @@ class DeliveryPackageSchema(Schema):
     status: str
     product_listing_count: int
     total_units: int
-    shipped_date: Optional[str]
-    delivered_date: Optional[str]
+    delivery_out_date: Optional[datetime] = None
+    delivered_date: Optional[datetime] = None
     package_items: List[PackageItemSchema]
 
 class OrderDeliveryStatusSchema(Schema):

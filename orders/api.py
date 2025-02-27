@@ -56,7 +56,7 @@ def get_order_delivery_status(request, order_number: str):
             "status": package.status,
             "product_listing_count": package.product_listing_count,
             "total_units": package.total_units,
-            "shipped_date": package.shipped_date.isoformat() if package.shipped_date else None,
+            "delivery_out_date": package.delivery_out_date.isoformat() if package.delivery_out_date else None,
             "delivered_date": package.delivered_date.isoformat() if package.delivered_date else None,
             "package_items": package_item_data,
         })
