@@ -60,7 +60,7 @@ def reviews(request,  page: int = Query(1), page_size: int = Query(10), product_
         query = query + "&ordering=" + ordering
         
 
-    return paginate_queryset(request, qs, ReviewOutSchema, page_number, page_size)
+    return paginate_queryset(request, qs, ReviewOutSchema, page_number, page_size, query)
 
 # Read Single Review (Retrieve)
 @router.get("/reviews/{review_id}/", response=ReviewOutSchema)

@@ -40,15 +40,15 @@ def get_order_delivery_status(request, order_number: str):
     package_data = []
     for package in packages:
         package_items = package.package_items.all()
-        package_item_data = [{
-            "order_item": {
+        package_item_data = [
+            {
                 "product_listing": item.order_item.product_listing.name,
                 "quantity": item.order_item.quantity,
                 "status": item.order_item.status,
                 "price": float(item.order_item.price),
                 "subtotal": float(item.order_item.subtotal),
-            },
-            "quantity": item.quantity,
+                "created": item.order_item.created,
+                "shipped_date": item.order_item.shipped_date,
         } for item in package_items]
         
         package_data.append({
@@ -59,6 +59,7 @@ def get_order_delivery_status(request, order_number: str):
             "delivery_out_date": package.delivery_out_date.isoformat() if package.delivery_out_date else None,
             "delivered_date": package.delivered_date.isoformat() if package.delivered_date else None,
             "package_items": package_item_data,
+            "created":package.created
         })
     
     # Fetch items that are not in any package
@@ -71,6 +72,8 @@ def get_order_delivery_status(request, order_number: str):
                 "status": order_item.status,
                 "price": float(order_item.price),
                 "subtotal": float(order_item.subtotal),
+                "created": order_item.created,
+                "shipped_date": order_item.shipped_date
             })
     
     return {

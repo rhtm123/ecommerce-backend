@@ -198,10 +198,9 @@ class OrderItemSchema(Schema):
     status: str
     price: float
     subtotal: float
+    created: datetime
+    shipped_date: Optional[datetime] = None
 
-class PackageItemSchema(Schema):
-    order_item: OrderItemSchema
-    quantity: int
 
 class DeliveryPackageSchema(Schema):
     tracking_number: Optional[str]
@@ -210,7 +209,8 @@ class DeliveryPackageSchema(Schema):
     total_units: int
     delivery_out_date: Optional[datetime] = None
     delivered_date: Optional[datetime] = None
-    package_items: List[PackageItemSchema]
+    package_items: List[OrderItemSchema]
+    created : Optional[datetime] = None
 
 class OrderDeliveryStatusSchema(Schema):
     order_id: int

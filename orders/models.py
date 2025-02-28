@@ -16,6 +16,11 @@ from utils.generate import generate_tracking_number, generate_order_number
 from django.utils import timezone
 
 
+PAYMENT_CHOICES = [
+    ('pending', 'pending'),
+    ('paid', 'paid')
+]
+
 
 class Order(models.Model):
 
@@ -26,7 +31,7 @@ class Order(models.Model):
     # status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, help_text="Total price of all items including taxes and discounts")
     shipping_address = models.ForeignKey(ShippingAddress, on_delete=models.SET_NULL, null=True, blank=True)
-    payment_status = models.CharField(max_length=50, default='pending')
+    payment_status = models.CharField(max_length=50, default='pending', choices=PAYMENT_CHOICES)
     # tracking_number = models.CharField(max_length=255, blank=True, null=True)
 
     # total_items = models.PositiveIntegerField(default=1, null=True, blank=True, help_text="No. of product listings (items)")
@@ -58,10 +63,10 @@ class Order(models.Model):
 
 
 STATUS_CHOICES = [
-    ('pending', 'pending'),
-    ("processing", 'processing'),
+    ('order_placed', 'order_placed'),
     ('shipped', 'shipped'),
     ('ready_for_delivery', 'Ready for Delivery'),
+    ('out_for_delivery', 'Out for Delivery'),
     ('delivered', 'delivered'),
     ('canceled', 'canceled'),
 ]
@@ -71,18 +76,24 @@ class OrderItem(models.Model):
     product_listing = models.ForeignKey(ProductListing, on_delete=models.CASCADE, related_name='product_listing_order_items')
     quantity = models.PositiveIntegerField(help_text="Number of units ordered for this product") 
 
-    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='order_placed')
     price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Price per unit at time of purchase")  # Price of 1 Item 
 
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, help_text="Total price for this product line (quantity × unit_price)")
-
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+
+    shipped_date = models.DateTimeField(null=True, blank=True)
     updated = models.DateTimeField(auto_now=True, null=True, blank=True)
 
     def save(self, *args, **kwargs):
         self.subtotal = self.quantity * self.price
+
+        if self.status == "shipped":
+            self.shipped_date = timezone.now()
+
         super().save(*args, **kwargs)
         self.order.update_totals()
+        
 
     def __str__(self):
         return f"Order_ID: {self.order.id} {self.product_listing.name} ({self.quantity})"

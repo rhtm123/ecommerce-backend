@@ -17,6 +17,8 @@ from decouple import config
 router = Router()
 
 
+from django.contrib.auth import authenticate
+
 
 from ninja_jwt.tokens import RefreshToken
 
@@ -101,6 +103,51 @@ class AuthBearer(HttpBearer):
         except ValueError:
             return None
 
+
+class UserLoginSchema(BaseModel):
+    username: str
+    password: str
+
+
+@router.post("/auth/login/", tags=['token'])
+def google_auth(request, payload: UserLoginSchema):
+    try:
+ 
+        # Check if the user exists in the database, if not, create them
+        user = authenticate(username=payload.username, password=payload.password)
+
+        if user is None:
+            return {"error": "Invalid credentials"} 
+
+        entity = None
+        try: 
+            entity_object = Entity.objects.get(user=user)
+            entity = {
+                "id": entity_object.id,
+                "entity_type": entity_object.entity_type,
+                "name": entity_object.name,
+            }
+
+        except:
+            pass
+
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
+        access_token = str(refresh.access_token)
+
+        return {
+            "user_id": user.id,
+            "email": user.email,
+            "first_name": user.first_name,
+            "google_picture": user.google_picture,
+            "last_name":user.last_name,
+            "access_token": access_token,
+            "refresh_token": str(refresh),
+            "entity": entity
+        }
+    except:
+        return {"error": "Invalid credentials"}
+    
 
 @router.post("/auth/google/", tags=['token'])
 def google_auth(request, payload: TokenSchema):
