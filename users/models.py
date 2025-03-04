@@ -10,8 +10,25 @@ from cloudinary.models import CloudinaryField
 
 
 
+from django.utils.timezone import now
+from datetime import timedelta
+
+
+
+class MobileVerification(models.Model):
+    mobile = models.CharField(max_length=15, unique=True)
+    otp = models.CharField(max_length=6)
+    created = models.DateTimeField(auto_now_add=True)
+
+    def is_valid(self):
+        return self.created >= now() - timedelta(minutes=5)  # OTP expires in 5 minutes
+    
+
+
 class User(AbstractUser):
-    mobile = models.CharField(max_length=15, null=True, blank=True)
+    mobile = models.CharField(max_length=15, null=True, blank=True, unique=True)
+    mobile_verified = models.BooleanField(default=False)
+
     alternate_mobile = models.CharField(max_length=15, null=True, blank=True)
 
     google_picture = models.URLField(blank=True, null=True)
@@ -24,6 +41,8 @@ class User(AbstractUser):
     ]
 
     gender = models.CharField(max_length=255, choices=GENDER_CHOICES, null=True, blank=True);
+
+    is_restricted = models.BooleanField(default=False, help_text="Indicates if the user is restricted from making purchases.")
 
     estore = models.ForeignKey(EStore, on_delete=models.CASCADE, null=True, blank=True, related_name="estore_users")
 
@@ -55,6 +74,9 @@ class User(AbstractUser):
 
     class Meta:
         ordering = ['-id']  # Default ordering by 'id'
+
+    def __str__(self):
+        return self.username
 
 
 

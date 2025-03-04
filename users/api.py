@@ -37,12 +37,59 @@ from twilio.request_validator import RequestValidator
 from twilio.twiml.messaging_response import MessagingResponse
 
 
+import random
+
 GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID")
 TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN')
 
-from users.models import User
+from users.models import User, MobileVerification
+from pydantic import BaseModel
+
+from utils.generate import generate_otp
 
 
+class OTPRequestSchema(BaseModel):
+    mobile: str
+
+class OTPVerifySchema(BaseModel):
+    mobile: str
+    otp: str
+
+
+@router.post("/send-otp/")
+def send_otp_api(request, data: OTPRequestSchema):
+    phone_number = data.mobile
+
+    otp = generate_otp()
+    print(otp)
+    # send_otp(phone_number, otp)
+    
+    MobileVerification.objects.update_or_create(
+        mobile=phone_number,
+        defaults={'otp': otp}
+    )
+
+    return {"message": "OTP sent successfully"}
+
+@router.post("/verify-otp/")
+def verify_otp_api(request, data: OTPVerifySchema):
+    mobile = data.mobile
+    otp = data.otp
+
+    otp_entry = get_object_or_404(MobileVerification, mobile=mobile)
+
+    if otp_entry.otp == otp and otp_entry.is_valid():
+        otp_entry.delete()  # Remove OTP after successful verification
+        try:
+            user_obj = User.objects.get(mobile=mobile)
+            user_obj.is_mobile_verified = True
+            user_obj.save()
+        except:
+            pass
+
+        return {"message": "OTP verified successfully"}
+
+    return {"error": "Invalid or expired OTP"}
 
 # Set up logging
 
@@ -110,7 +157,7 @@ class UserLoginSchema(BaseModel):
 
 
 @router.post("/auth/login/", tags=['token'])
-def google_auth(request, payload: UserLoginSchema):
+def auth_login(request, payload: UserLoginSchema):
     try:
  
         # Check if the user exists in the database, if not, create them

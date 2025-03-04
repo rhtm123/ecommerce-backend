@@ -9,7 +9,6 @@ from ninja.schema import Field
 from .models import Entity
 
 
-from pydantic import BaseModel, Field
 
 
 class UserCreateSchema(Schema):
@@ -41,6 +40,7 @@ class UserOutSchema(Schema):
     alternate_mobile: Optional[str] = None
     google_picture: Optional[str] = None
     role: str
+    is_restricted: bool
     created: datetime
     updated: datetime
 

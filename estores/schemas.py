@@ -6,7 +6,7 @@ from ninja import Schema
 
 class DeliveryPinOutSchema(Schema):
     id: int
-    pin: Optional[str] = None
+    pin_code: Optional[str] = None
     estore_id: Optional[int] = None
     cod_available: bool
     city: Optional[str] = None
