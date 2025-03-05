@@ -36,8 +36,10 @@ from django.http import HttpResponse
 from twilio.request_validator import RequestValidator
 from twilio.twiml.messaging_response import MessagingResponse
 
+from utils.send_whatsapp import send_wa_msg
+from utils.constants import wa_content_templates
 
-import random
+
 
 GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID")
 TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN')
@@ -61,9 +63,12 @@ def send_otp_api(request, data: OTPRequestSchema):
     phone_number = data.mobile
 
     otp = generate_otp()
-    print(otp)
-    # send_otp(phone_number, otp)
-    
+
+    content_template_sid = wa_content_templates["mobile_verify_sid"]
+    variables = {'1': otp}
+    send_wa_msg(content_template_sid, variables, phone_number)
+    # print("WA message sent!!")
+
     MobileVerification.objects.update_or_create(
         mobile=phone_number,
         defaults={'otp': otp}
@@ -82,7 +87,7 @@ def verify_otp_api(request, data: OTPVerifySchema):
         otp_entry.delete()  # Remove OTP after successful verification
         try:
             user_obj = User.objects.get(mobile=mobile)
-            user_obj.is_mobile_verified = True
+            user_obj.mobile_verified = True
             user_obj.save()
         except:
             pass

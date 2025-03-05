@@ -126,6 +126,22 @@ class Variant(models.Model):
         return self.name 
 
 
+
+class ReturnExchangePolicy(models.Model):
+    name = models.CharField(max_length=100, help_text="Policy name (e.g., '7-day return')")
+    return_available = models.BooleanField(default=False)
+    exchange_available = models.BooleanField(default=False)
+    return_days = models.PositiveIntegerField(null=True, blank=True, help_text="Number of days allowed for return")
+    exchange_days = models.PositiveIntegerField(null=True, blank=True, help_text="Number of days allowed for exchange")
+    conditions = models.TextField(null=True, blank=True, help_text="Conditions for return/exchange")
+    
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.name} - Return: {self.return_days} days, Exchange: {self.exchange_days} days"
+    
+
 class ProductListing(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_listings', null=True, blank=True)
     name = models.CharField(max_length=255, null=True, blank=True, db_index=True)
@@ -137,6 +153,15 @@ class ProductListing(models.Model):
         TaxCategory, 
         related_name="tax_category_product_listings",
         on_delete=models.SET_NULL, null=True,blank=True
+    )
+
+    return_exchange_policy = models.ForeignKey(
+        ReturnExchangePolicy,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="product_listings",
+        help_text="Return and exchange policy for this product"
     )
 
     estore = models.ForeignKey(EStore, on_delete=models.CASCADE, null=True, blank=True, related_name="estore_product_listings")

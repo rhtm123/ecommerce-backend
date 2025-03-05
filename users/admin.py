@@ -1,13 +1,15 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import User, Entity, ShippingAddress
+from .models import User, Entity, ShippingAddress, MobileVerification
 
 # admin.site.register(User)
 
 admin.site.register(Entity)
 
 admin.site.register(ShippingAddress)
+
+admin.site.register(MobileVerification)
 
 
 class EntityInline(admin.TabularInline):

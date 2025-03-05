@@ -1,13 +1,13 @@
 
 from datetime import datetime
 from typing import Optional, List
-from ninja import Schema
+from ninja import Schema, ModelSchema
 from ninja.schema import Field
 
 from typing import Dict
 
 
-from .models import ProductListing, Category, ProductListingImage
+from .models import ReturnExchangePolicy, ProductListing, Category, ProductListingImage
 
 from users.schemas import EntityOut2Schema
 
@@ -170,6 +170,12 @@ class ProductListingOutSchema(Schema):
             return None
 
 
+class ReturnExchangePolicySchema(ModelSchema):
+    class Meta:
+        model = ReturnExchangePolicy
+        fields = ['id', 'return_available', 'exchange_available', 'return_days', 'exchange_days', 'conditions']
+
+
 class ProductListingOneOutSchema(Schema):
     id: int
     name: Optional[str] = None
@@ -186,9 +192,9 @@ class ProductListingOneOutSchema(Schema):
     review_count: int
     popularity : Optional[int] = None
 
-    buy_limit: int
+    return_exchange_policy: Optional[ReturnExchangePolicySchema] = None
 
-    # seller_id: int
+    buy_limit: int
     price: float
     mrp: float
     stock: int

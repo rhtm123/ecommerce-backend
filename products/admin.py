@@ -15,13 +15,15 @@ admin.site.register(Category, MyAdmin)
 
 
 from django.contrib import admin
-from .models import Product, ProductListing, ProductListingImage, Variant
+from .models import ReturnExchangePolicy, Product, ProductListing, ProductListingImage, Variant
 
 from .models import FeatureGroup, FeatureTemplate, Feature
 
 from django_summernote.admin import SummernoteModelAdmin
 
 
+
+admin.site.register(ReturnExchangePolicy)
 admin.site.register(FeatureGroup)
 admin.site.register(FeatureTemplate)
 admin.site.register(Feature)
