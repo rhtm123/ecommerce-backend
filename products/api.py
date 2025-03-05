@@ -269,6 +269,9 @@ def product_listings(
     qs = ProductListing.objects.filter(approved=True)
     query = ""
 
+    # print("Product",category_id, brand_ids, min_price, max_price, feature_filters)
+
+
     # Filter by category and its children
     if category_id:
         try:
@@ -330,6 +333,7 @@ def product_listings(
 def get_sidebar_filters(
     request, 
     category_id: str = None,
+    search: str = None,
     brand_ids: str = Query(None, description="Comma-separated brand IDs"),  # Example: '1,2,3'
     min_price: float = Query(None, description="Minimum price"),
     max_price: float = Query(None, description="Maximum price"),
@@ -339,13 +343,28 @@ def get_sidebar_filters(
     API to fetch sidebar filters for product listings.
     """
     filters = {}
+
+    # print(category_id, brand_ids, min_price, max_price, feature_filters)
     
     # Filter listings by category if category_id is provided
     qs = ProductListing.objects.all()
     
     # Filter by category
+    
     if category_id:
-        qs = qs.filter(category__id=category_id)
+        try:
+            category = Category.objects.get(id=category_id)
+            children = category.get_children()
+            descendants = Category.objects.filter(Q(id=category.id) | Q(id__in=children.values_list('id', flat=True)))
+            qs = qs.filter(category__in=descendants)
+        except Category.DoesNotExist:
+            return {"error": "Category not found"}
+        
+
+    
+    if search:
+        qs = qs.filter(Q(name__icontains=search) | Q(product__name__icontains=search))
+
 
     # Filter by brands
     if brand_ids:

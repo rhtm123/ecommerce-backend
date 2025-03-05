@@ -295,6 +295,8 @@ def order_items(
                     "name":item.product_listing.name,
                     "id": item.product_listing.id,
                     "slug":item.product_listing.slug,
+                    "price":item.product_listing.price,
+                    "mrp":item.product_listing.mrp,
                 },
                 "quantity": item.quantity,
                 "price": float(item.price),

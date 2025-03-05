@@ -14,6 +14,13 @@ class ProductListingSchema(Schema):
     slug: str
 
     price: Optional[float] = None
+    mrp: Optional[float] = None
+
+    cgst_rate: float = Field(None, alias='tax_category.cgst_rate')
+    sgst_rate: float = Field(None, alias='tax_category.sgst_rate')
+    igst_rate: float = Field(None, alias='tax_category.igst_rate')
+
+
     # stock: Optional[int] = None
     # rating: Optional[float] = None
     # popularity: Optional[int] = None
@@ -36,8 +43,8 @@ class OrderItemOutSchema(Schema):
     order_id: int
     product_listing: Optional[ProductListingSchema] = None
 
+
     review: Optional[ReviewOutSchema] = None
-    # product_listing_product_name: str
     quantity: int
     price: float
     subtotal: float
@@ -112,6 +119,7 @@ class OrderUpdateSchema(Schema):
     # tracking_number: Optional[str] = None
     notes: Optional[str] = None
     discount: Optional[float] = None
+
 
 
 
