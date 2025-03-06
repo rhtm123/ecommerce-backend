@@ -48,6 +48,7 @@ api.register_controllers(NinjaJWTDefaultController)
 
 
 
+
 api.add_router("user/", users_api, tags=["Users API"])
 api.add_router("location/", locations_api, tags=["Locations API"])
 api.add_router("product/", products_api, tags=['Products API'])
@@ -58,6 +59,8 @@ api.add_router("qna/", qna_api, tags=['Questions and Answers API'])
 api.add_router("review/", reviews_api, tags=['Reviews API'])
 api.add_router("blog/", blogs_api, tags=['blogs API'])
 api.add_router("estore/", estores_api, tags=['Estores API'])
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),

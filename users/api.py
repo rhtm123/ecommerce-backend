@@ -105,6 +105,8 @@ def verify_otp_api(request, data: OTPVerifySchema):
 
 #     return HttpResponse("Webhook received!", status=200)
 
+
+
 @router.post("/twilio/webhook/")
 def twilio_whatsapp_webhook(request):
     """Handles incoming WhatsApp messages from Twilio"""
@@ -195,7 +197,10 @@ def auth_login(request, payload: UserLoginSchema):
             "last_name":user.last_name,
             "access_token": access_token,
             "refresh_token": str(refresh),
-            "entity": entity
+            "entity": entity,
+            "mobile_verified": user.mobile_verified,
+            "mobile": user.mobile,
+            "gender": user.gender,
         }
     except:
         return {"error": "Invalid credentials"}
@@ -249,8 +254,12 @@ def google_auth(request, payload: TokenSchema):
             "last_name":user.last_name,
             "access_token": access_token,
             "refresh_token": str(refresh),
-            "entity": entity
+            "entity": entity,
+            "mobile_verified": user.mobile_verified,
+            "mobile": user.mobile,
+            "gender": user.gender,
         }
+    
     except ValueError:
         return {"error": "Invalid Google token"}
 
