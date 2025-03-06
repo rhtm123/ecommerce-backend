@@ -28,11 +28,12 @@ def send_order_notification(sender, instance, created, **kwargs):
             try:
                 with open("./utils/htmlemails/html_order.html", "r", encoding="utf-8") as file:
                     email_content = file.read()
-                    formatted_email = email_content.replace("{name}", name).replace("{order_id}", order_id_str).replace("{total_items}", total_items)
-                    subject = f"Naigaon Market notification: #Order{order_id_str} placed successfully"
+                    formatted_email = email_content.replace("{name}", name).replace("{order_number}", order_number).replace("{total_items}", total_items,).replace("{tracking_url}", f"https://www.naigaonmarket.com/profile/orders/{order_number}").replace('{unsubscribe_url}', f"https://www.naigaonmarket.com/profile/unsubscribe-email?email={receiver_email}")
+                    subject = f"Naigaon Market : #Order{order_number} placed successfully"
                     text_content = subject
                     print("Email sent successfully")
                     # Uncomment to send email
+                    ## working now !!
                     # send_mail_thread(
                     #     subject=subject,
                     #     body=text_content,
@@ -71,6 +72,7 @@ def send_package_notification(sender, instance, created, **kwargs):
         tracking_number = str(package.tracking_number)
         total_items = str(package.product_listing_count)
         status = str(package.status)
+        order_number = package.order.order_number
 
         if package.delivery_executive:
             de_name = f"{package.delivery_executive.first_name} {package.delivery_executive.last_name}"
@@ -80,15 +82,16 @@ def send_package_notification(sender, instance, created, **kwargs):
             de_mobile = "9518901902"
 
         if status == "out_for_delivery":
-            # try:
-            #     with open("./utils/htmlemails/html_order.html", "r", encoding="utf-8") as file:
-            #         email_content = file.read()
-            #         formatted_email = email_content.replace("{name}", name).replace("{tracking_number}", tracking_number).replace("{total_items}", total_items)
-            #         subject = f"Naigaon Market notification: #Order{tracking_number} placed successfully"
-            #         print("Email sent successfully")
-            #         # send_mail_thread(subject, subject, settings.EMAIL_HOST_USER, [receiver_email], html=formatted_email)
-            # except Exception as e:
-            #     print(f"Email send failed: {e}")
+            try:
+                ### testing working good
+                with open("./utils/htmlemails/out_for_delivery.html", "r", encoding="utf-8") as file:
+                    email_content = file.read()
+                    formatted_email = email_content.replace("{name}", name).replace("{tracking_number}", tracking_number).replace("{total_items}", total_items).replace("{tracking_url}", f"https://www.naigaonmarket.com/profile/orders/{order_number}").replace('{unsubscribe_url}', f"https://www.naigaonmarket.com/profile/unsubscribe-email?email={receiver_email}")
+                    subject = f"Naigaon Market: #Package{tracking_number} is out for delivery"
+                    print("Email sent successfully")
+                    # send_mail_thread(subject, subject, settings.EMAIL_HOST_USER, [receiver_email], html=formatted_email)
+            except Exception as e:
+                print(f"Email send failed: {e}")
 
             try:
                 content_template_sid = wa_content_templates["delivery_out_sid"]
@@ -105,10 +108,18 @@ def send_package_notification(sender, instance, created, **kwargs):
                 print(f"WhatsApp message send failed: {e}")
 
         elif status == "delivered":
+            
             try:
-                pass  # Email logic here
-            except:
-                pass
+                ### testing working good
+                with open("./utils/htmlemails/delivered.html", "r", encoding="utf-8") as file:
+                    email_content = file.read()
+                    formatted_email = email_content.replace("{name}", name).replace("{tracking_number}", tracking_number).replace("{total_items}", total_items).replace("{review_url}", f"https://www.naigaonmarket.com/profile/orders/{order_number}").replace('{unsubscribe_url}', f"https://www.naigaonmarket.com/profile/unsubscribe-email?email={receiver_email}")
+                    subject = f"Naigaon Market: #Package{tracking_number} delivered successfully"
+                    print("Email sent successfully")
+                    # send_mail_thread(subject, subject, settings.EMAIL_HOST_USER, [receiver_email], html=formatted_email)
+            except Exception as e:
+                print(f"Email send failed: {e}")
+
 
             try:
                 content_template_sid = wa_content_templates["delivered_sid"]

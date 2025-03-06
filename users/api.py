@@ -96,15 +96,47 @@ def verify_otp_api(request, data: OTPVerifySchema):
 
     return {"error": "Invalid or expired OTP"}
 
-# Set up logging
 
-# @router.post("/twilio/webhook/")
-# def twilio_whatsapp_webhook(request):
-#     print("🔍 Headers:", request.headers)
-#     print("🔍 POST Data:", request.POST.dict())
 
-#     return HttpResponse("Webhook received!", status=200)
+# @router.post("/plivo/webhook/")
+# def whatsapp_webhook(request):
+#     """Handle incoming WhatsApp messages from Plivo."""
+#     print("Web hook is called now!!")
+#     try:
+#         # Get raw JSON payload
+#         data = request.POST.dict()
+#         print("Received webhook payload: %s", data)
 
+#         import plivo
+#         AUTH_ID=<AUTH_ID>
+#         AUTH_TOKEN=<AUTH_TOKEN>
+#         client = plivo.RestClient(AUTH_ID, AUTH_TOKEN)
+
+#         # if not data:
+#         #     return JsonResponse({"status": "error", "message": "No payload received"}, status=400)
+
+#         # Extract fields (no strict schema validation here for simplicity)
+#         from_number = data.get("From", "unknown")
+#         to_number = data.get("To", "unknown")
+#         message_content = data.get("Body", "unknown")
+#         # message_uuid = data.get("MessageUUID", "unknown")
+#         # timestamp = data.get("MessageTime", "unknown")
+
+#         try:
+#             response = client.messages.create(
+#                 src=to_number,  # Your WhatsApp number
+#                 dst=from_number,  # Sender's number
+#                 type_="whatsapp",
+#                 text=f"Thanks for your message: {message_content}"
+#             )
+#         except plivo.exceptions.PlivoRestError as e:
+#             print(f"Failed to send reply: {e}")
+#         return {"status": "success", "message": "Webhook received"}
+
+#     except Exception as e:
+#         print(f"Webhook processing error: {e}")
+#         return {"status": "error", "message": str(e)}
+    
 
 
 @router.post("/twilio/webhook/")

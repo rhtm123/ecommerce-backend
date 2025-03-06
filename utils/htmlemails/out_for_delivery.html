@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Naigaon Market: Your Order Confirmation - #{order_id}</title>
+    <title>Your Order #{package_number} is Out for Delivery</title>
     <style>
         body {
             font-family: 'Arial', 'Helvetica', sans-serif;
@@ -36,7 +36,7 @@
             display: inline-block;
             padding: 12px 25px;
             margin-top: 20px;
-            background: #007bff;
+            background: #28a745;
             color: #ffffff !important;
             text-decoration: none;
             border-radius: 5px;
@@ -44,7 +44,7 @@
             font-weight: bold;
         }
         .button:hover {
-            background: #0056b3;
+            background: #218838;
         }
         .footer {
             margin-top: 30px;
@@ -69,12 +69,13 @@
 </head>
 <body>
     <div class="email-container">
-        <h2>Hello, {name}!</h2>
-        <p>Great news! Your order #{order_number} with {total_items} item(s) has been successfully confirmed.</p>
-        <p>We're preparing your package and will notify you once it's on its way. In the meantime, you can track your order status here:</p>
-        <a href="{tracking_url}" class="button">Track Your Order</a>
+        <h2>Good News, {name}!</h2>
+        <p>Your order #{tracking_number} with {total_items} item(s) is out for delivery!</p>
+        <p>It’s on its way to you and should arrive soon. You can track its progress here:</p>
+        <a href="{tracking_url}" class="button">Track Your Delivery</a>
         <p class="footer">Questions? Contact us at <a href="mailto:naigaonmarket@gmail.com">naigaonmarket@gmail.com</a>.</p>
-        <p class="footer">You're receiving this email because you placed an order at YourStore. If you'd rather not hear from us, <a href="{unsubscribe_url}" class="unsubscribe">unsubscribe here</a>.</p>
+
+        <p class="footer">You’re receiving this email because you placed an order at YourStore. If you’d prefer not to receive updates, <a href="{unsubscribe_url}" class="unsubscribe">unsubscribe here</a>.</p>
     </div>
 </body>
 </html>
