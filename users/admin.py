@@ -25,4 +25,4 @@ class ShippingAddressInline(admin.TabularInline):
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     inlines = [EntityInline, ShippingAddressInline] 
-    list_display = ("username", "mobile",)
+    list_display = ("username", "mobile","mobile_verified")

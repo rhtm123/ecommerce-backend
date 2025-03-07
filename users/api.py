@@ -83,7 +83,7 @@ def verify_otp_api(request, data: OTPVerifySchema):
 
     otp_entry = get_object_or_404(MobileVerification, mobile=mobile)
 
-    if otp_entry.otp == otp and otp_entry.is_valid():
+    if otp_entry.otp == otp:
         otp_entry.delete()  # Remove OTP after successful verification
         try:
             user_obj = User.objects.get(mobile=mobile)
@@ -93,7 +93,6 @@ def verify_otp_api(request, data: OTPVerifySchema):
             pass
 
         return {"message": "OTP verified successfully"}
-
     return {"error": "Invalid or expired OTP"}
 
 
