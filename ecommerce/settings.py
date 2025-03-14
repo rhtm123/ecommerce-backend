@@ -175,3 +175,23 @@ NINJA_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=20),
 }
+
+cache_backend = config("CACHE_BACKEND", default="locmem")
+
+if cache_backend == "redis":
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": config("REDIS_URL", default="sredis://localhost:6379/0"),
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            }
+        }
+    }
+else:  # Default to LocMemCache for test/localhost
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "unique-snowflake",  # Optional: unique name for multi-instance testing
+        }
+    }

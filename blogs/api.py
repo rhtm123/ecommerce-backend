@@ -5,6 +5,8 @@ from django.shortcuts import get_object_or_404
 from .schemas import BlogOutSchema, TagOutSchema
 # from typing import List
 
+from utils.cache import cache_response
+
 router = Router()
 
 
@@ -13,7 +15,7 @@ from utils.pagination import PaginatedResponseSchema, paginate_queryset
 
 
 @router.get("/tags", response=PaginatedResponseSchema)
-# @paginate(PageNumberPagination)
+@cache_response()
 def tags(request, page: int = Query(1), page_size: int = Query(10), estore_id: int = None, ordering: str = None):
     qs = Tag.objects.all()
     page_number = request.GET.get('page', 1)
@@ -46,6 +48,7 @@ def tag_slug(request, tag_slug: str):
 
 @router.get("/blogs", response=PaginatedResponseSchema)
 # @paginate(PageNumberPagination)
+@cache_response()
 def blogs(request, page: int = Query(1), page_size: int = Query(10), category_id: int = None, tag_id: int = None, estore_id: int = None):
     qs = Blog.objects.all()
     page_number = request.GET.get('page', 1)
