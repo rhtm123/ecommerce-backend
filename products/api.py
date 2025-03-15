@@ -66,6 +66,7 @@ def categories(
         estore_id: Optional[int] = Query(None, description="Filter by EStore ID"),
         level: Optional[int] = Query(None, description="Filter by category level"),
         has_blogs: Optional[bool] = Query(None, description="Filter categories that have associated blogs"),
+        category_type: Optional[str] = Query("product", description="Type of category"),
     ):
     qs = Category.objects.all()
     page_number = request.GET.get('page', 1)
@@ -80,6 +81,10 @@ def categories(
     if level:
         qs = qs.filter(level=level)
         query = query + "&level=" + str(level)
+
+    if category_type:
+        qs = qs.filter(category_type=category_type)
+        query = query + "&category_type=" + category_type
 
     if has_blogs:
         qs = qs.filter(category_blogs__isnull=False).distinct()
@@ -258,6 +263,7 @@ def product_listings(
     page: int = Query(1),
     page_size: int = Query(10),
     category_id: str = None,
+    seller_id: int = None,
     search: str = None,
     ordering: str = None,
     featured: bool = None,
@@ -272,6 +278,11 @@ def product_listings(
     # print("Product",category_id, brand_ids, min_price, max_price, feature_filters)
 
 
+    if seller_id:
+        qs = qs.filter(seller__id=seller_id)
+        query = query + "&seller_id=" + str(seller_id)
+
+        
     # Filter by category and its children
     if category_id:
         try:

@@ -121,6 +121,7 @@ class ProductCreateSchema(Schema):
 class ProductUpdateSchema(Schema):
     name: Optional[str] = None
     description: Optional[str] = None
+    tax_category_id: Optional[int] = None
     base_price: Optional[float] = None
 
 
@@ -130,8 +131,11 @@ class ProductListingOutSchema(Schema):
     name: Optional[str] = None
     brand: Optional[EntityOut2Schema] = None  # Assuming EntityOutSchema handles the `brand` details
     slug: str
+    seller_id : Optional[int] = None
 
     category: Optional[CategoryOutSchema] = None
+
+    approved: Optional[bool] 
 
     main_image: Optional[str] = Field(None, description="URL for the main product image")
     thumbnail: Optional[str] = Field(None, description="URL for the dynamically generated thumbnail")
@@ -230,9 +234,11 @@ class ProductListingOneOutSchema(Schema):
 
 class ProductListingCreateSchema(Schema):
     product_id: int
-    # seller_id: int
     price: float
+    mrp: Optional[float] = 0 
     stock: Optional[int] = 0
+    seller_id: Optional[int] = None
+    estore_id: Optional[int] = None
 
 class ProductListingUpdateSchema(Schema):
     price: Optional[float] = None

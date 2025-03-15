@@ -3,23 +3,26 @@ from users.models import Entity
 
 from estores.models import EStore
 
-from imagekit.models import ProcessedImageField
-from imagekit.processors import ResizeToFill
+# from imagekit.models import ProcessedImageField
+# from imagekit.processors import ResizeToFill
 
-from imagekit.models import ImageSpecField
+# from imagekit.models import ImageSpecField
 
 from treebeard.mp_tree import MP_Node
 from taxations.models import TaxCategory
 
 from django.template.defaultfilters import slugify
 
-from decouple import config
+# from decouple import config
  
 from cloudinary.models import CloudinaryField
 
 # from taxations.models import TaxCategory
 
-
+CATEGORY_TYPE_CHOICES = [
+    ('product', 'Product'),
+    ('blog', 'Blog'),
+]
 
 
 class Category(MP_Node):
@@ -28,6 +31,13 @@ class Category(MP_Node):
     
     description = models.TextField(null=True, blank=True)
     slug = models.SlugField(default="", null=False, blank=True)
+    
+    category_type = models.CharField(
+        max_length=10,
+        choices=CATEGORY_TYPE_CHOICES,
+        default='product',
+        help_text='Specify if the category is for a product or a blog.'
+    )
     
     image = CloudinaryField(
         "image",
@@ -115,7 +125,7 @@ class Product(models.Model):
 class Variant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_variants')
     name = models.CharField(max_length=255) # example "Red, 128GB"
-    attributes = models.JSONField() # { "color": {"name":"Red", "value":"#ff0000"}, "storage": {"name":"128GB", "value":"128"}}
+    attributes = models.JSONField() # [ {'name':"color", "value":"Red", "real_value":"#ff0000"}, {'name':"storage", "value":"128GB", "real_value":"128"}]
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -239,7 +249,7 @@ class ProductListing(models.Model):
         """
         if self.main_image:
             # Assuming Cloudinary's URL format (update accordingly if needed)
-            cloudinary_base_url = f"https://res.cloudinary.com/{config('CLN_CLOUD_NAME')}/image/upload/"
+            # cloudinary_base_url = f"https://res.cloudinary.com/{config('CLN_CLOUD_NAME')}/image/upload/"
             return self.main_image.url
         return None
 

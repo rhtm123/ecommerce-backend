@@ -87,7 +87,19 @@ class Entity(models.Model):
     website = models.URLField(null=True, blank=True)
     details = models.TextField(null=True, blank=True)
     
-    entity_type = models.CharField(max_length=255) # brand, seller, manufacturer, packager
+    ENTITY_TYPE_CHOICES = [
+        ('brand', 'Brand'),
+        ('seller', 'Seller'),
+        ('manufacturer', 'Manufacturer'),
+        ('packager', 'Packager'),
+    ]
+
+    entity_type = models.CharField(
+        max_length=255,
+        choices=ENTITY_TYPE_CHOICES,
+        help_text='Specify the type of entity.'
+    )
+
     address = models.ForeignKey(Address, on_delete=models.CASCADE, blank=True, null=True)
 
     logo = CloudinaryField(
