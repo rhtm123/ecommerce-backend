@@ -110,13 +110,14 @@ class ProductOutSchema(Schema):
 
 class ProductCreateSchema(Schema):
     name: str
+    about: Optional[str] = None
     description: Optional[str] = None
-    # base_price: float
+    important_info: Optional[str] = None
+    # base_price: Optional[float] = 0
     category_id: Optional[int] = None
     brand_id: Optional[int] = None
     tax_category_id: Optional[int] = None
     country_of_origin: Optional[str] = "India"
-    
 
 class ProductUpdateSchema(Schema):
     name: Optional[str] = None
@@ -177,7 +178,7 @@ class ProductListingOutSchema(Schema):
 class ReturnExchangePolicySchema(ModelSchema):
     class Meta:
         model = ReturnExchangePolicy
-        fields = ['id', 'return_available', 'exchange_available', 'return_days', 'exchange_days', 'conditions']
+        fields = ['id', 'name', 'return_available', 'exchange_available', 'return_days', 'exchange_days', 'conditions']
 
 
 class ProductListingOneOutSchema(Schema):
@@ -234,15 +235,49 @@ class ProductListingOneOutSchema(Schema):
 
 class ProductListingCreateSchema(Schema):
     product_id: int
-    price: float
-    mrp: Optional[float] = 0 
-    stock: Optional[int] = 0
-    seller_id: Optional[int] = None
+    name: Optional[str] = None
+    category_id: Optional[int] = None
+    brand_id: Optional[int] = None
+    manufacturer_id: Optional[int] = None
+    tax_category_id: Optional[int] = None
+    return_exchange_policy_id: Optional[int] = None
     estore_id: Optional[int] = None
+    box_items: Optional[str] = None
+    features: Optional[dict] = None
+    approved: Optional[bool] = False
+    featured: Optional[bool] = False
+    variant_id: Optional[int] = None
+    seller_id: Optional[int] = None
+    packer_id: Optional[int] = None
+    importer_id: Optional[int] = None
+    price: float
+    mrp: Optional[float] = None
+    stock: Optional[int] = 0
+    buy_limit: Optional[int] = 10
+    rating: Optional[float] = 5.0
+    review_count: Optional[int] = 1
+    popularity: Optional[int] = 100
+    main_image: Optional[str] = None
 
 class ProductListingUpdateSchema(Schema):
+    name: Optional[str] = None
+    category_id: Optional[int] = None
+    brand_id: Optional[int] = None
+    manufacturer_id: Optional[int] = None
+    tax_category_id: Optional[int] = None
+    return_exchange_policy_id: Optional[int] = None
+    box_items: Optional[str] = None
+    features: Optional[dict] = None
+    approved: Optional[bool] = None
+    featured: Optional[bool] = None
+    variant_id: Optional[int] = None
+    seller_id: Optional[int] = None
+    packer_id: Optional[int] = None
+    importer_id: Optional[int] = None
     price: Optional[float] = None
+    mrp: Optional[float] = None
     stock: Optional[int] = None
+    buy_limit: Optional[int] = None
 
 class FeatureOutSchema(Schema):
     id: int
@@ -274,3 +309,42 @@ class ProductListingImageOutSchema(Schema):
             return obj.image.url if obj.image else None
         except:
             return None
+
+class VariantCreateSchema(Schema):
+    product_id: int
+    name: str
+    attributes: Dict
+
+class VariantUpdateSchema(Schema):
+    name: Optional[str] = None
+    attributes: Optional[Dict] = None
+
+class ProductListingImageCreateSchema(Schema):
+    product_listing_id: int
+    image: str
+    alt_text: Optional[str] = None
+
+class ProductListingImageUpdateSchema(Schema):
+    alt_text: Optional[str] = None
+    image: Optional[str] = None
+
+class FeatureCreateSchema(Schema):
+    product_listing_id: int
+    feature_group: str
+    feature_template_id: Optional[int] = None
+    value: str
+
+class FeatureUpdateSchema(Schema):
+    feature_group: Optional[str] = None
+    feature_template_id: Optional[int] = None
+    value: Optional[str] = None
+
+class FeatureGroupCreateSchema(Schema):
+    name: str
+    category_id: Optional[int] = None
+
+class FeatureTemplateCreateSchema(Schema):
+    name: str
+    feature_group_id: Optional[int] = None
+    key_feature: Optional[bool] = False
+    possible_values: Optional[dict] = None

@@ -264,6 +264,7 @@ def product_listings(
     page_size: int = Query(10),
     category_id: str = None,
     seller_id: int = None,
+    product_id:int = None,
     search: str = None,
     ordering: str = None,
     featured: bool = None,
@@ -281,6 +282,10 @@ def product_listings(
     if seller_id:
         qs = qs.filter(seller__id=seller_id)
         query = query + "&seller_id=" + str(seller_id)
+
+    if product_id:
+        qs = qs.filter(product__id=product_id)
+        query = query + "&product_id=" + str(product_id)
 
         
     # Filter by category and its children

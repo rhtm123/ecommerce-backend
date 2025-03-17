@@ -17,6 +17,7 @@ jwt-signing.pub
 ## .env
 .ini
 .venv
+venv
 
 # C extensions
 *.so
