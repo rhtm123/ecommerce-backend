@@ -104,6 +104,8 @@ class ProductOutSchema(Schema):
     name: str
     description: Optional[str] = None
     base_price: float
+    category: Optional[CategoryOutSchema] = None
+    brand: Optional[EntityOut2Schema] = None
     # category_id: int
     created: datetime
     updated: datetime
