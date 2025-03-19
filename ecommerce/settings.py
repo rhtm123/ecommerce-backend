@@ -170,6 +170,8 @@ MEDIA_URL =  'media/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
 NINJA_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
