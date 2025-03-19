@@ -4,12 +4,12 @@ import cloudinary
 
 ALLOWED_HOSTS += [
     'kb.up.railway.app',
-    'kb.thelearningsetu.com', 
+    'nm.thelearningsetu.com', 
     "emotional-cecily-codingchaska-5e686914.koyeb.app",
     "localhost"
 ]
 
-CSRF_TRUSTED_ORIGINS = ['https://kb.thelearningsetu.com', "https://emotional-cecily-codingchaska-5e686914.koyeb.app"]
+CSRF_TRUSTED_ORIGINS = ['https://nm.thelearningsetu.com', "https://emotional-cecily-codingchaska-5e686914.koyeb.app"]
 
 # CORS_ALLOWED_ORIGINS = [
 #     'http://localhost:5173',
