@@ -32,25 +32,35 @@ def create_question(request, payload: QuestionCreateSchema):
 def questions(request,  
               page: int = Query(1), 
               page_size: int = Query(10), 
-              question_listing_id:str = None ,
+              product_listing_id:str = None ,
               answers_required: bool = False,
               ordering: str = None,):
     qs = Question.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
 
-    if question_listing_id:
-        qs = qs.filter(question_listing__id=question_listing_id)
+    query = ""
+
+
+    if product_listing_id:
+        qs = qs.filter(product_listing__id=product_listing_id)
+        query = query + "&product_listing_id=" + str(product_listing_id)
+
 
     if ordering:
         qs = qs.order_by(ordering)
+        query = query + "&ordering=" + str(ordering)
+
 
     # Fetch answers for each question
     if answers_required:
         for question in qs:
             question.answers = Answer.objects.filter(question=question)
+        query = query + "&answers_required=" + str(answers_required)
 
-    return paginate_queryset(request, qs, QuestionOutSchema, page_number, page_size)
+        
+
+    return paginate_queryset(request, qs, QuestionOutSchema, page_number, page_size, query)
 
 # Read Single Question (Retrieve)
 @router.get("/questions/{question_id}/", response=QuestionOutSchema)
@@ -99,13 +109,20 @@ def answers(request,  page: int = Query(1), page_size: int = Query(10), question
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
 
+    query = ""
+
+
     if question_id:
         qs = qs.filter(question__id=question_id)
+        query = query + "&question_id=" + str(question_id)
+
 
     if ordering:
         qs = qs.order_by(ordering)
+        query = query + "&ordering=" + str(ordering)
 
-    return paginate_queryset(request, qs, AnswerOutSchema, page_number, page_size)
+
+    return paginate_queryset(request, qs, AnswerOutSchema, page_number, page_size, query)
 
 # Read Single Answer (Retrieve)
 @router.get("/answers/{answer_id}/", response=AnswerOutSchema)
