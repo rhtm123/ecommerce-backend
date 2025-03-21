@@ -9,6 +9,8 @@ class AnswerOutSchema(Schema):
     id: int
     answer_text: str
     user_id: Optional[int] = None
+    user: Optional[UserOutSchema] = None
+
     question_id: Optional[int] = None
     
     created: datetime
