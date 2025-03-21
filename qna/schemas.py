@@ -1,5 +1,3 @@
-
-
 from datetime import datetime
 from typing import Optional, List
 from ninja import Schema
@@ -7,16 +5,24 @@ from ninja.schema import Field
 
 from users.schemas import UserOutSchema
 
+class AnswerOutSchema(Schema):
+    id: int
+    answer_text: str
+    user_id: Optional[int] = None
+    question_id: Optional[int] = None
+    
+    created: datetime
+    updated: datetime
 
 class QuestionOutSchema(Schema):
     id: int
     question_text: str
     user: Optional[UserOutSchema] = None
     product_listing_id: int
-
-    
+    answers: List[AnswerOutSchema] = []
     created: datetime
     updated: datetime
+
 
 class QuestionCreateSchema(Schema):
     question_text: str
@@ -27,15 +33,6 @@ class QuestionCreateSchema(Schema):
 class QuestionUpdateSchema(Schema):
     question_text: Optional[str] = None
 
-
-class AnswerOutSchema(Schema):
-    id: int
-    answer_text: str
-    user_id: Optional[int] = None
-    question_id: Optional[int] = None
-    
-    created: datetime
-    updated: datetime
 
 class AnswerCreateSchema(Schema):
     answer_text: str

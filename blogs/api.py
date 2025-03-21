@@ -69,9 +69,11 @@ def blogs(request, page: int = Query(1), page_size: int = Query(10), category_id
 
 
 @router.get("/blogs/{blog_id}", response=BlogOutSchema)
+@cache_response()
 def blog(request, blog_id: int):
     page = get_object_or_404(Blog, id=blog_id)
-    return page
+    return BlogOutSchema.from_orm(page)  # Convert model instance to Pydantic schema
+
 
 @router.get("/blogs/slug/{blog_slug}", response=BlogOutSchema)
 def blog_slug(request, blog_slug: str):

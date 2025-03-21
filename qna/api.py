@@ -1,4 +1,3 @@
-
 from ninja import  Router, Query
 
 # router.py
@@ -10,6 +9,7 @@ from .schemas import (
 from django.shortcuts import get_object_or_404
 from utils.pagination import PaginatedResponseSchema, paginate_queryset
 
+from ninja_jwt.authentication import JWTAuth
 
 
 router = Router()
@@ -17,7 +17,7 @@ router = Router()
 
 
 ############################ Question ############################
-@router.post("/questions/", response=QuestionOutSchema)
+@router.post("/questions/", response=QuestionOutSchema,auth=JWTAuth())
 def create_question(request, payload: QuestionCreateSchema):
 
     # locality = get_object_or_404(Locality, id=payload.locality_id)
@@ -27,8 +27,14 @@ def create_question(request, payload: QuestionCreateSchema):
     return question
 
 # Read Questions (List)
+
 @router.get("/questions/", response=PaginatedResponseSchema)
-def questions(request,  page: int = Query(1), page_size: int = Query(10), question_listing_id:str = None , ordering: str = None,):
+def questions(request,  
+              page: int = Query(1), 
+              page_size: int = Query(10), 
+              question_listing_id:str = None ,
+              answers_required: bool = False,
+              ordering: str = None,):
     qs = Question.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
@@ -39,17 +45,27 @@ def questions(request,  page: int = Query(1), page_size: int = Query(10), questi
     if ordering:
         qs = qs.order_by(ordering)
 
+    # Fetch answers for each question
+    if answers_required:
+        for question in qs:
+            question.answers = Answer.objects.filter(question=question)
+
     return paginate_queryset(request, qs, QuestionOutSchema, page_number, page_size)
 
 # Read Single Question (Retrieve)
 @router.get("/questions/{question_id}/", response=QuestionOutSchema)
-def retrieve_question(request, question_id: int):
+def retrieve_question(request, question_id: int, answers_required: bool = False,):
     question = get_object_or_404(Question, id=question_id)
+    if answers_required:
+        question.answers = Answer.objects.filter(question=question)
     return question
 
 # Update Question
 @router.put("/questions/{question_id}/", response=QuestionOutSchema)
-def update_question(request, question_id: int, payload: QuestionUpdateSchema):
+def update_question(request, 
+                    question_id: int, 
+                    payload: QuestionUpdateSchema,
+                    ):
     question = get_object_or_404(Question, id=question_id)
     for attr, value in payload.dict().items():
         if value is not None:
