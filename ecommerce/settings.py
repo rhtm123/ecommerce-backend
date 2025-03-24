@@ -74,6 +74,7 @@ INSTALLED_APPS = [
     "domains.apps.DomainsConfig",
     "estores.apps.EstoresConfig",
     "versions.apps.VersionsConfig",
+    "payments.apps.PaymentsConfig",
 ]
 
 MIDDLEWARE = [
@@ -178,6 +179,7 @@ NINJA_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=20),
 }
 
+
 cache_backend = config("CACHE_BACKEND", default="locmem")
 
 if cache_backend == "redis":
@@ -197,3 +199,10 @@ else:  # Default to LocMemCache for test/localhost
             "LOCATION": "unique-snowflake",  # Optional: unique name for multi-instance testing
         }
     }
+
+PHONEPE_MID = "M22UWG16C1100UAT"
+PHONEPE_CLIENT_ID = "M22UWG16C1100UAT_2503211"
+PHONEPE_CLIENT_SECRET = "ZjFhN2JmNjktMDdkNC00ZjlkLTgyNDUtZGYzNmI4NDZjMDY1"
+PHONEPE_CLIENT_VERSION = 1
+PHONEPE_BASE_URL = "https://api-preprod.phonepe.com"
+PHONEPE_REDIRECT_URL = "https://yourfrontend.com/payment-success"
