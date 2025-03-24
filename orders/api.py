@@ -259,62 +259,87 @@ def order_items(
     status: str = None, 
     ordering: str = None, 
     need_reviews: bool = False,
+    need_order_user: bool = False,
 ):
     qs = OrderItem.objects.all()
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
-
-    query = ""
+    
+    # Apply filters
     if order_id:
         qs = qs.filter(order__id=order_id)
-        query += f"&order_id={order_id}"
-
     if status:
         qs = qs.filter(status=status)
-        query += f"&status={status}"
-
     if seller_id:
         qs = qs.filter(product_listing__seller__id=seller_id)
-        query += f"&seller_id={seller_id}"
-
     if ordering:
         qs = qs.order_by(ordering)
+
+    # Build query string
+    query = ""
+    if order_id:
+        query += f"&order_id={order_id}"
+    if status:
+        query += f"&status={status}"
+    if seller_id:
+        query += f"&seller_id={seller_id}"
+    if ordering:
         query += f"&ordering={ordering}"
 
-    # Fetch data and add review details
+    # Process items
+    order_items_data = []
+    for item in qs:
+        review = getattr(item, 'order_item_reviews', None)
+        
+        # Base order data
+        order_data = {
+            "id": item.order.id,
+        }
 
-    if need_reviews:
-        order_items_data = []
-        for item in qs:
-            review = getattr(item, 'order_item_reviews', None)  # Access OneToOneField safely
-
-            order_items_data.append({
-                "id": item.id,
-                "order_id": item.order.id,
-                "product_listing": {
-                    "name":item.product_listing.name,
-                    "id": item.product_listing.id,
-                    "slug":item.product_listing.slug,
-                    "price":item.product_listing.price,
-                    "mrp":item.product_listing.mrp,
-                },
-                "quantity": item.quantity,
-                "price": float(item.price),
-                "subtotal": float(item.subtotal),
-                "status": item.status,
-                "created": item.created,
-                "updated": item.updated,
-                "review": {
-                    "id": review.id,
-                    "rating": review.rating,
-                    "title": review.title,
-                    "comment": review.comment,
-                    "created": review.created,
-                    "updated": review.updated
-                } if review else None  # Include review only if it exists
+        # Add user data if requested
+        if need_order_user:
+            order_data.update({
+                "user_id": item.order.user.id,
+                "user": {
+                    "id": item.order.user.id,
+                    "username": item.order.user.username,
+                    "first_name": item.order.user.first_name,
+                    "last_name": item.order.user.last_name,
+                }
             })
+        
+        item_data = {
+            "id": item.id,
+            "order_id": item.order.id,
+            "order": order_data,
+            "product_listing": {
+                "name": item.product_listing.name,
+                "id": item.product_listing.id,
+                "slug": item.product_listing.slug,
+                "price": item.product_listing.price,
+                "mrp": item.product_listing.mrp,
+            },
+            "quantity": item.quantity,
+            "price": float(item.price),
+            "subtotal": float(item.subtotal),
+            "status": item.status,
+            "created": item.created,
+            "updated": item.updated,
+            "review": None
+        }
+            
+        # Add review data if requested
+        if need_reviews and review:
+            item_data["review"] = {
+                "id": review.id,
+                "rating": review.rating,
+                "title": review.title,
+                "comment": review.comment,
+                "created": review.created,
+                "updated": review.updated
+            }
 
-        return paginate_queryset(request, order_items_data, OrderItemOutSchema, page_number, page_size, query)
+        order_items_data.append(item_data)
+
+    return paginate_queryset(request, order_items_data, OrderItemOutSchema, request.GET.get('page', 1), request.GET.get('page_size', 10), query)
 
     return paginate_queryset(request, qs, OrderItemOutSchema, page_number, page_size, query)
      

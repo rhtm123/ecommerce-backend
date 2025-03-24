@@ -38,17 +38,32 @@ class ReviewOutSchema(Schema):
     updated: datetime
 
 
+
+# Add this new schema for user details
+class OrderUserSchema(Schema):
+    id: int
+    username: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    google_picture: Optional[str] = None
+
+# Modify OrderSchema to include user details
+class OrderSchema(Schema):
+    id: int
+    user_id: Optional[int] = None
+    user: Optional[OrderUserSchema] = None
+
+# Update OrderItemOutSchema to include order user details
 class OrderItemOutSchema(Schema):
     id: int
     order_id: int
-    product_listing: Optional[ProductListingSchema] = None
-
-
+    order: OrderSchema
+    product_listing: ProductListingSchema
     review: Optional[ReviewOutSchema] = None
     quantity: int
     price: float
     subtotal: float
-    status: Optional[str] = "pending"
+    status: str
     created: datetime
     updated: datetime
 
