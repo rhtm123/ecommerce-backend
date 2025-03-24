@@ -16,3 +16,4 @@ google-auth==2.38.0
 django_summernote==0.8.20.0
 twilio==9.4.4
 django-redis==5.4.0
+phonepe_sdk==2.1.2
