@@ -20,6 +20,9 @@ from utils.pagination import PaginatedResponseSchema, paginate_queryset
 import json 
 from django.db.models import Min, Max, Count
 
+from utils.cache import cache_response
+
+
 from django.db.models import Q
 
 from ninja_jwt.authentication import JWTAuth
@@ -31,6 +34,7 @@ router = Router()
 
 ############################ Category ############################
 # Create Category
+
 @router.post("/categories/", response=CategoryOutSchema)
 def create_category(request, payload: CategoryCreateSchema):
     # category = Category(**payload.dict())
@@ -59,6 +63,7 @@ def create_category(request, payload: CategoryCreateSchema):
 
 # Read Users (List)
 @router.get("/categories/", response=PaginatedResponseSchema)
+@cache_response()
 def categories(
         request,
         page: int = Query(1, description="Page number"),
@@ -93,6 +98,7 @@ def categories(
     return paginate_queryset(request, qs, CategoryOutSchema, page_number, page_size)
 
 @router.get("/categories/parents-children/{category_id}/", response=CategoryParentChildrenOutSchema)
+@cache_response()
 def retrieve_category_parents_children(request, category_id: int):
     category = get_object_or_404(Category, id=category_id)
 
@@ -123,6 +129,7 @@ def retrieve_category(request, category_id: int):
 
 
 @router.get("/categories/slug/{category_slug}/", response=CategoryOutSchema)
+@cache_response()
 def retrieve_category_slug(request, category_slug: str):
     category = get_object_or_404(Category, slug=category_slug)
     return category
@@ -185,6 +192,7 @@ def create_product(request, payload: ProductCreateSchema):
 
 # Read Products (List)
 @router.get("/products/", response=PaginatedResponseSchema)
+@cache_response()
 def products(request,  page: int = Query(1), page_size: int = Query(10), category_id:str = None , ordering: str = None,):
     qs = Product.objects.all()
     page_number = request.GET.get('page', 1)
@@ -258,6 +266,7 @@ def create_product_listing(request, payload: ProductListingCreateSchema):
 
 
 @router.get("/product-listings/", response=PaginatedResponseSchema)
+@cache_response()
 def product_listings(
     request,
     page: int = Query(1),
@@ -346,6 +355,7 @@ def product_listings(
 
 
 @router.get("/sidebar-filters/", tags=["Sidebar filters"])
+@cache_response()
 def get_sidebar_filters(
     request, 
     category_id: str = None,
@@ -445,6 +455,7 @@ def retrieve_product_listing(request, product_listing_id: int):
     return product_listing
 
 @router.get("/product-listings/slug/{product_listing_slug}/", response=ProductListingOneOutSchema)
+@cache_response()
 def retrieve_product_listing_slug(request, product_listing_slug: str):
     product_listing = get_object_or_404(ProductListing, slug=product_listing_slug)
     return product_listing
