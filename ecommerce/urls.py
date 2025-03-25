@@ -50,7 +50,7 @@ api.register_controllers(NinjaJWTDefaultController)
 
 
 
-api.add_router("payment/", payments_api, tags=['Payments API'])
+# api.add_router("payment/", payments_api, tags=['Payments API'])
 
 api.add_router("user/", users_api, tags=["Users API"])
 api.add_router("location/", locations_api, tags=["Locations API"])
