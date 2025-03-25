@@ -22,13 +22,6 @@ cloudinary.config(
     secure=True
 )
 
-CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            "LOCATION": "unique-snowflake",  # Optional: unique name for multi-instance testing
-        }
-    }
-
 import cloudinary.uploader
 import cloudinary.api
 
