@@ -33,7 +33,7 @@ from blogs.api import router as blogs_api
 
 from estores.api import router as estores_api
 
-from payments.api import router as payments_api
+# from payments.api import router as payments_api
 
 from django.conf import settings
 from django.conf.urls.static import static
