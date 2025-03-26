@@ -200,9 +200,3 @@ else:  # Default to LocMemCache for test/localhost
         }
     }
 
-PHONEPE_MID = "M22UWG16C1100UAT"
-PHONEPE_CLIENT_ID = "M22UWG16C1100UAT_2503211"
-PHONEPE_CLIENT_SECRET = "ZjFhN2JmNjktMDdkNC00ZjlkLTgyNDUtZGYzNmI4NDZjMDY1"
-PHONEPE_CLIENT_VERSION = 1
-PHONEPE_BASE_URL = "https://api-preprod.phonepe.com"
-PHONEPE_REDIRECT_URL = "https://yourfrontend.com/payment-success"
