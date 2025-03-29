@@ -74,7 +74,7 @@ INSTALLED_APPS = [
     "domains.apps.DomainsConfig",
     "estores.apps.EstoresConfig",
     "versions.apps.VersionsConfig",
-    # "payments.apps.PaymentsConfig",
+    "payments.apps.PaymentsConfig",
 ]
 
 MIDDLEWARE = [

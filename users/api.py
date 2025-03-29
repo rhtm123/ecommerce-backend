@@ -18,6 +18,7 @@ router = Router()
 
 
 from django.contrib.auth import authenticate
+from utils.cache import cache_response
 
 
 from ninja_jwt.tokens import RefreshToken
@@ -141,7 +142,6 @@ def verify_otp_api(request, data: OTPVerifySchema):
 @router.post("/twilio/webhook/")
 def twilio_whatsapp_webhook(request):
     """Handles incoming WhatsApp messages from Twilio"""
-
 
     try:
         # Verify Twilio request
@@ -438,6 +438,7 @@ def create_shipping_address(request, payload: ShippingAddressCreateSchema):
 
 # Read ShippingAddresss (List)
 @router.get("/shipping-addresses/", response=PaginatedResponseSchema)
+@cache_response()
 def shipping_addresses(request,  page: int = Query(1), page_size: int = Query(10), user_id:int = None , is_default: bool = None, ordering: str = None,):
     qs = ShippingAddress.objects.all()
     page_number = request.GET.get('page', 1)

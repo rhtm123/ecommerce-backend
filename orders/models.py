@@ -61,6 +61,9 @@ class Order(models.Model):
         self.total_units = sum(item.quantity for item in self.order_items.all())
         self.save(update_fields=['product_listing_count', 'total_units'])
 
+    def get_latest_payment(self):
+        return self.payments.order_by('-created').first()
+
 
 STATUS_CHOICES = [
     ('order_placed', 'order_placed'),

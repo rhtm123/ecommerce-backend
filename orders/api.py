@@ -1,25 +1,20 @@
 from ninja import  Router, Query, Schema
 from typing import List, Optional
 
-
 # router.py
 from .models import Order, OrderItem, DeliveryPackage, PackageItem
-
 
 from .schemas import (
     OrderCreateSchema, OrderOutSchema, OrderUpdateSchema, OrderOutOneSchema,
     OrderItemCreateSchema, OrderItemUpdateSchema, OrderItemOutSchema,
     OrderItemOutOneSchema,
     DeliveryPackageOutSchema,
-    PackageItemOutSchema, 
-
-    
+    PackageItemOutSchema,
 )
 
 from django.shortcuts import get_object_or_404
 
 from django.db.models import Sum, Count, F, Avg
-
 
 from utils.pagination import PaginatedResponseSchema, paginate_queryset
 
@@ -30,8 +25,12 @@ from datetime import datetime, timedelta
 router = Router()
 from .schemas import OrderDeliveryStatusSchema
 
+from utils.cache import cache_response
+
+
 
 @router.get("/delivery-status/{order_number}", response=OrderDeliveryStatusSchema)
+@cache_response()
 def get_order_delivery_status(request, order_number: str):
     order = get_object_or_404(Order, order_number=order_number)
     
@@ -87,6 +86,7 @@ def get_order_delivery_status(request, order_number: str):
     }
 
 @router.get("/seller-analytics", tags=["Analytics"])
+@cache_response()
 def analytics(request, seller_id: int = None, period: str = "lifetime"):
     """API for seller analytics with optional time filtering (week/month/lifetime)"""
 
@@ -130,6 +130,7 @@ def analytics(request, seller_id: int = None, period: str = "lifetime"):
 
 
 @router.get("/seller-analytics/sales-breakdown", tags=["Analytics"])
+@cache_response()
 def sales_breakdown(request, period: str, seller_id: int = None):
     """API for daily sales breakdown over the last week or month
     period possible values > weekly, monthly
@@ -186,11 +187,13 @@ def create_order(request, payload: OrderCreateSchema):
 # Read Orders (List)
 
 @router.get("/orders/", response=PaginatedResponseSchema)
+@cache_response()
 def orders(request, 
            page: int = Query(1), 
            page_size: int = Query(10), 
            user_id: int = None, 
            ordering: str = None, 
+           items_needed: bool = False
     ):
 
     qs = Order.objects.all()
@@ -208,7 +211,46 @@ def orders(request,
         qs = qs.order_by(ordering)
         query += f"&ordering={ordering}"
 
-    return paginate_queryset(request, qs, OrderOutSchema, page_number, page_size, query)
+    
+    orders_data = []
+
+    if items_needed:
+        query += f"&items_needed={items_needed}"
+
+    for order in qs:
+        order_data = {
+            "id": order.id,
+            "order_number": order.order_number,
+            "user_id": order.user_id,
+            "total_amount": order.total_amount,
+            "shipping_address_id": order.shipping_address_id,
+            "payment_status": order.payment_status,
+            "notes": order.notes,
+            "created": order.created,
+            "updated": order.updated,
+            "product_listing_count": order.product_listing_count,
+            "total_units": order.total_units,
+        }
+        if items_needed:
+            order_items = order.order_items.all()
+            print(order_items)
+            items_data = [{
+                "id": item.id,
+                "product_listing_id": item.product_listing_id,
+                "product_listing_name": item.product_listing.name,
+                "quantity": item.quantity,
+                "status": item.status,
+                "price": item.price,
+                "subtotal": item.subtotal,
+                "shipped_date": item.shipped_date,
+            } for item in order_items]
+            print(items_data)
+            order_data["items"] = items_data
+            
+        orders_data.append(order_data)
+
+
+    return paginate_queryset(request, orders_data, OrderOutSchema, page_number, page_size, query)
 
 # Read Single Order (Retrieve)
 @router.get("/orders/{order_id}/", response=OrderOutOneSchema)
@@ -250,9 +292,10 @@ def create_order_item(request, payload: OrderItemCreateSchema):
 # Read OrderItems (List)
 
 @router.get("/order-items/", response=PaginatedResponseSchema)
+@cache_response()
 def order_items(
     request,  
-    page: int = Query(1), 
+    page_number: int = Query(1), 
     page_size: int = Query(10), 
     order_id: int = None, 
     seller_id: int = None, 
@@ -339,14 +382,13 @@ def order_items(
 
         order_items_data.append(item_data)
 
-    return paginate_queryset(request, order_items_data, OrderItemOutSchema, request.GET.get('page', 1), request.GET.get('page_size', 10), query)
-
-    return paginate_queryset(request, qs, OrderItemOutSchema, page_number, page_size, query)
+    return paginate_queryset(request, order_items_data, OrderItemOutSchema, page_number, page_size, query)
      
 
 # Read Single OrderItem (Retrieve)
 
 @router.get("/order-items/{order_item_id}/", response=OrderItemOutOneSchema)
+@cache_response()
 def retrieve_order_item(request, order_item_id: int):
     order_item = get_object_or_404(OrderItem, id=order_item_id)
 
@@ -407,6 +449,7 @@ def delete_order_item(request, order_item_id: int):
 
 # Read Orders (List)
 @router.get("/delivery-packages/", response=PaginatedResponseSchema)
+@cache_response()
 def delivery_packages(request,  page: int = Query(1), page_size: int = Query(10), order_id: int = None, ordering: str = None):
     # qs = Order.objects.all()
     qs = DeliveryPackage.objects.all()  # Fetch order items efficiently
@@ -438,6 +481,7 @@ def retrieve_delivery_package(request, package_id: int):
 
 # Read Orders (List)
 @router.get("/package-items/", response=PaginatedResponseSchema)
+@cache_response()
 def package_items(request,  page: int = Query(1), page_size: int = Query(10), package_id: int = None, ordering: str = None):
     # qs = Order.objects.all()
     qs = PackageItem.objects.all()  # Fetch order items efficiently

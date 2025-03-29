@@ -75,7 +75,10 @@ class OrderItemSchema(Schema):
     quantity: Optional[int] = None
     status: Optional[str] = None
     price: Optional[float] = None
+
     subtotal: Optional[float] = None
+
+    shipped_date: Optional[datetime] = None
 
 class OrderOutSchema(Schema):
     id: int
@@ -91,7 +94,7 @@ class OrderOutSchema(Schema):
     created: datetime
     updated: datetime
 
-    items: Optional[List[OrderItemSchema]] = None  # Include only if `items_required=True`
+    items: Optional[List[OrderItemSchema]] = None  # Include only if `items_needed=True`
 
 
 class UserOutSchema(Schema):

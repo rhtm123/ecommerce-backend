@@ -12,6 +12,8 @@ from utils.pagination import PaginatedResponseSchema, paginate_queryset
 
 from ninja_jwt.authentication import JWTAuth
 
+from utils.cache import cache_response
+
 
 router = Router()
 
@@ -29,6 +31,7 @@ def create_review(request, payload: ReviewCreateSchema):
 
 # Read Reviews (List)
 @router.get("/reviews/", response=PaginatedResponseSchema)
+@cache_response()
 def reviews(request,  page: int = Query(1), page_size: int = Query(10), product_listing_id:str = None, order_item_id:int =None , user_id:int=None ,ordering: str = None, estore_id: int = None, approved: bool = False):
     qs = Review.objects.all()
     page_number = request.GET.get('page', 1)
