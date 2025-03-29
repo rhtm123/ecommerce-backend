@@ -340,6 +340,7 @@ def users(request,  page: int = Query(1), page_size: int = Query(10), search: st
 
 # Read Single User (Retrieve)
 @router.get("/users/{user_id}/", response=UserOutSchema)
+@cache_response()
 def retrieve_user(request, user_id: int):
     user = get_object_or_404(User, id=user_id)
     return user

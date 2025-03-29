@@ -61,14 +61,19 @@ def reviews(request,  page: int = Query(1), page_size: int = Query(10), product_
     if ordering:
         qs = qs.order_by(ordering)
         query = query + "&ordering=" + ordering
-        
-
+    
     return paginate_queryset(request, qs, ReviewOutSchema, page_number, page_size, query)
 
 # Read Single Review (Retrieve)
 @router.get("/reviews/{review_id}/", response=ReviewOutSchema)
 def retrieve_review(request, review_id: int):
     review = get_object_or_404(Review, id=review_id)
+    return review
+
+# Read Single Review (Retrieve)
+@router.get("/reviews/order-item/{order_item_id}/", response=ReviewOutSchema)
+def retrieve_review_by_order_item(request, order_item_id: int):
+    review = get_object_or_404(Review, order_item__id=order_item_id)
     return review
 
 # Update Review

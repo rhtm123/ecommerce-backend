@@ -26,7 +26,7 @@ class Payment(models.Model):
     payment_method = models.CharField(
         max_length=50,
         default="pg"
-    )
+    ) # pg (payment gateway) or cod
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(
         max_length=50,
