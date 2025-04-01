@@ -624,3 +624,100 @@ WARNING:django.request:Not Found: /api/review/reviews/order-item/73/
 WARNING:django.request:Not Found: /api/review/reviews/order-item/68/
 WARNING:django.request:Not Found: /api/review/reviews/order-item/67/
 WARNING:django.request:Not Found: /api/review/reviews/order-item/71/
+WARNING:django.request:Not Found: /favicon.ico
+INFO:django.utils.autoreload:/Users/admin/Desktop/Rohit_Dev/nm_main/backend/orders/models.py changed, reloading.
+ERROR:django.request:Internal Server Error: /admin/orders/order/add/
+Traceback (most recent call last):
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/contrib/admin/options.py", line 718, in wrapper
+    return self.admin_site.admin_view(view)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/utils/decorators.py", line 188, in _view_wrapper
+    result = _process_exception(request, e)
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/utils/decorators.py", line 186, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/views/decorators/cache.py", line 80, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/contrib/admin/sites.py", line 241, in inner
+    return view(request, *args, **kwargs)
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/contrib/admin/options.py", line 1961, in add_view
+    return self.changeform_view(request, None, form_url, extra_context)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/utils/decorators.py", line 48, in _wrapper
+    return bound_method(*args, **kwargs)
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/utils/decorators.py", line 188, in _view_wrapper
+    result = _process_exception(request, e)
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/utils/decorators.py", line 186, in _view_wrapper
+    response = view_func(request, *args, **kwargs)
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/contrib/admin/options.py", line 1820, in changeform_view
+    return self._changeform_view(request, object_id, form_url, extra_context)
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/contrib/admin/options.py", line 1872, in _changeform_view
+    self.save_related(request, form, formsets, not add)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/contrib/admin/options.py", line 1322, in save_related
+    self.save_formset(request, form, formset, change=change)
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/contrib/admin/options.py", line 1310, in save_formset
+    formset.save()
+    ~~~~~~~~~~~~^^
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/forms/models.py", line 796, in save
+    return self.save_existing_objects(commit) + self.save_new_objects(commit)
+                                                ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/forms/models.py", line 959, in save_new_objects
+    self.new_objects.append(self.save_new(form, commit=commit))
+                            ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/forms/models.py", line 1157, in save_new
+    return super().save_new(form, commit=commit)
+           ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/forms/models.py", line 769, in save_new
+    return form.save(commit=commit)
+           ~~~~~~~~~^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/forms/models.py", line 554, in save
+    self.instance.save()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/backend/orders/models.py", line 92, in save
+    self.subtotal = self.quantity * self.price
+                    ~~~~~~~~~~~~~~^~~~~~~~~~~~
+TypeError: unsupported operand type(s) for *: 'NoneType' and 'decimal.Decimal'
+ERROR:django:ProductListing matching query does not exist.
+Traceback (most recent call last):
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/db/models/fields/related_descriptors.py", line 239, in __get__
+    rel_obj = self.field.get_cached_value(instance)
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/db/models/fields/mixins.py", line 37, in get_cached_value
+    return instance._state.fields_cache[self.cache_name]
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+KeyError: 'product_listing'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/ninja/operation.py", line 120, in run
+    result = self.view_func(request, **values)
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/backend/orders/api.py", line 294, in create_order_item
+    order_item.save()
+    ~~~~~~~~~~~~~~~^^
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/backend/orders/models.py", line 94, in save
+    if self.product_listing.stock > 0 and not self.pk:
+       ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/db/models/fields/related_descriptors.py", line 257, in __get__
+    rel_obj = self.get_object(instance)
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/db/models/fields/related_descriptors.py", line 220, in get_object
+    return qs.get(self.field.get_reverse_related_filter(instance))
+           ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/admin/Desktop/Rohit_Dev/nm_main/env1/lib/python3.13/site-packages/django/db/models/query.py", line 649, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+products.models.ProductListing.DoesNotExist: ProductListing matching query does not exist.
+ERROR:django.request:Internal Server Error: /api/order/order-items/
+INFO:django.utils.autoreload:/Users/admin/Desktop/Rohit_Dev/nm_main/backend/orders/models.py changed, reloading.
+INFO:django.utils.autoreload:/Users/admin/Desktop/Rohit_Dev/nm_main/backend/products/api.py changed, reloading.
+INFO:django:"POST - AsyncNinjaJWTSlidingController[refresh_token] /api/token/refresh" 0.059844970703125
+INFO:django:"POST - AsyncNinjaJWTSlidingController[refresh_token] /api/token/refresh" 0.007717132568359375
+WARNING:django.request:Not Found: /api/product/product-listings/related/5/
+WARNING:django.request:Not Found: /api/product/product-listings/related/8/
+INFO:django:"POST - AsyncNinjaJWTSlidingController[refresh_token] /api/token/refresh" 0.009835958480834961

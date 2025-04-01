@@ -447,6 +447,63 @@ def get_sidebar_filters(
 
     return filters
 
+@router.get("/product-listings/related/{product_listing_id}/", response=PaginatedResponseSchema)
+@cache_response()
+def get_related_products(
+    request,
+    product_listing_id: int,
+    page: int = Query(1),
+    page_size: int = Query(10),
+    ):
+    """
+    Get related products for a specific product listing based on category, brand, features, and price similarity.
+    """
+    # Get the original product listing
+    product_listing = get_object_or_404(ProductListing, id=product_listing_id, approved=True)
+    qs = ProductListing.objects.filter(approved=True).exclude(id=product_listing_id)
+
+    # Base filters for related products
+    related_filters = Q()
+
+    # 1. Same category filter
+    if product_listing.category:
+        related_filters &= Q(category=product_listing.category)
+
+    # 2. Same brand filter
+    if product_listing.brand:
+        related_filters &= Q(brand=product_listing.brand)
+
+    # 3. Similar price range (±20% of original price)
+    price = float(product_listing.price)
+    min_price = price * 0.8  # 20% below
+    max_price = price * 1.2  # 20% above
+    related_filters &= Q(price__gte=min_price) & Q(price__lte=max_price)
+
+    # 4. Feature similarity
+    if product_listing.features:
+        try:
+            features = product_listing.features
+            # Look for products with at least one matching feature
+            feature_filters = Q()
+            for category in features:
+                for feature in features[category]:
+                    feature_filters |= Q(features__contains={category: [feature]})
+            related_filters &= feature_filters
+        except Exception:
+            pass
+
+    # Apply all filters
+    qs = qs.filter(related_filters)
+
+    # Order by relevance
+    # - Featured products first
+    # - Higher rating
+    # - Higher popularity
+    qs = qs.order_by('-featured', '-rating', '-popularity')
+
+    # Paginate the results
+    return paginate_queryset(request, qs, ProductListingOutSchema, page, page_size)
+
 
 # Read Single ProductListing (Retrieve)
 @router.get("/product-listings/{product_listing_id}/", response=ProductListingOneOutSchema)

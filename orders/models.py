@@ -91,6 +91,11 @@ class OrderItem(models.Model):
     def save(self, *args, **kwargs):
         self.subtotal = self.quantity * self.price
 
+        if self.product_listing.stock > 0 and not self.pk:
+            product_listing = self.product_listing
+            product_listing.stock = product_listing.stock - 1
+            product_listing.save()
+
         if self.status == "shipped":
             self.shipped_date = timezone.now()
 
