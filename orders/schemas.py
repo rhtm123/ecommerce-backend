@@ -5,6 +5,8 @@ from ninja.schema import Field
 
 from users.schemas import ShippingAddressOutSchema
 
+from products.models import ProductListing
+
 
 # from products.schemas import ProductListingOutSchema
 
@@ -71,7 +73,9 @@ class OrderItemOutSchema(Schema):
 
 class OrderItemSchema(Schema):
     id: int
-    product_listing_name: Optional[str] = None 
+    product_listing_name: Optional[str] = None
+    product_main_image: Optional[str] = Field(None, description="URL for the main product image")
+
     quantity: Optional[int] = None
     status: Optional[str] = None
     price: Optional[float] = None
@@ -79,6 +83,7 @@ class OrderItemSchema(Schema):
     subtotal: Optional[float] = None
 
     shipped_date: Optional[datetime] = None
+
 
 class OrderOutSchema(Schema):
     id: int

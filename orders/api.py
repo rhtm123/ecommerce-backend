@@ -1,5 +1,7 @@
 from ninja import  Router, Query, Schema
 from typing import List, Optional
+from django.core.cache import cache
+
 
 # router.py
 from .models import Order, OrderItem, DeliveryPackage, PackageItem
@@ -173,15 +175,17 @@ def sales_breakdown(request, period: str, seller_id: int = None):
 
 
 
-# Create Order
 @router.post("/orders/", response=OrderOutSchema, auth=JWTAuth())
 def create_order(request, payload: OrderCreateSchema):
 
-    # locality = get_object_or_404(Locality, id=payload.locality_id)
-
     order = Order(**payload.dict())
-        
     order.save()
+
+    # Invalidate the cache for this user's orders
+    if payload.user_id:
+        cache_key = f"cache:/orders/?*user_id={payload.user_id}*"
+        cache.delete(cache_key)
+        # print(f"Cache cleared for user_id={payload.user_id}")
     return order
 
 # Read Orders (List)
@@ -233,18 +237,19 @@ def orders(request,
         }
         if items_needed:
             order_items = order.order_items.all()
-            print(order_items)
+            # print(order_items)
             items_data = [{
                 "id": item.id,
                 "product_listing_id": item.product_listing_id,
                 "product_listing_name": item.product_listing.name,
+                "product_main_image": item.product_listing.main_image.url if item.product_listing.main_image else None,
                 "quantity": item.quantity,
                 "status": item.status,
                 "price": item.price,
                 "subtotal": item.subtotal,
                 "shipped_date": item.shipped_date,
             } for item in order_items]
-            print(items_data)
+            # print(items_data)
             order_data["items"] = items_data
             
         orders_data.append(order_data)

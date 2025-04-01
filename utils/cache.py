@@ -19,6 +19,8 @@ def cache_response(timeout=60 * 15, cache_key_func=None):
                 else f"cache:{request.path}?{query_params}"
             )
 
+            # print(key)
+
             cached = cache.get(key)
             if cached is not None:
                 print("Returning from cache")

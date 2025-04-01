@@ -13,6 +13,7 @@ from utils.pagination import PaginatedResponseSchema, paginate_queryset
 from ninja_jwt.authentication import JWTAuth
 
 from utils.cache import cache_response
+from django.core.cache import cache
 
 
 router = Router()
@@ -22,11 +23,13 @@ router = Router()
 ############################ Review ############################
 @router.post("/reviews/", response=ReviewOutSchema, auth=JWTAuth())
 def create_review(request, payload: ReviewCreateSchema):
-
-    # locality = get_object_or_404(Locality, id=payload.locality_id)
-    review = Review(**payload.dict())
-        
+    review = Review(**payload.dict())  
     review.save()
+
+    if payload.order_item_id:
+        cache_key = f"cache:/orders/?*order_item_id={payload.order_item_id}*"
+        cache.delete(cache_key)
+        
     return review
 
 # Read Reviews (List)
@@ -72,6 +75,7 @@ def retrieve_review(request, review_id: int):
 
 # Read Single Review (Retrieve)
 @router.get("/reviews/order-item/{order_item_id}/", response=ReviewOutSchema)
+@cache_response()
 def retrieve_review_by_order_item(request, order_item_id: int):
     review = get_object_or_404(Review, order_item__id=order_item_id)
     return review
