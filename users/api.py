@@ -14,6 +14,9 @@ from django.shortcuts import get_object_or_404
 from utils.pagination import PaginatedResponseSchema, paginate_queryset
 from decouple import config
 
+from django.core.cache import cache
+
+
 router = Router()
 
 
@@ -435,6 +438,10 @@ def create_shipping_address(request, payload: ShippingAddressCreateSchema):
 
     shipping_address = ShippingAddress(**payload.dict())   
     shipping_address.save()
+
+    if payload.user_id:
+        cache_key = f"cache:/api/user/shipping-addresses/*user_id={payload.user_id}*"
+        cache.delete(cache_key)
     return shipping_address
 
 # Read ShippingAddresss (List)

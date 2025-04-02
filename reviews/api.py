@@ -27,9 +27,8 @@ def create_review(request, payload: ReviewCreateSchema):
     review.save()
 
     if payload.order_item_id:
-        cache_key = f"cache:/orders/?*order_item_id={payload.order_item_id}*"
+        cache_key = f"cache:/api/review/reviews/?*order_item_id={payload.order_item_id}*"
         cache.delete(cache_key)
-        
     return review
 
 # Read Reviews (List)
