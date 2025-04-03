@@ -440,8 +440,10 @@ def create_shipping_address(request, payload: ShippingAddressCreateSchema):
     shipping_address.save()
 
     if payload.user_id:
-        cache_key = f"cache:/api/user/shipping-addresses/*user_id={payload.user_id}*"
+        cache_key = f"cache:/api/user/shipping-addresses/?page=1&page_size=50&user_id={payload.user_id}"
+        print(cache_key);
         cache.delete(cache_key)
+        print("Delete address")
     return shipping_address
 
 # Read ShippingAddresss (List)

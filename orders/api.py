@@ -183,7 +183,7 @@ def create_order(request, payload: OrderCreateSchema):
 
     # Invalidate the cache for this user's orders
     if payload.user_id:
-        cache_key = f"cache:/api/order/orders/?*user_id={payload.user_id}*"
+        cache_key = f"cache:/api/order/orders/?items_needed=true&user_id={payload.user_id}&ordering=-id"
         cache.delete(cache_key)
         # print(f"Cache cleared for user_id={payload.user_id}")
     return order
