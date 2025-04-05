@@ -49,6 +49,10 @@ class Payment(models.Model):
                 merchant_order_id, standard_pay_response = create_payment(amount=self.amount, estore=self.estore)
                 self.payment_url = standard_pay_response.redirect_url;
             self.transaction_id = merchant_order_id
+
+        order = self.order
+        order.payment_status = self.status  # Update the order status to match the payment status
+        order.save()  # Save the updated
         super().save(*args, **kwargs)
 
     class Meta:

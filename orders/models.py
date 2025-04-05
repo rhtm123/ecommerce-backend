@@ -16,11 +16,12 @@ from utils.generate import generate_tracking_number, generate_order_number
 from django.utils import timezone
 
 
-PAYMENT_CHOICES = [
-    ('pending', 'pending'),
-    ('paid', 'paid')
-]
-
+PAYMENT_CHOICES = (
+    ('pending', 'Pending'),
+    ('completed', 'Completed'),
+    ('failed', 'Failed'),
+    ('refunded', 'Refunded'),
+)
 
 class Order(models.Model):
 

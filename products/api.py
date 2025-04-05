@@ -470,27 +470,27 @@ def get_related_products(
         related_filters &= Q(category=product_listing.category)
 
     # 2. Same brand filter
-    if product_listing.brand:
-        related_filters &= Q(brand=product_listing.brand)
+    # if product_listing.brand:
+    #     related_filters &= Q(brand=product_listing.brand)
 
-    # 3. Similar price range (±20% of original price)
+    # 3. Similar price range (±50% of original price)
     price = float(product_listing.price)
-    min_price = price * 0.8  # 20% below
-    max_price = price * 1.2  # 20% above
+    min_price = price * 0.5  # 50% below
+    max_price = price * 1.5  # 50% above
     related_filters &= Q(price__gte=min_price) & Q(price__lte=max_price)
 
     # 4. Feature similarity
-    if product_listing.features:
-        try:
-            features = product_listing.features
-            # Look for products with at least one matching feature
-            feature_filters = Q()
-            for category in features:
-                for feature in features[category]:
-                    feature_filters |= Q(features__contains={category: [feature]})
-            related_filters &= feature_filters
-        except Exception:
-            pass
+    # if product_listing.features:
+    #     try:
+    #         features = product_listing.features
+    #         # Look for products with at least one matching feature
+    #         feature_filters = Q()
+    #         for category in features:
+    #             for feature in features[category]:
+    #                 feature_filters |= Q(features__contains={category: [feature]})
+    #         related_filters &= feature_filters
+    #     except Exception:
+    #         pass
 
     # Apply all filters
     qs = qs.filter(related_filters)

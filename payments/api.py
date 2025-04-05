@@ -140,9 +140,6 @@ def verify_payment(request, transaction_id: str = None,):
         status = order_status_response['state'].lower()
 
         if payment.status != status:
-            order = payment.order
-            order.status = status  # Update the order status to match the payment status
-            order.save()  # Save the updated order
             payment.status = status
             payment.save()
     
