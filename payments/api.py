@@ -22,7 +22,7 @@ from .models import Payment
 from ninja_jwt.authentication import JWTAuth
 import hashlib
 
-logging.basicConfig(filename='webhook.log', level=logging.INFO)
+# logging.basicConfig(filename='webhook.log', level=logging.INFO)
 
 from decouple import config
 
@@ -73,7 +73,7 @@ def phonepe_webhook(request):
         )
 
     # Log the incoming webhook data
-    logging.info(f"{request.headers['Date']} - {raw_data}")
+    # logging.info(f"{request.headers['Date']} - {raw_data}")
 
     # Extract payment details
     payment_status = data.get("payload", {}).get("state", "UNKNOWN")
