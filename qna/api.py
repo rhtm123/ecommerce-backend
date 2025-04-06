@@ -11,6 +11,8 @@ from utils.pagination import PaginatedResponseSchema, paginate_queryset
 
 from ninja_jwt.authentication import JWTAuth
 
+from utils.cache import cache_response
+
 
 router = Router()
 
@@ -29,6 +31,7 @@ def create_question(request, payload: QuestionCreateSchema):
 # Read Questions (List)
 
 @router.get("/questions/", response=PaginatedResponseSchema)
+@cache_response()
 def questions(request,  
               page: int = Query(1), 
               page_size: int = Query(10), 

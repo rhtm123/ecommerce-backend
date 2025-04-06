@@ -8,6 +8,9 @@ from estores.models import EStore
 
 from uuid import uuid4
 
+from django.core.cache import cache
+
+
 
 # First, define the PAYMENT_CHOICES if not already defined
 PAYMENT_CHOICES = (
@@ -53,6 +56,9 @@ class Payment(models.Model):
         order = self.order
         order.payment_status = self.status  # Update the order status to match the payment status
         order.save()  # Save the updated
+
+        cache_key = f"cache:/api/order/orders/?items_needed=true&user_id={self.order.user.id}&ordering=-id"
+        cache.delete(cache_key)
         super().save(*args, **kwargs)
 
     class Meta:
