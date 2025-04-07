@@ -5,8 +5,7 @@ from ninja.schema import Field
 
 from users.schemas import ShippingAddressOutSchema
 
-
-# from products.schemas import ProductListingOutSchema
+from products.models import ProductListing
 
 class ProductListingSchema(Schema):
     id: int
@@ -16,9 +15,10 @@ class ProductListingSchema(Schema):
     price: Optional[float] = None
     mrp: Optional[float] = None
 
-    cgst_rate: float = Field(None, alias='tax_category.cgst_rate')
-    sgst_rate: float = Field(None, alias='tax_category.sgst_rate')
-    igst_rate: float = Field(None, alias='tax_category.igst_rate')
+    cgst_rate: Optional[float] = None
+    sgst_rate: Optional[float] = None
+    igst_rate: Optional[float] = None
+
 
 
     # stock: Optional[int] = None
@@ -71,11 +71,17 @@ class OrderItemOutSchema(Schema):
 
 class OrderItemSchema(Schema):
     id: int
-    product_listing_name: Optional[str] = None 
+    product_listing_name: Optional[str] = None
+    product_main_image: Optional[str] = Field(None, description="URL for the main product image")
+
     quantity: Optional[int] = None
     status: Optional[str] = None
     price: Optional[float] = None
+
     subtotal: Optional[float] = None
+
+    shipped_date: Optional[datetime] = None
+
 
 class OrderOutSchema(Schema):
     id: int
@@ -91,7 +97,7 @@ class OrderOutSchema(Schema):
     created: datetime
     updated: datetime
 
-    items: Optional[List[OrderItemSchema]] = None  # Include only if `items_required=True`
+    items: Optional[List[OrderItemSchema]] = None  # Include only if `items_needed=True`
 
 
 class UserOutSchema(Schema):
@@ -149,7 +155,6 @@ class OrderItemOutOneSchema(Schema):
     order: Optional[OrderSchema] = None
     product_listing: Optional[ProductListingSchema] = None
     review: Optional[ReviewOutSchema] = None
-    # product_listing_product_name: str
     quantity: int
     price: float
     subtotal: float

@@ -8,6 +8,10 @@ CORS_ALLOW_CREDENTIALS = True
 
 ALLOWED_HOSTS = ['*']
 
+CSRF_TRUSTED_ORIGINS = ['https://87b2-2409-40c2-400d-bec1-e423-97ec-80a-ce5b.ngrok-free.app']
+
+
+
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': config('CLN_CLOUD_NAME'),

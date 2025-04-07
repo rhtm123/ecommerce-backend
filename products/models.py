@@ -203,9 +203,9 @@ class ProductListing(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     mrp = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
-    rating = models.DecimalField(default=5,max_digits=4, decimal_places=2, null=True, blank=True)
+    rating = models.DecimalField(default=0,max_digits=4, decimal_places=2, null=True, blank=True)
 
-    review_count = models.IntegerField(default=1, null=True, blank=True)
+    review_count = models.IntegerField(default=0, null=True, blank=True)
     popularity = models.IntegerField(default=100)
     stock = models.PositiveIntegerField(default=0)
 

@@ -7,12 +7,15 @@ from .schemas import DeliveryPinOutSchema
 
 
 from utils.pagination import PaginatedResponseSchema, paginate_queryset
+from utils.cache import cache_response
+
 
 router = Router()
 
 
 
 @router.get("/delivery-pins/", response=PaginatedResponseSchema)
+@cache_response()
 def deliverypins(request, 
            page: int = Query(1), 
            page_size: int = Query(10), 

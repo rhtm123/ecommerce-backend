@@ -14,10 +14,14 @@ from django.shortcuts import get_object_or_404
 from utils.pagination import PaginatedResponseSchema, paginate_queryset
 from decouple import config
 
+from django.core.cache import cache
+
+
 router = Router()
 
 
 from django.contrib.auth import authenticate
+from utils.cache import cache_response
 
 
 from ninja_jwt.tokens import RefreshToken
@@ -141,7 +145,6 @@ def verify_otp_api(request, data: OTPVerifySchema):
 @router.post("/twilio/webhook/")
 def twilio_whatsapp_webhook(request):
     """Handles incoming WhatsApp messages from Twilio"""
-
 
     try:
         # Verify Twilio request
@@ -340,6 +343,7 @@ def users(request,  page: int = Query(1), page_size: int = Query(10), search: st
 
 # Read Single User (Retrieve)
 @router.get("/users/{user_id}/", response=UserOutSchema)
+@cache_response()
 def retrieve_user(request, user_id: int):
     user = get_object_or_404(User, id=user_id)
     return user
@@ -434,10 +438,17 @@ def create_shipping_address(request, payload: ShippingAddressCreateSchema):
 
     shipping_address = ShippingAddress(**payload.dict())   
     shipping_address.save()
+
+    if payload.user_id:
+        cache_key = f"cache:/api/user/shipping-addresses/?page=1&page_size=50&user_id={payload.user_id}"
+        print(cache_key);
+        cache.delete(cache_key)
+        print("Delete address")
     return shipping_address
 
 # Read ShippingAddresss (List)
 @router.get("/shipping-addresses/", response=PaginatedResponseSchema)
+@cache_response()
 def shipping_addresses(request,  page: int = Query(1), page_size: int = Query(10), user_id:int = None , is_default: bool = None, ordering: str = None,):
     qs = ShippingAddress.objects.all()
     page_number = request.GET.get('page', 1)

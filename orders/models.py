@@ -12,15 +12,17 @@ from estores.models import EStore
 from utils.generate import generate_tracking_number, generate_order_number
 
 # import datetime
+from django.core.cache import cache
 
 from django.utils import timezone
 
 
-PAYMENT_CHOICES = [
-    ('pending', 'pending'),
-    ('paid', 'paid')
-]
-
+PAYMENT_CHOICES = (
+    ('pending', 'Pending'),
+    ('completed', 'Completed'),
+    ('failed', 'Failed'),
+    ('refunded', 'Refunded'),
+)
 
 class Order(models.Model):
 
@@ -47,6 +49,10 @@ class Order(models.Model):
     def save(self, *args, **kwargs):
         if not self.order_number:
             self.order_number = generate_order_number()
+
+        if self.user:
+            cache_key = f"cache:/api/order/orders/?items_needed=true&user_id={self.user.id}&ordering=-id"
+            cache.delete(cache_key)
         super().save(*args, **kwargs)
 
     class Meta:
@@ -60,6 +66,9 @@ class Order(models.Model):
         self.product_listing_count = self.order_items.count()
         self.total_units = sum(item.quantity for item in self.order_items.all())
         self.save(update_fields=['product_listing_count', 'total_units'])
+
+    def get_latest_payment(self):
+        return self.payments.order_by('-created').first()
 
 
 STATUS_CHOICES = [
@@ -87,6 +96,11 @@ class OrderItem(models.Model):
 
     def save(self, *args, **kwargs):
         self.subtotal = self.quantity * self.price
+
+        if self.product_listing.stock > 0 and not self.pk:
+            product_listing = self.product_listing
+            product_listing.stock = product_listing.stock - 1
+            product_listing.save()
 
         if self.status == "shipped":
             self.shipped_date = timezone.now()

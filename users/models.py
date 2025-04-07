@@ -134,3 +134,6 @@ class ShippingAddress(models.Model):
 
     class Meta:
         ordering = ['-id']  # Default ordering by 'id'
+
+    def __str__(self):
+        return f'{self.user.email} {self.address.line1}'
