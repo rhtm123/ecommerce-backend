@@ -12,6 +12,7 @@ from estores.models import EStore
 from utils.generate import generate_tracking_number, generate_order_number
 
 # import datetime
+from django.core.cache import cache
 
 from django.utils import timezone
 
@@ -48,6 +49,10 @@ class Order(models.Model):
     def save(self, *args, **kwargs):
         if not self.order_number:
             self.order_number = generate_order_number()
+
+        if self.user:
+            cache_key = f"cache:/api/order/orders/?items_needed=true&user_id={self.user.id}&ordering=-id"
+            cache.delete(cache_key)
         super().save(*args, **kwargs)
 
     class Meta:

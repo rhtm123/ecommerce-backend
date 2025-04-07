@@ -7,9 +7,6 @@ from users.schemas import ShippingAddressOutSchema
 
 from products.models import ProductListing
 
-
-# from products.schemas import ProductListingOutSchema
-
 class ProductListingSchema(Schema):
     id: int
     name: Optional[str] = None
@@ -18,9 +15,10 @@ class ProductListingSchema(Schema):
     price: Optional[float] = None
     mrp: Optional[float] = None
 
-    cgst_rate: float = Field(None, alias='tax_category.cgst_rate')
-    sgst_rate: float = Field(None, alias='tax_category.sgst_rate')
-    igst_rate: float = Field(None, alias='tax_category.igst_rate')
+    cgst_rate: Optional[float] = None
+    sgst_rate: Optional[float] = None
+    igst_rate: Optional[float] = None
+
 
 
     # stock: Optional[int] = None
@@ -157,7 +155,6 @@ class OrderItemOutOneSchema(Schema):
     order: Optional[OrderSchema] = None
     product_listing: Optional[ProductListingSchema] = None
     review: Optional[ReviewOutSchema] = None
-    # product_listing_product_name: str
     quantity: int
     price: float
     subtotal: float

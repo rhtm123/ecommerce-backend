@@ -182,9 +182,7 @@ def create_order(request, payload: OrderCreateSchema):
     order.save()
 
     # Invalidate the cache for this user's orders
-    if payload.user_id:
-        cache_key = f"cache:/api/order/orders/?items_needed=true&user_id={payload.user_id}&ordering=-id"
-        cache.delete(cache_key)
+    
         # print(f"Cache cleared for user_id={payload.user_id}")
     return order
 
@@ -364,6 +362,9 @@ def order_items(
                 "slug": item.product_listing.slug,
                 "price": item.product_listing.price,
                 "mrp": item.product_listing.mrp,
+                "cgst_rate": item.product_listing.tax_category.cgst_rate if item.product_listing.tax_category else None,
+                "sgst_rate": item.product_listing.tax_category.sgst_rate if item.product_listing.tax_category else None,
+                "igst_rate": item.product_listing.tax_category.igst_rate if item.product_listing.tax_category else None,
             },
             "quantity": item.quantity,
             "price": float(item.price),
@@ -410,6 +411,11 @@ def retrieve_order_item(request, order_item_id: int):
                     "name":order_item.product_listing.name,
                     "id": order_item.product_listing.id,
                     "slug":order_item.product_listing.slug,
+                    "price": order_item.product_listing.price,
+                "mrp": order_item.product_listing.mrp,
+                "cgst_rate": order_item.product_listing.tax_category.cgst_rate if order_item.product_listing.tax_category else None,
+                "sgst_rate": order_item.product_listing.tax_category.sgst_rate if order_item.product_listing.tax_category else None,
+                "igst_rate": order_item.product_listing.tax_category.igst_rate if order_item.product_listing.tax_category else None,
         }, 
         "quantity": order_item.quantity,
         "price": float(order_item.price),
