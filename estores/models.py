@@ -28,7 +28,7 @@ class EStore(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.name
+        return f"{self.name}"
 
     class Meta:
         ordering = ['-id']  # Default ordering by 'id'
@@ -38,7 +38,7 @@ class EStore(models.Model):
 
 class DeliveryPin(models.Model):
     estore = models.ForeignKey(EStore, null=True, blank=True, on_delete=models.SET_NULL, related_name="estore_delivery_pins")
-    pin_code = models.CharField(max_length=10)
+    pin_code = models.CharField(max_length=10, db_index=True)
 
     city = models.CharField(
         max_length=100,

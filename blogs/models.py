@@ -45,7 +45,7 @@ class Blog(models.Model):
     seo_title = models.TextField(null=True, blank=True, max_length=100)
     seo_description = models.TextField(null=True, blank=True, max_length=255)
     content = models.TextField()
-    slug = models.SlugField(max_length=255,null=True, blank=True)
+    slug = models.SlugField(max_length=255,null=True, blank=True, db_index=True)
     is_published = models.BooleanField(default=False)
 
     img = CloudinaryField(
