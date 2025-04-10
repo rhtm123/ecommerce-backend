@@ -15,7 +15,7 @@ class DeliveryPinInline(admin.TabularInline):
 class ProductListingAdmin(admin.ModelAdmin):
     inlines = [DeliveryPinInline,]
     # list_filter = ("estore", 'pin_code')
-    list_display = ("name", 'website')
+    list_display = ("id","name", 'website')
 
 @admin.register(DeliveryPin)
 class DeliveryPinAdmin(admin.ModelAdmin):

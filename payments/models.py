@@ -36,7 +36,7 @@ class Payment(models.Model):
         choices=PAYMENT_CHOICES,
         default='pending'
     )
-    transaction_id = models.CharField(max_length=100, blank=True, null=True) # merchant_order_id
+    transaction_id = models.CharField(max_length=100, blank=True, null=True, db_index=True) # merchant_order_id
     payment_date = models.DateTimeField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
