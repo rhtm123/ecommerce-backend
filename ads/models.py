@@ -2,7 +2,7 @@ from django.db import models
 from cloudinary.models import CloudinaryField
 
 from estores.models import EStore
-
+from django.utils import timezone
 
 class Advertisement(models.Model):
     estore = models.ForeignKey(EStore, on_delete=models.CASCADE, related_name="estore_ads")
@@ -22,9 +22,8 @@ class Advertisement(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
     def is_currently_active(self):
-        from django.utils import timezone
         today = timezone.now().date()
-        return self.is_active and self.start_date <= today <= self.end_date
+        return self.is_active and today <= self.end_date
 
     def __str__(self):
         return self.title

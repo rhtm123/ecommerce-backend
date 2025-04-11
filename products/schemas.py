@@ -149,6 +149,7 @@ class ProductListingOutSchema(Schema):
     rating: Optional[float] = None
     review_count: int
     buy_limit: int
+    featured: bool
 
     popularity: Optional[int] = None
     created: datetime
@@ -205,6 +206,7 @@ class ProductListingOneOutSchema(Schema):
     price: float
     mrp: float
     stock: int
+    featured: bool
 
 
     main_image: Optional[str] = Field(None, description="URL for the main product image")
