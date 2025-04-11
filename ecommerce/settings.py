@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     "versions.apps.VersionsConfig",
     "payments.apps.PaymentsConfig",
     "ads.apps.AdsConfig",
+    "offers.apps.OffersConfig",
 ]
 
 MIDDLEWARE = [

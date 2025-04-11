@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional, List
 from ninja import Schema, ModelSchema
 from ninja.schema import Field
+from django.utils import timezone
 
 from typing import Dict
 
@@ -151,9 +152,68 @@ class ProductListingOutSchema(Schema):
     buy_limit: int
     featured: bool
 
+    # Add offer-related fields
+    active_offers: Optional[List[dict]] = Field(None, description="List of active offers for this product")
+    applicable_coupons: Optional[List[dict]] = Field(None, description="List of applicable coupons for this product")
+
     popularity: Optional[int] = None
     created: datetime
     updated: datetime
+
+    @staticmethod
+    def resolve_active_offers(obj: ProductListing) -> Optional[List[dict]]:
+        """
+        Resolves the active offers for this product.
+        """
+        now = timezone.now()
+        offers = []
+        for po in obj.offers.filter(
+            offer__is_active=True,
+            offer__valid_from__lte=now,
+            offer__valid_until__gte=now
+        ).select_related('offer'):
+            offer_dict = {
+                'id': po.offer.id,
+                'name': po.offer.name,
+                'type': po.offer.offer_type,
+                'description': po.offer.description
+            }
+            if po.offer.offer_type == 'buy_x_get_y':
+                offer_dict.update({
+                    'buy_quantity': po.offer.buy_quantity,
+                    'get_quantity': po.offer.get_quantity,
+                    'discount_percent': float(po.offer.get_discount_percent)
+                })
+            elif po.offer.offer_type == 'bundle':
+                offer_dict.update({
+                    'is_primary': po.is_primary,
+                    'bundle_quantity': po.bundle_quantity,
+                    'discount_percent': float(po.bundle_discount_percent)
+                })
+            offers.append(offer_dict)
+        return offers if offers else None
+
+    @staticmethod
+    def resolve_applicable_coupons(obj: ProductListing) -> Optional[List[dict]]:
+        """
+        Resolves the applicable coupons for this product.
+        """
+        now = timezone.now()
+        coupons = []
+        for pc in obj.coupons.filter(
+            coupon__is_active=True,
+            coupon__valid_from__lte=now,
+            coupon__valid_until__gte=now
+        ).select_related('coupon'):
+            coupon = pc.coupon
+            coupons.append({
+                'id': coupon.id,
+                'code': coupon.code,
+                'discount_type': coupon.discount_type,
+                'discount_value': float(coupon.discount_value),
+                'max_discount_amount': float(coupon.max_discount_amount) if coupon.max_discount_amount else None
+            })
+        return coupons if coupons else None
 
     @staticmethod
     def resolve_thumbnail(obj: ProductListing) -> Optional[str]:

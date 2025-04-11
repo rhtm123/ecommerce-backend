@@ -33,6 +33,7 @@ from blogs.api import router as blogs_api
 
 from estores.api import router as estores_api
 
+from offers.api import router as offers_api
 from payments.api import router as payments_api
 
 from ads.api import router as ads_api
@@ -64,7 +65,7 @@ api.add_router("qna/", qna_api, tags=['Questions and Answers API'])
 api.add_router("review/", reviews_api, tags=['Reviews API'])
 api.add_router("blog/", blogs_api, tags=['blogs API'])
 api.add_router("estore/", estores_api, tags=['Estores API'])
-
+api.add_router("offer/", offers_api, tags=['Offers API'])
 
 
 urlpatterns = [
