@@ -14,6 +14,7 @@ latest.dump
 jwt-signing.pem
 jwt-signing.pub
 
+webhook.txt
 ## .env
 .ini
 .venv
