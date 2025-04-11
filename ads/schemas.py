@@ -14,6 +14,7 @@ class AdvertisementOutSchema(Schema):
     link: str | None
     start_date: date
     end_date: date
+    is_active: bool
 
     @staticmethod
     def resolve_image(obj: Advertisement) -> Optional[str]:
