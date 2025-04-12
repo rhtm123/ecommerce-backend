@@ -2,7 +2,7 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import Order, OrderItem, DeliveryPackage, PackageItem
+from .models import Order, OrderItem, DeliveryPackage, PackageItem ,AppliedCoupon,AppliedOffer
 
 
 class OrderItemInline(admin.TabularInline):
