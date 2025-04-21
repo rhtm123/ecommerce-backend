@@ -16,6 +16,8 @@ from django.core.cache import cache
 
 from django.utils import timezone
 
+from offers.models import Coupon, Offer
+
 
 PAYMENT_CHOICES = (
     ('pending', 'Pending'),
@@ -38,7 +40,18 @@ class Order(models.Model):
 
     # total_items = models.PositiveIntegerField(default=1, null=True, blank=True, help_text="No. of product listings (items)")
     notes = models.TextField(blank=True, null=True)
-    # discount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    total_discount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+        # Applied Coupon 
+    coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True,)
+    discount_amount_coupon = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # Actual discount amount applied
+
+    # Applied Offer
+
+    offer = models.ForeignKey(Offer, on_delete=models.SET_NULL, null=True, blank=True)
+    discount_amount_offer = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # Actual discount amount applied
+
+
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -63,9 +76,81 @@ class Order(models.Model):
 
 
     def update_totals(self):
+        # Update product listing count and total units
         self.product_listing_count = self.order_items.count()
         self.total_units = sum(item.quantity for item in self.order_items.all())
-        self.save(update_fields=['product_listing_count', 'total_units'])
+        
+        # Calculate subtotal (before discounts)
+        self.total_amount = sum(item.quantity * item.price for item in self.order_items.all())
+        
+        # Initialize discount amounts
+        self.discount_amount_coupon = 0
+        self.discount_amount_offer = 0
+        
+        # Calculate offer discounts from OrderItems
+        self.discount_amount_offer = sum(item.discount_amount for item in self.order_items.all())
+        
+        # Calculate coupon discount if a valid coupon is applied
+        if self.coupon and self.coupon.is_valid():
+            if self.coupon.coupon_type == 'cart':
+                # Cart-wide coupon
+                if self.subtotal_amount >= self.coupon.min_cart_value:
+                    if self.coupon.discount_type == 'percentage':
+                        discount = (self.coupon.discount_value / 100) * self.subtotal_amount
+                        if self.coupon.max_discount_amount:
+                            discount = min(discount, self.coupon.max_discount_amount)
+                        self.discount_amount_coupon = discount
+                    else:  # fixed
+                        self.discount_amount_coupon = min(self.coupon.discount_value, self.subtotal_amount)
+            elif self.coupon.coupon_type == 'product':
+                # Product-specific coupon
+                for item in self.order_items.all():
+                    if self.coupon.applicable_products.filter(id=item.product_listing.id).exists():
+                        if self.coupon.discount_type == 'percentage':
+                            discount = (self.coupon.discount_value / 100) * (item.price * item.quantity)
+                            if self.coupon.max_discount_amount:
+                                discount = min(discount, self.coupon.max_discount_amount or discount)
+                            self.discount_amount_coupon += discount
+                        else:  # fixed
+                            # Apply fixed discount per unit, up to item total
+                            discount = min(self.coupon.discount_value * item.quantity, item.price * item.quantity)
+                            self.discount_amount_coupon += discount
+
+        # Calculate offer discount if a valid offer is applied
+        if self.offer and self.offer.is_active and self.offer.valid_from <= timezone.now() <= self.offer.valid_until:
+            if self.offer.offer_type == 'buy_x_get_y':
+                for item in self.order_items.all():
+                    eligible_sets = item.quantity // self.offer.buy_quantity
+                    free_items = eligible_sets * self.offer.get_quantity
+                    if self.offer.get_discount_percent > 0:
+                        discount = (self.offer.get_discount_percent / 100) * (item.price * free_items)
+                        self.discount_amount_offer += discount
+            elif self.offer.offer_type == 'bundle':
+                # Bundle offer logic (assumes specific products are bundled)
+                # You may need to verify if order_items match bundle requirements
+                pass  # Implement based on your bundle logic
+            elif self.offer.offer_type == 'discount':
+                # Direct discount logic
+                for item in self.order_items.all():
+                    # Assuming offer applies to specific products
+                    self.discount_amount_offer += (self.offer.get_discount_percent / 100) * (item.price * item.quantity)
+            
+        # Calculate total discount
+        self.total_discount = self.discount_amount_coupon + self.discount_amount_offer
+        
+        # Calculate final total amount
+        # self.total_amount = max(self.subtotal_amount - self.total_discount, Decimal('0.00'))
+        
+        # Save the updated fields
+        self.save(update_fields=[
+            'product_listing_count',
+            'total_units',
+            'discount_amount_coupon',
+            'discount_amount_offer',
+            'total_discount',
+            'total_amount'
+        ])
+
 
     def get_latest_payment(self):
         return self.payments.order_by('-created').first()
@@ -91,23 +176,64 @@ class OrderItem(models.Model):
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, help_text="Total price for this product line (quantity × unit_price)")
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
 
+        ## Offer 
+    offer = models.ForeignKey(Offer, on_delete=models.SET_NULL, null=True, blank=True)
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Total discount from all offers")
+    
+
     shipped_date = models.DateTimeField(null=True, blank=True)
     updated = models.DateTimeField(auto_now=True, null=True, blank=True)
 
+    def delete(self, *args, **kwargs):
+        # Custom logic before deletion
+        product_listing = self.product_listing
+        product_listing.stock += self.quantity
+        product_listing.save()
+        print(f"OrderItem for {self.quantity} units of {product_listing} deleted, stock restored")
+        
+        # Call the parent class's delete method
+        super().delete(*args, **kwargs)
+        # Update order totals after deletion
+        self.order.update_totals()
+    
+
     def save(self, *args, **kwargs):
-        self.subtotal = self.quantity * self.price
+        # Calculate offer discount if an offer is applied
+        self.discount_amount = 0
+        self.price = self.product_listing.price
+        if not self.pk:
+            self.subtotal = (self.quantity * self.price)
 
-        if self.product_listing.stock > 0 and not self.pk:
-            product_listing = self.product_listing
-            product_listing.stock = product_listing.stock - 1
-            product_listing.save()
+            if self.offer and self.offer.is_active and timezone.now() <= self.offer.valid_until:
+                if self.offer.offer_type == 'buy_x_get_y':
+                    eligible_sets = self.quantity // self.offer.buy_quantity
+                    free_items = eligible_sets * self.offer.get_quantity
+                    if self.offer.get_discount_percent > 0:
+                        self.discount_amount = (self.offer.get_discount_percent / 100) * (self.price * free_items)
+                elif self.offer.offer_type == 'bundle':
+                    # Bundle logic depends on multiple items; skip unless bundle is verified
+                    pass
+                elif self.offer.offer_type == 'discount':
+                    self.discount_amount = (self.offer.get_discount_percent / 100) * (self.price * self.quantity)
 
+            # Calculate subtotal (price * quantity - discount)
+
+            # Update product listing stock on creation
+            if self.product_listing.stock > 0 and not self.pk:
+                product_listing = self.product_listing
+                product_listing.stock = product_listing.stock - self.quantity  # Subtract ordered quantity
+                product_listing.save()
+            
+            super().save(*args, **kwargs)
+            self.order.update_totals()
+
+        # Set shipped date if status is shipped
         if self.status == "shipped":
             self.shipped_date = timezone.now()
 
-        super().save(*args, **kwargs)
-        self.order.update_totals()
+            super().save(*args, **kwargs)
         
+
 
     def __str__(self):
         return f"Order_ID: {self.order.id} {self.product_listing.name} ({self.quantity})"

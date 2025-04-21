@@ -1,5 +1,5 @@
-from ninja import  Router, Query, Schema
-from typing import List, Optional
+from ninja import  Router, Query
+from typing import List
 from django.core.cache import cache
 
 
@@ -12,6 +12,8 @@ from .schemas import (
     OrderItemOutOneSchema,
     DeliveryPackageOutSchema,
     PackageItemOutSchema,
+    # AppliedCouponSchema,
+    # AppliedCouponCreateSchema
 )
 
 from django.shortcuts import get_object_or_404
@@ -44,13 +46,27 @@ def get_order_delivery_status(request, order_number: str):
         package_item_data = [
             {
                 "product_listing": item.order_item.product_listing.name,
+                "product_listing_name": item.order_item.product_listing.name,
+                "product_main_image": item.order_item.product_listing.main_image.url if item.order_item.product_listing.main_image else None,
                 "quantity": item.order_item.quantity,
                 "status": item.order_item.status,
                 "price": float(item.order_item.price),
+                # "original_price": float(item.order_item.original_price) if item.order_item.original_price else None,
+                "discount_amount": float(item.order_item.discount_amount) if item.order_item.discount_amount else None,
                 "subtotal": float(item.order_item.subtotal),
                 "created": item.order_item.created,
                 "shipped_date": item.order_item.shipped_date,
-        } for item in package_items]
+                # "applied_offers": [{
+                #     "id": offer.id,
+                #     "offer_name": offer.offer_name,
+                #     "offer_type": offer.offer_type,
+                #     "discount_amount": float(offer.discount_amount),
+                #     "buy_quantity": offer.buy_quantity,
+                #     "get_quantity": offer.get_quantity,
+                #     "get_discount_percent": float(offer.get_discount_percent),
+                #     "created": offer.created,
+                # } for offer in item.order_item.applied_offers.all()]
+            } for item in package_items]
         
         package_data.append({
             "tracking_number": package.tracking_number,
@@ -60,7 +76,7 @@ def get_order_delivery_status(request, order_number: str):
             "delivery_out_date": package.delivery_out_date.isoformat() if package.delivery_out_date else None,
             "delivered_date": package.delivered_date.isoformat() if package.delivered_date else None,
             "package_items": package_item_data,
-            "created":package.created
+            "created": package.created
         })
     
     # Fetch items that are not in any package
@@ -68,20 +84,37 @@ def get_order_delivery_status(request, order_number: str):
     for order_item in order.order_items.all():
         if not PackageItem.objects.filter(order_item=order_item).exists():
             items_without_package.append({
+                "id": order_item.id,
                 "product_listing": order_item.product_listing.name,
+                "product_listing_name": order_item.product_listing.name,
+                "product_main_image": order_item.product_listing.main_image.url if order_item.product_listing.main_image else None,
                 "quantity": order_item.quantity,
                 "status": order_item.status,
                 "price": float(order_item.price),
+                # "original_price": float(order_item.original_price) if order_item.original_price else None,
+                "discount_amount": float(order_item.discount_amount) if order_item.discount_amount else None,
                 "subtotal": float(order_item.subtotal),
                 "created": order_item.created,
-                "shipped_date": order_item.shipped_date
+                "shipped_date": order_item.shipped_date,
+                # "applied_offers": [{
+                #     "id": offer.id,
+                #     "offer_name": offer.offer_name,
+                #     "offer_type": offer.offer_type,
+                #     "discount_amount": float(offer.discount_amount),
+                #     "buy_quantity": offer.buy_quantity,
+                #     "get_quantity": offer.get_quantity,
+                #     "get_discount_percent": float(offer.get_discount_percent),
+                #     "created": offer.created,
+                # } for offer in order_item.applied_offers.all()]
             })
     
     return {
         "order_id": order.id,
         "order_number": order.order_number,
-        "user": order.user.username,
+        "user": order.user.email,
         "total_amount": float(order.total_amount),
+        # "subtotal_amount": float(order.subtotal_amount),
+        "total_discount": float(order.total_discount),
         "payment_status": order.payment_status,
         "packages": package_data,
         "items_without_package": items_without_package,
@@ -189,7 +222,7 @@ def create_order(request, payload: OrderCreateSchema):
 # Read Orders (List)
 
 @router.get("/orders/", response=PaginatedResponseSchema)
-@cache_response()
+# @cache_response()
 def orders(request, 
            page: int = Query(1), 
            page_size: int = Query(10), 
@@ -224,7 +257,9 @@ def orders(request,
             "id": order.id,
             "order_number": order.order_number,
             "user_id": order.user_id,
-            "total_amount": order.total_amount,
+            "total_amount": float(order.total_amount or 0),
+            # "subtotal_amount": float(order.subtotal_amount or 0),
+            "total_discount": float(order.total_discount or 0),
             "shipping_address_id": order.shipping_address_id,
             "payment_status": order.payment_status,
             "notes": order.notes,
@@ -232,22 +267,62 @@ def orders(request,
             "updated": order.updated,
             "product_listing_count": order.product_listing_count,
             "total_units": order.total_units,
+            "coupon": {
+                "code":order.coupon.code ,
+                "discount_type":order.coupon.discount_type ,
+                "discount_value":order.coupon.discount_value ,
+                "coupon_type":order.coupon.coupon_type,
+            } if order.coupon else None,
+            "offer": {
+                "name": order.offer.name ,
+                "offer_type": order.offer.offer_type ,
+                "get_discount_percent": order.offer.get_discount_percent,
+            } if order.offer else None,
         }
+
+        # Add applied coupons
+        # applied_coupons = [{
+        #     "id": coupon.id,
+        #     "code": coupon.code,
+        #     "discount_type": coupon.discount_type,
+        #     "discount_value": float(coupon.discount_value or 0),
+        #     "discount_amount": float(coupon.discount_amount or 0),
+        #     "created": coupon.created,
+        # } for coupon in order.applied_coupons.all()]
+        # order_data["applied_coupons"] = applied_coupons
+
         if items_needed:
             order_items = order.order_items.all()
-            # print(order_items)
-            items_data = [{
-                "id": item.id,
-                "product_listing_id": item.product_listing_id,
-                "product_listing_name": item.product_listing.name,
-                "product_main_image": item.product_listing.main_image.url if item.product_listing.main_image else None,
-                "quantity": item.quantity,
-                "status": item.status,
-                "price": item.price,
-                "subtotal": item.subtotal,
-                "shipped_date": item.shipped_date,
-            } for item in order_items]
-            # print(items_data)
+            items_data = []
+            for item in order_items:
+                item_data = {
+                    "id": item.id,
+                    "product_listing_id": item.product_listing_id,
+                    "product_listing_name": item.product_listing.name,
+                    "product_main_image": item.product_listing.main_image.url if item.product_listing.main_image else None,
+                    "quantity": item.quantity,
+                    "status": item.status,
+                    "price": float(item.price or 0),
+                    # "original_price": float(item.original_price or 0),
+                    "discount_amount": float(item.discount_amount or 0),
+                    "subtotal": float(item.subtotal or 0),
+                    "shipped_date": item.shipped_date,
+                }
+                
+                # Add applied offers
+                # applied_offers = [{
+                #     "id": offer.id,
+                #     "offer_name": offer.offer_name,
+                #     "offer_type": offer.offer_type,
+                #     "discount_amount": float(offer.discount_amount or 0),
+                #     "buy_quantity": offer.buy_quantity,
+                #     "get_quantity": offer.get_quantity,
+                #     "get_discount_percent": float(offer.get_discount_percent or 0),
+                #     "created": offer.created,
+                # } for offer in item.applied_offers.all()]
+                # item_data["applied_offers"] = applied_offers
+                
+                items_data.append(item_data)
             order_data["items"] = items_data
             
         orders_data.append(order_data)
@@ -259,7 +334,77 @@ def orders(request,
 @router.get("/orders/{order_id}/", response=OrderOutOneSchema)
 def retrieve_order(request, order_id: int):
     order = get_object_or_404(Order, id=order_id)
-    return order
+    
+    # Get all order items with their applied offers
+    order_items = []
+    for item in order.order_items.all():
+        # applied_offers = [{
+        #     "id": offer.id,
+        #     "offer_name": offer.offer_name,
+        #     "offer_type": offer.offer_type,
+        #     "discount_amount": float(offer.discount_amount),
+        #     "buy_quantity": offer.buy_quantity,
+        #     "get_quantity": offer.get_quantity,
+        #     "get_discount_percent": float(offer.get_discount_percent),
+        #     "created": offer.created,
+        # } for offer in item.applied_offers.all()]
+        
+        item_data = {
+            "id": item.id,
+            "product_listing_name": item.product_listing.name,
+            "quantity": item.quantity,
+            "status": item.status,
+            "price": float(item.price),
+            "original_price": float(item.original_price),
+            "discount_amount": float(item.discount_amount),
+            "subtotal": float(item.subtotal),
+            "shipped_date": item.shipped_date,
+            # "applied_offers": applied_offers
+        }
+        order_items.append(item_data)
+    
+    # Get applied coupons
+    # applied_coupons = [{
+    #     "id": coupon.id,
+    #     "code": coupon.code,
+    #     "discount_type": coupon.discount_type,
+    #     "discount_value": float(coupon.discount_value),
+    #     "discount_amount": float(coupon.discount_amount),
+    #     "created": coupon.created,
+    # } for coupon in order.applied_coupons.all()]
+    
+    return {
+        "id": order.id,
+        "user": {
+            "id": order.user.id,
+            "first_name": order.user.first_name,
+            "last_name": order.user.last_name,
+            "email": order.user.email,
+            "mobile": order.user.mobile,
+            "role": order.user.role,
+            "created": order.user.created,
+            "updated": order.user.updated,
+        } if order.user else None,
+        "order_number": order.order_number,
+        "total_amount": float(order.total_amount),
+        "subtotal_amount": float(order.subtotal_amount),
+        "total_discount": float(order.total_discount),
+        "shipping_address": {
+            "id": order.shipping_address.id,
+            "address": order.shipping_address.address,
+            "name": order.shipping_address.name,
+            "mobile": order.shipping_address.mobile,
+            "is_default": order.shipping_address.is_default,
+            "created": order.shipping_address.created,
+            "updated": order.shipping_address.updated
+        } if order.shipping_address else None,
+        "payment_status": order.payment_status,
+        "notes": order.notes,
+        "created": order.created,
+        "updated": order.updated,
+        "items": order_items,
+        # "applied_coupons": applied_coupons,
+    }
 
 # Update Order
 @router.put("/orders/{order_id}/", response=OrderOutSchema)
@@ -284,11 +429,8 @@ def delete_order(request, order_id: int):
 # Create OrderItem
 @router.post("/order-items/", response=OrderItemOutSchema, auth=JWTAuth())
 def create_order_item(request, payload: OrderItemCreateSchema):
-
-    # locality = get_object_or_404(Locality, id=payload.locality_id)
-
-    order_item = OrderItem(**payload.dict())
-        
+    
+    order_item = OrderItem(**payload.dict())    
     order_item.save()
     return order_item
 
@@ -408,10 +550,10 @@ def retrieve_order_item(request, order_item_id: int):
             "user_id": order_item.order.user.id,
         },
          "product_listing": {
-                    "name":order_item.product_listing.name,
-                    "id": order_item.product_listing.id,
-                    "slug":order_item.product_listing.slug,
-                    "price": order_item.product_listing.price,
+                "name":order_item.product_listing.name,
+                "id": order_item.product_listing.id,
+                "slug":order_item.product_listing.slug,
+                "price": order_item.product_listing.price,
                 "mrp": order_item.product_listing.mrp,
                 "cgst_rate": order_item.product_listing.tax_category.cgst_rate if order_item.product_listing.tax_category else None,
                 "sgst_rate": order_item.product_listing.tax_category.sgst_rate if order_item.product_listing.tax_category else None,
@@ -517,3 +659,21 @@ def package_items(request,  page: int = Query(1), page_size: int = Query(10), pa
 def retrieve_package_item(request, package_item_id: int):
     package_item = get_object_or_404(PackageItem, id=package_item_id)
     return package_item
+
+# Create AppliedCoupon
+# @router.post("/applied-coupons/", response=AppliedCouponSchema, auth=JWTAuth())
+# def create_applied_coupon(request, payload: AppliedCouponCreateSchema):
+#     order = get_object_or_404(Order, id=payload.order_id)
+    
+#     applied_coupon = AppliedCoupon.objects.create(
+#         order=order,
+#         code=payload.coupon_code,
+#         discount_type=payload.discount_type,
+#         discount_value=payload.discount_value,
+#         discount_amount=payload.discount_amount
+#     )
+    
+#     # Update order totals after applying coupon
+#     order.update_totals()
+    
+#     return applied_coupon

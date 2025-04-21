@@ -2,30 +2,59 @@ from datetime import datetime
 from typing import List, Optional
 from ninja import Schema
 from ninja.schema import Field
+from decimal import Decimal
+
 
 from users.schemas import ShippingAddressOutSchema
 
 from products.models import ProductListing
 
+# class AppliedCouponSchema(Schema):
+#     id: int
+#     code: str
+#     discount_type: str
+#     discount_value: float
+#     discount_amount: float
+
+# class AppliedOfferSchema(Schema):
+#     id: int
+#     offer_name: str
+#     offer_type: str
+#     discount_amount: float
+#     buy_quantity: int
+#     get_quantity: int
+#     get_discount_percent: float
+
 class ProductListingSchema(Schema):
     id: int
     name: Optional[str] = None
     slug: str
-
     price: Optional[float] = None
     mrp: Optional[float] = None
-
     cgst_rate: Optional[float] = None
     sgst_rate: Optional[float] = None
     igst_rate: Optional[float] = None
-
-
 
     # stock: Optional[int] = None
     # rating: Optional[float] = None
     # popularity: Optional[int] = None
     # created: datetime
     # updated: datetime
+
+
+class CouponSchema(Schema):
+    code: str
+    discount_type: str  # 'PERCENTAGE' or 'FIXED'
+    discount_value: Decimal
+    coupon_type: str  # 'PRODUCT' or 'CART'
+
+
+class OfferSchema(Schema):
+    name: str
+    offer_type: str  # 'buy_x_get_y', 'bundle', or 'discount'
+    # buy_quantity: Optional[int] = 1
+    # get_quantity: Optional[int] = 0
+    get_discount_percent: Optional[Decimal] = Decimal('0')
 
 
 
@@ -70,17 +99,18 @@ class OrderItemOutSchema(Schema):
 
 
 class OrderItemSchema(Schema):
-    id: int
+    id: Optional[int] = None
     product_listing_name: Optional[str] = None
     product_main_image: Optional[str] = Field(None, description="URL for the main product image")
-
-    quantity: Optional[int] = None
+    quantity: Optional[int] = 0
     status: Optional[str] = None
-    price: Optional[float] = None
-
-    subtotal: Optional[float] = None
-
+    price: Optional[float] = 0
+    # original_price: Optional[float] = None
+    discount_amount: Optional[float] = 0
+    subtotal: Optional[float] = 0
     shipped_date: Optional[datetime] = None
+    # applied_offers: Optional[List[AppliedOfferSchema]] = None
+    created: Optional[datetime] = None
 
 
 class OrderOutSchema(Schema):
@@ -89,6 +119,9 @@ class OrderOutSchema(Schema):
     order_number: Optional[str] = None
     # status: str
     total_amount: float
+    # subtotal_amount: float
+
+    total_discount: Optional[float] = 0
     shipping_address_id: Optional[int] = None
     payment_status: str
     # tracking_number: Optional[str] = None
@@ -96,8 +129,14 @@ class OrderOutSchema(Schema):
     # discount: float
     created: datetime
     updated: datetime
+    items: Optional[List[OrderItemSchema]] = None
+    # applied_coupons: Optional[List[AppliedCouponSchema]] = None
 
-    items: Optional[List[OrderItemSchema]] = None  # Include only if `items_needed=True`
+    coupon: Optional[CouponSchema] = None 
+    offer: Optional[OfferSchema] = None
+
+    discount_amount_coupon: Optional[float] = 0
+    discount_amount_offer: Optional[float] = 0
 
 
 class UserOutSchema(Schema):
@@ -116,8 +155,9 @@ class OrderOutOneSchema(Schema):
     user: Optional[UserOutSchema] = None
     # status: str
     order_number: Optional[str] = None
-
     total_amount: float
+    # subtotal_amount: float
+    total_discount: float
     shipping_address: Optional[ShippingAddressOutSchema] = None
     payment_status: str
     # tracking_number: Optional[str] = None
@@ -125,6 +165,8 @@ class OrderOutOneSchema(Schema):
     # discount: float
     created: datetime
     updated: datetime
+    items: Optional[List[OrderItemSchema]] = None
+    # applied_coupons: Optional[List[AppliedCouponSchema]] = None
 
 class OrderCreateSchema(Schema):
     user_id: int
@@ -133,6 +175,8 @@ class OrderCreateSchema(Schema):
     # notes: Optional[str] = None
     # discount: Optional[float] = 0.00
     total_amount: Optional[float] = 0.00
+    offer_id: Optional[int] = None
+    coupon_id: Optional[int] = None
 
 class OrderUpdateSchema(Schema):
     # status: Optional[str] = None
@@ -163,12 +207,24 @@ class OrderItemOutOneSchema(Schema):
     updated: datetime
 
 
+# class AppliedOfferCreateSchema(Schema):
+#     offer_id: int
+#     offer_name: str
+#     offer_type: str
+#     discount_amount: float
+#     buy_quantity: Optional[int] = 1
+#     get_quantity: Optional[int] = 0
+#     get_discount_percent: Optional[float] = 0
+
 class OrderItemCreateSchema(Schema):
     order_id: int
     product_listing_id: int
     quantity: int
     price: float
+    # original_price: Optional[float] = None
     subtotal: float
+    discount_amount: Optional[float] = 0
+    # applied_offer: Optional[AppliedOfferCreateSchema] = None
 
 class OrderItemUpdateSchema(Schema):
     quantity: Optional[int] = None
@@ -194,18 +250,18 @@ class DeliveryPackageOutSchema(Schema):
     delivered_date: Optional[datetime] = None
 
 
-class OrderItemSchema(Schema):
-    id: int
-    # order: Optional[OrderSchema] = None
-    product_listing: Optional[ProductListingSchema] = None
-    # review: Optional[ReviewOutSchema] = None
-    # product_listing_product_name: str
-    # quantity: int
-    # price: float
-    # subtotal: float
-    # status: Optional[str] = "pending"
-    created: datetime
-    updated: datetime
+# class OrderItemSchema(Schema):
+#     id: int
+#     # order: Optional[OrderSchema] = None
+#     product_listing: Optional[ProductListingSchema] = None
+#     # review: Optional[ReviewOutSchema] = None
+#     # product_listing_product_name: str
+#     # quantity: int
+#     # price: float
+#     # subtotal: float
+#     # status: Optional[str] = "pending"
+#     created: datetime
+#     updated: datetime
 
 
 class PackageItemOutSchema(Schema):
@@ -218,16 +274,6 @@ class PackageItemOutSchema(Schema):
 
 #####
 
-
-
-class OrderItemSchema(Schema):
-    product_listing: str
-    quantity: int
-    status: str
-    price: float
-    subtotal: float
-    created: datetime
-    shipped_date: Optional[datetime] = None
 
 
 class DeliveryPackageSchema(Schema):
@@ -249,5 +295,13 @@ class OrderDeliveryStatusSchema(Schema):
     packages: List[DeliveryPackageSchema]
     items_without_package: List[OrderItemSchema]
     
+
+# class AppliedCouponCreateSchema(Schema):
+#     order_id: int
+#     coupon_code: str
+#     discount_type: str
+#     discount_value: float
+#     discount_amount: float
+
 
 
