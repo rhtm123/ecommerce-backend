@@ -45,27 +45,17 @@ def get_order_delivery_status(request, order_number: str):
         package_items = package.package_items.all()
         package_item_data = [
             {
+                "id": item.order_item.id,
                 "product_listing": item.order_item.product_listing.name,
                 "product_listing_name": item.order_item.product_listing.name,
                 "product_main_image": item.order_item.product_listing.main_image.url if item.order_item.product_listing.main_image else None,
                 "quantity": item.order_item.quantity,
                 "status": item.order_item.status,
                 "price": float(item.order_item.price),
-                # "original_price": float(item.order_item.original_price) if item.order_item.original_price else None,
                 "discount_amount": float(item.order_item.discount_amount) if item.order_item.discount_amount else None,
                 "subtotal": float(item.order_item.subtotal),
                 "created": item.order_item.created,
                 "shipped_date": item.order_item.shipped_date,
-                # "applied_offers": [{
-                #     "id": offer.id,
-                #     "offer_name": offer.offer_name,
-                #     "offer_type": offer.offer_type,
-                #     "discount_amount": float(offer.discount_amount),
-                #     "buy_quantity": offer.buy_quantity,
-                #     "get_quantity": offer.get_quantity,
-                #     "get_discount_percent": float(offer.get_discount_percent),
-                #     "created": offer.created,
-                # } for offer in item.order_item.applied_offers.all()]
             } for item in package_items]
         
         package_data.append({
@@ -91,21 +81,10 @@ def get_order_delivery_status(request, order_number: str):
                 "quantity": order_item.quantity,
                 "status": order_item.status,
                 "price": float(order_item.price),
-                # "original_price": float(order_item.original_price) if order_item.original_price else None,
                 "discount_amount": float(order_item.discount_amount) if order_item.discount_amount else None,
                 "subtotal": float(order_item.subtotal),
                 "created": order_item.created,
                 "shipped_date": order_item.shipped_date,
-                # "applied_offers": [{
-                #     "id": offer.id,
-                #     "offer_name": offer.offer_name,
-                #     "offer_type": offer.offer_type,
-                #     "discount_amount": float(offer.discount_amount),
-                #     "buy_quantity": offer.buy_quantity,
-                #     "get_quantity": offer.get_quantity,
-                #     "get_discount_percent": float(offer.get_discount_percent),
-                #     "created": offer.created,
-                # } for offer in order_item.applied_offers.all()]
             })
     
     return {
@@ -113,11 +92,24 @@ def get_order_delivery_status(request, order_number: str):
         "order_number": order.order_number,
         "user": order.user.email,
         "total_amount": float(order.total_amount),
-        # "subtotal_amount": float(order.subtotal_amount),
         "total_discount": float(order.total_discount),
         "payment_status": order.payment_status,
         "packages": package_data,
         "items_without_package": items_without_package,
+        "coupon": {
+            "code": order.coupon.code,
+            "discount_type": order.coupon.discount_type,
+            "discount_value": float(order.coupon.discount_value),
+            "coupon_type": order.coupon.coupon_type,
+        } if order.coupon else None,
+        "offer": {
+            "name": order.offer.name,
+            "offer_type": order.offer.offer_type,
+            "offer_scope": order.offer.offer_scope,
+            "get_discount_percent": float(order.offer.get_discount_percent),
+        } if order.offer else None,
+        "discount_amount_coupon": float(order.discount_amount_coupon) if order.discount_amount_coupon else 0,
+        "discount_amount_offer": float(order.discount_amount_offer) if order.discount_amount_offer else 0,
     }
 
 @router.get("/seller-analytics", tags=["Analytics"])
@@ -355,7 +347,6 @@ def retrieve_order(request, order_id: int):
             "quantity": item.quantity,
             "status": item.status,
             "price": float(item.price),
-            "original_price": float(item.original_price),
             "discount_amount": float(item.discount_amount),
             "subtotal": float(item.subtotal),
             "shipped_date": item.shipped_date,
@@ -387,7 +378,7 @@ def retrieve_order(request, order_id: int):
         } if order.user else None,
         "order_number": order.order_number,
         "total_amount": float(order.total_amount),
-        "subtotal_amount": float(order.subtotal_amount),
+        "subtotal_amount": float(order.total_amount), 
         "total_discount": float(order.total_discount),
         "shipping_address": {
             "id": order.shipping_address.id,

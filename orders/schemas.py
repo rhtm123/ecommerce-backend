@@ -291,10 +291,15 @@ class OrderDeliveryStatusSchema(Schema):
     order_number: str
     user: str
     total_amount: float
+    total_discount: float
     payment_status: str
     packages: List[DeliveryPackageSchema]
     items_without_package: List[OrderItemSchema]
-    
+    coupon: Optional[CouponSchema] = None
+    offer: Optional[OfferSchema] = None
+    discount_amount_coupon: Optional[float] = 0
+    discount_amount_offer: Optional[float] = 0
+
 
 # class AppliedCouponCreateSchema(Schema):
 #     order_id: int
