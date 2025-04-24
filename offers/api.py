@@ -100,6 +100,50 @@ def delete_product_offer(request, product_offer_id: int):
     product_offer.delete()
     return {"success": True}
 
+@router.get("/product-offers/{product_listing_id}/", response=List[OfferOut], tags=["Offers"])
+def get_product_offers(request, product_listing_id: int):
+    """
+    Get all active offers for a specific product listing.
+    This includes:
+    1. Product-specific offers directly linked to this product
+    2. Cart-wide offers that could be applied when this product is in cart
+    """
+    try:
+        # Get current time for offer validation
+        now = timezone.now()
+        
+        # Get the product listing
+        product_listing = get_object_or_404(ProductListing, id=product_listing_id)
+        
+        # Base query for active offers within valid time period
+        base_query = Q(
+            is_active=True,
+            valid_from__lte=now,
+            valid_until__gt=now
+        )
+        
+        # Get product-specific offers for this product
+        product_offers = Q(
+            offer_scope='product',
+            product_offers__product_id=product_listing_id
+        )
+        
+        # Get cart-wide offers where product price meets minimum
+        cart_offers = Q(
+            offer_scope='cart',
+            min_cart_value__lte=product_listing.price
+        )
+        
+        # Combine queries and return offers
+        offers = Offer.objects.filter(
+            base_query & (product_offers | cart_offers)
+        ).distinct()
+        
+        return offers
+    except Exception as e:
+        print(f"Error in get_product_offers: {str(e)}")
+        return []
+
 # Validation Endpoints
 @router.get("/validate-coupon/{coupon_code}", response=CouponValidationResponse, tags=["Validation"])
 def validate_coupon(
@@ -191,139 +235,115 @@ def validate_offer(
     products = {p.id: p for p in ProductListing.objects.filter(id__in=payload.product_ids)}
     product_quantities = dict(zip(payload.product_ids, payload.quantities))
     
-    # Get all products that are part of this offer
-    offer_products = ProductOffer.objects.filter(offer=offer)
+    # Calculate total cart value
+    total_cart_value = sum(products[p_id].price * Decimal(str(product_quantities[p_id])) for p_id in payload.product_ids)
     
-    # If no products are associated with this offer yet, automatically associate the cart products
-    if not offer_products.exists():
-        for product_id in payload.product_ids:
-            ProductOffer.objects.get_or_create(
-                offer=offer,
-                product_id=product_id,
-                defaults={
-                    'is_primary': True,
-                    'bundle_quantity': 1,
-                    'bundle_discount_percent': offer.get_discount_percent
-                }
+    # Handle cart-wide offers
+    if offer.offer_scope == 'cart':
+        if total_cart_value < offer.min_cart_value:
+            return OfferValidationResponse(
+                is_valid=False,
+                message=f"Cart value must be at least {offer.min_cart_value}"
             )
-        # Refresh the offer_products queryset
+        
+        if offer.offer_type == 'discount':
+            discount = total_cart_value * (Decimal(str(offer.get_discount_percent)) / Decimal('100'))
+            if offer.max_discount_amount:
+                discount = min(discount, offer.max_discount_amount)
+                
+            return OfferValidationResponse(
+                is_valid=True,
+                message="Cart-wide discount offer is valid",
+                discount_amount=discount.quantize(Decimal('0.01')),
+                final_price=(total_cart_value - discount).quantize(Decimal('0.01')),
+                qualifying_products=payload.product_ids
+            )
+    
+    # Handle product-specific offers
+    elif offer.offer_scope == 'product':
+        # Get all products that are part of this offer
         offer_products = ProductOffer.objects.filter(offer=offer)
-    
-    # Debug logging
-    print(f"Validating offer {offer_id}")
-    print(f"Cart products: {payload.product_ids}")
-    print(f"Cart quantities: {payload.quantities}")
-    print(f"Offer products: {[op.product_id for op in offer_products]}")
-    
-    if offer.offer_type == 'buy_x_get_y':
         qualifying_products = []
-        total_qualifying_quantity = Decimal('0')
+        qualifying_total = Decimal('0')
         
         # Check each product in cart against offer products
         for product_id, quantity in product_quantities.items():
             if offer_products.filter(product_id=product_id).exists():
                 qualifying_products.append(product_id)
-                total_qualifying_quantity += Decimal(str(quantity))
-        
-        print(f"Qualifying products: {qualifying_products}")
-        print(f"Total qualifying quantity: {total_qualifying_quantity}")
+                qualifying_total += products[product_id].price * Decimal(str(quantity))
         
         if not qualifying_products:
             return OfferValidationResponse(
                 is_valid=False,
-                message="No qualifying products found in cart"
+                message="No qualifying products found for this offer"
             )
-        
-        # Calculate how many sets of the offer can be applied
-        sets = int(total_qualifying_quantity // Decimal(str(offer.buy_quantity)))
-        if sets == 0:
+            
+        if offer.offer_type == 'discount':
+            discount = qualifying_total * (Decimal(str(offer.get_discount_percent)) / Decimal('100'))
             return OfferValidationResponse(
-                is_valid=False,
-                message=f"Need to buy at least {offer.buy_quantity} qualifying items"
+                is_valid=True,
+                message="Product-specific discount offer is valid",
+                discount_amount=discount.quantize(Decimal('0.01')),
+                final_price=(qualifying_total - discount).quantize(Decimal('0.01')),
+                qualifying_products=qualifying_products
             )
-        
-        # Calculate discount
-        discount_items = min(Decimal(str(sets * offer.get_quantity)), total_qualifying_quantity)
-        total_price = sum(Decimal(str(products[p_id].price)) * Decimal(str(product_quantities[p_id])) for p_id in qualifying_products)
-        discount = (Decimal(str(offer.get_discount_percent)) / Decimal('100')) * total_price * (discount_items / total_qualifying_quantity)
-        
-        return OfferValidationResponse(
-            is_valid=True,
-            message=f"Offer applies to {int(discount_items)} items",
-            discount_amount=discount.quantize(Decimal('0.01')),
-            final_price=(total_price - discount).quantize(Decimal('0.01')),
-            qualifying_products=qualifying_products
-        )
-    
-    elif offer.offer_type == 'bundle':
-        # Get all products in the bundle
-        bundle_products = list(offer_products)
-        primary_products = [bp for bp in bundle_products if bp.is_primary]
-        
-        print(f"Bundle products: {[bp.product_id for bp in bundle_products]}")
-        print(f"Primary products: {[bp.product_id for bp in primary_products]}")
-        
-        if not primary_products:
+            
+        elif offer.offer_type == 'buy_x_get_y':
+            total_qualifying_quantity = sum(product_quantities[p_id] for p_id in qualifying_products)
+            sets = int(total_qualifying_quantity // Decimal(str(offer.buy_quantity)))
+            
+            if sets == 0:
+                return OfferValidationResponse(
+                    is_valid=False,
+                    message=f"Need to buy at least {offer.buy_quantity} qualifying items"
+                )
+            
+            discount_items = min(Decimal(str(sets * offer.get_quantity)), total_qualifying_quantity)
+            discount = (Decimal(str(offer.get_discount_percent)) / Decimal('100')) * qualifying_total * (discount_items / total_qualifying_quantity)
+            
             return OfferValidationResponse(
-                is_valid=False,
-                message="Invalid bundle configuration"
+                is_valid=True,
+                message=f"Buy X Get Y offer applies to {int(discount_items)} items",
+                discount_amount=discount.quantize(Decimal('0.01')),
+                final_price=(qualifying_total - discount).quantize(Decimal('0.01')),
+                qualifying_products=qualifying_products
             )
-        
-        # Check if all required products are in cart with correct quantities
-        missing_products = []
-        for bp in bundle_products:
-            if bp.product_id not in product_quantities:
-                missing_products.append(bp.product_id)
-            elif product_quantities[bp.product_id] < bp.bundle_quantity:
-                missing_products.append(bp.product_id)
-        
-        if missing_products:
+            
+        elif offer.offer_type == 'bundle':
+            bundle_products = list(offer_products)
+            primary_products = [bp for bp in bundle_products if bp.is_primary]
+            
+            if not primary_products:
+                return OfferValidationResponse(
+                    is_valid=False,
+                    message="Invalid bundle configuration"
+                )
+            
+            # Check if all required products are in cart with correct quantities
+            missing_products = []
+            for bp in bundle_products:
+                if bp.product_id not in product_quantities:
+                    missing_products.append(bp.product_id)
+                elif product_quantities[bp.product_id] < bp.bundle_quantity:
+                    missing_products.append(bp.product_id)
+            
+            if missing_products:
+                return OfferValidationResponse(
+                    is_valid=False,
+                    message=f"Missing or insufficient quantity for bundle products"
+                )
+            
+            bundle_total = sum(products[bp.product_id].price * Decimal(str(bp.bundle_quantity))
+                             for bp in bundle_products)
+            discount = bundle_total * (Decimal(str(primary_products[0].bundle_discount_percent)) / Decimal('100'))
+            
             return OfferValidationResponse(
-                is_valid=False,
-                message=f"Missing or insufficient quantity for products: {missing_products}"
+                is_valid=True,
+                message="Bundle offer is valid",
+                discount_amount=discount.quantize(Decimal('0.01')),
+                final_price=(bundle_total - discount).quantize(Decimal('0.01')),
+                qualifying_products=[bp.product_id for bp in bundle_products]
             )
-        
-        # Calculate bundle discount
-        total_price = sum(Decimal(str(products[bp.product_id].price)) * Decimal(str(bp.bundle_quantity))
-                         for bp in bundle_products)
-        discount = total_price * (Decimal(str(primary_products[0].bundle_discount_percent)) / Decimal('100'))
-        
-        return OfferValidationResponse(
-            is_valid=True,
-            message="Bundle offer is valid",
-            discount_amount=discount.quantize(Decimal('0.01')),
-            final_price=(total_price - discount).quantize(Decimal('0.01')),
-            qualifying_products=[bp.product_id for bp in bundle_products]
-        )
-    
-    elif offer.offer_type == 'discount':
-        qualifying_products = []
-        total_price = Decimal('0')
-        
-        # Check each product in cart against offer products
-        for product_id, quantity in product_quantities.items():
-            if offer_products.filter(product_id=product_id).exists():
-                qualifying_products.append(product_id)
-                total_price += Decimal(str(products[product_id].price)) * Decimal(str(quantity))
-        
-        print(f"Discount qualifying products: {qualifying_products}")
-        print(f"Total price for qualifying products: {total_price}")
-        
-        if not qualifying_products:
-            return OfferValidationResponse(
-                is_valid=False,
-                message="No qualifying products found in cart"
-            )
-        
-        discount = total_price * (Decimal(str(offer.get_discount_percent)) / Decimal('100'))
-        
-        return OfferValidationResponse(
-            is_valid=True,
-            message="Discount offer is valid",
-            discount_amount=discount.quantize(Decimal('0.01')),
-            final_price=(total_price - discount).quantize(Decimal('0.01')),
-            qualifying_products=qualifying_products
-        )
     
     return OfferValidationResponse(
         is_valid=False,

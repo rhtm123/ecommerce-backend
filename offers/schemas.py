@@ -40,6 +40,9 @@ class OfferBase(Schema):
     name: str
     description: str
     offer_type: str  # 'buy_x_get_y', 'bundle', or 'discount'
+    offer_scope: str  # 'cart' or 'product'
+    min_cart_value: Optional[Decimal] = Decimal('0')
+    max_discount_amount: Optional[Decimal] = None
     buy_quantity: Optional[int] = 1
     get_quantity: Optional[int] = 0
     get_discount_percent: Optional[Decimal] = Decimal('0')
@@ -53,6 +56,9 @@ class OfferCreate(OfferBase):
 class OfferUpdate(Schema):
     name: Optional[str] = None
     description: Optional[str] = None
+    offer_scope: Optional[str] = None
+    min_cart_value: Optional[Decimal] = None
+    max_discount_amount: Optional[Decimal] = None
     buy_quantity: Optional[int] = None
     get_quantity: Optional[int] = None
     get_discount_percent: Optional[Decimal] = None

@@ -83,10 +83,20 @@ class Offer(models.Model):
         ('bundle', 'Bundle Offer'),
         ('discount', 'Direct Discount'),
     ]
+
+    OFFER_SCOPE_CHOICES = [
+        ('cart', 'Cart Wide'),
+        ('product', 'Product Specific'),
+    ]
     
     name = models.CharField(max_length=200)
     description = models.TextField()
     offer_type = models.CharField(max_length=20, choices=OFFER_TYPE_CHOICES)
+    offer_scope = models.CharField(max_length=10, choices=OFFER_SCOPE_CHOICES, default='product')
+    
+    # For cart-wide offers
+    min_cart_value = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    max_discount_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     
     # For Buy X Get Y offers
     buy_quantity = models.PositiveIntegerField(default=1)
