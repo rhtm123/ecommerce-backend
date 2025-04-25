@@ -102,22 +102,9 @@ class Order(models.Model):
                         self.discount_amount_coupon = discount
                     else:  # fixed
                         self.discount_amount_coupon = min(self.coupon.discount_value, self.subtotal_amount)
-            elif self.coupon.coupon_type == 'product':
-                # Product-specific coupon
-                for item in self.order_items.all():
-                    if self.coupon.applicable_products.filter(id=item.product_listing.id).exists():
-                        if self.coupon.discount_type == 'percentage':
-                            discount = (self.coupon.discount_value / 100) * (item.price * item.quantity)
-                            if self.coupon.max_discount_amount:
-                                discount = min(discount, self.coupon.max_discount_amount or discount)
-                            self.discount_amount_coupon += discount
-                        else:  # fixed
-                            # Apply fixed discount per unit, up to item total
-                            discount = min(self.coupon.discount_value * item.quantity, item.price * item.quantity)
-                            self.discount_amount_coupon += discount
 
         # Calculate offer discount if a valid offer is applied
-        if self.offer and self.offer.is_active and self.offer.valid_from <= timezone.now() <= self.offer.valid_until:
+        if self.offer and self.offer.is_active:
             if self.offer.offer_type == 'buy_x_get_y':
                 for item in self.order_items.all():
                     eligible_sets = item.quantity // self.offer.buy_quantity
@@ -136,6 +123,9 @@ class Order(models.Model):
                     self.discount_amount_offer += (self.offer.get_discount_percent / 100) * (item.price * item.quantity)
             
         # Calculate total discount
+        self.discount_amount_coupon = round(self.discount_amount_coupon)
+        self.discount_amount_offer = round(self.discount_amount_offer)
+
         self.total_discount = self.discount_amount_coupon + self.discount_amount_offer
         
         # Calculate final total amount
