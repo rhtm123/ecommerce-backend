@@ -221,6 +221,7 @@ class OrderItemCreateSchema(Schema):
     product_listing_id: int
     quantity: int
     price: float
+    offer_id: Optional[int] = None
     # original_price: Optional[float] = None
     subtotal: float
     discount_amount: Optional[float] = 0
