@@ -100,6 +100,7 @@ class OrderItemOutSchema(Schema):
 
 class OrderItemSchema(Schema):
     id: Optional[int] = None
+    product_slug: Optional[str] = None
     product_listing_name: Optional[str] = None
     product_main_image: Optional[str] = Field(None, description="URL for the main product image")
     quantity: Optional[int] = 0
