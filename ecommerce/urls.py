@@ -35,6 +35,7 @@ from estores.api import router as estores_api
 
 from payments.api import router as payments_api
 
+from ads.api import router as ads_api
 from offers.api import router as offers_api
 
 from django.conf import settings
@@ -51,6 +52,7 @@ api = NinjaExtraAPI()
 api.register_controllers(NinjaJWTDefaultController)
 
 
+api.add_router("ads/", ads_api, tags=['Advertisements API'])
 
 api.add_router("payment/", payments_api, tags=['Payments API'])
 
