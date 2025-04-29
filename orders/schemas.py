@@ -96,14 +96,14 @@ class OrderItemOutSchema(Schema):
     created: datetime
     updated: datetime
 
-    cancel_requested: Optional[bool] = None
+    cancel_requested: Optional[bool] = False
     cancel_reason: Optional[str] = None
-    cancel_approved: Optional[bool] = None
+    cancel_approved: Optional[bool] = False
 
 
-    return_requested: Optional[bool] = None
+    return_requested: Optional[bool] = False
     return_reason: Optional[str] = None
-    return_approved:Optional[bool] = None
+    return_approved:Optional[bool] = False
 
 
 
@@ -122,13 +122,13 @@ class OrderItemSchema(Schema):
     # applied_offers: Optional[List[AppliedOfferSchema]] = None
     created: Optional[datetime] = None
 
-    cancel_requested: Optional[bool] = None
+    cancel_requested: Optional[bool] = False
     cancel_reason: Optional[str] = None
-    cancel_approved: Optional[bool] = None
+    cancel_approved: Optional[bool] = False
 
-    return_requested: Optional[bool] = None
+    return_requested: Optional[bool] = False
     return_reason: Optional[str] = None
-    return_approved:Optional[bool] = None
+    return_approved:Optional[bool] = False
 
     
 
@@ -227,14 +227,14 @@ class OrderItemOutOneSchema(Schema):
     created: datetime
     updated: datetime
 
-    cancel_requested: Optional[bool] = None
+    cancel_requested: Optional[bool] = False
     cancel_reason: Optional[str] = None
-    cancel_approved: Optional[bool] = None
+    cancel_approved: Optional[bool] = False
 
 
-    return_requested: Optional[bool] = None
+    return_requested: Optional[bool] = False
     return_reason: Optional[str] = None
-    return_approved:Optional[bool] = None
+    return_approved:Optional[bool] = False
 
 
 # class AppliedOfferCreateSchema(Schema):
@@ -262,14 +262,14 @@ class OrderItemUpdateSchema(Schema):
     price: Optional[float] = None
     status: Optional[str] = None
 
-    cancel_requested: Optional[bool] = None
+    cancel_requested: Optional[bool] = False
     cancel_reason: Optional[str] = None
-    cancel_approved: Optional[bool] = None
+    cancel_approved: Optional[bool] = False
 
 
-    return_requested: Optional[bool] = None
+    return_requested: Optional[bool] = False
     return_reason: Optional[str] = None
-    return_approved: Optional[bool] = None
+    return_approved: Optional[bool] = False
 
 # #############
 

@@ -87,6 +87,12 @@ def get_order_delivery_status(request, order_number: str):
                 "subtotal": float(order_item.subtotal),
                 "created": order_item.created,
                 "shipped_date": order_item.shipped_date,
+                "cancel_requested": order_item.cancel_requested,
+                "cancel_reason":order_item.cancel_reason,
+                "cancel_approved": order_item.cancel_approved,
+                "return_requested": order_item.return_requested,
+                "return_reason": order_item.return_reason,
+                "return_approved": order_item.return_approved
             })
     
     return {
