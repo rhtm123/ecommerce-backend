@@ -302,6 +302,12 @@ def orders(request,
                     "discount_amount": float(item.discount_amount or 0),
                     "subtotal": float(item.subtotal or 0),
                     "shipped_date": item.shipped_date,
+                    "cancel_requested": item.cancel_requested,
+                    "cancel_reason":item.cancel_reason,
+                    "cancel_approved": item.cancel_approved,
+                    "return_requested": item.return_requested,
+                    "return_reason": item.return_reason,
+                    "return_approved": item.return_approved
                 }
                 
                 # Add applied offers
@@ -508,6 +514,12 @@ def order_items(
             "status": item.status,
             "created": item.created,
             "updated": item.updated,
+            "cancel_requested": item.cancel_requested,
+            "cancel_reason":item.cancel_reason,
+            "cancel_approved": item.cancel_approved,
+            "return_requested": item.return_requested,
+            "return_reason": item.return_reason,
+            "return_approved": item.return_approved,
             "review": None
         }
             

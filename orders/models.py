@@ -228,13 +228,12 @@ class OrderItem(models.Model):
                 product_listing.save()
             
             super().save(*args, **kwargs)
-            self.order.update_totals()
 
         # Set shipped date if status is shipped
         if self.status == "shipped":
             self.shipped_date = timezone.now()
 
-            super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
         
 
 

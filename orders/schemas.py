@@ -121,6 +121,15 @@ class OrderItemSchema(Schema):
     shipped_date: Optional[datetime] = None
     # applied_offers: Optional[List[AppliedOfferSchema]] = None
     created: Optional[datetime] = None
+
+    cancel_requested: bool
+    cancel_reason: Optional[str] = None
+    cancel_approved: bool
+
+    return_requested: bool
+    return_reason: Optional[str] = None
+    return_approved:bool
+
     
 
 
