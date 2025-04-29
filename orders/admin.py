@@ -5,6 +5,11 @@ from django.contrib import admin
 from .models import Order, OrderItem, DeliveryPackage, PackageItem
 
 
+@admin.register(OrderItem)
+class OrderItemAdmin(admin.ModelAdmin):
+    list_display = ("order","status","cancel_requested","cancel_approved","return_requested", "return_approved")
+
+
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 1

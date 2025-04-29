@@ -152,7 +152,10 @@ STATUS_CHOICES = [
     ('ready_for_delivery', 'Ready for Delivery'),
     ('out_for_delivery', 'Out for Delivery'),
     ('delivered', 'delivered'),
+    ('cancel_requested', 'Cancel Requested'),
     ('canceled', 'canceled'),
+    ('return_requested', 'Return Requested'),
+    ('returned', 'Returned'),
 ]
 
 class OrderItem(models.Model):
@@ -173,6 +176,16 @@ class OrderItem(models.Model):
 
     shipped_date = models.DateTimeField(null=True, blank=True)
     updated = models.DateTimeField(auto_now=True, null=True, blank=True)
+
+    cancel_requested = models.BooleanField(default=False)
+    cancel_reason = models.TextField(null=True, blank=True)
+    cancel_approved = models.BooleanField(default=False)
+
+
+    return_requested = models.BooleanField(default=False)
+    return_reason = models.TextField(null=True, blank=True)
+    return_approved = models.BooleanField(default=False)
+
 
     def delete(self, *args, **kwargs):
         # Custom logic before deletion
@@ -244,6 +257,7 @@ PACKAGE_STATUS_CHOICES = [
 
 class DeliveryPackage(models.Model):
     order = models.ForeignKey("Order", on_delete=models.CASCADE, related_name="packages")
+    is_return_package = models.BooleanField(default=False)
     tracking_number = models.CharField(max_length=255, unique=True, blank=True, null=True)
     status = models.CharField(max_length=50, choices=PACKAGE_STATUS_CHOICES, default="ready_for_delivery")
     delivery_executive = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='de_packages')

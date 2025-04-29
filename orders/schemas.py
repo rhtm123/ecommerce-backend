@@ -96,6 +96,15 @@ class OrderItemOutSchema(Schema):
     created: datetime
     updated: datetime
 
+    cancel_requested: bool
+    cancel_reason: Optional[str] = None
+    cancel_approved: bool
+
+
+    return_requested: bool
+    return_reason: Optional[str] = None
+    return_approved:bool
+
 
 
 class OrderItemSchema(Schema):
@@ -112,6 +121,8 @@ class OrderItemSchema(Schema):
     shipped_date: Optional[datetime] = None
     # applied_offers: Optional[List[AppliedOfferSchema]] = None
     created: Optional[datetime] = None
+    
+
 
 
 class OrderOutSchema(Schema):
@@ -207,6 +218,15 @@ class OrderItemOutOneSchema(Schema):
     created: datetime
     updated: datetime
 
+    cancel_requested: bool
+    cancel_reason: Optional[str] = None
+    cancel_approved: bool
+
+
+    return_requested: bool
+    return_reason: Optional[str] = None
+    return_approved:bool
+
 
 # class AppliedOfferCreateSchema(Schema):
 #     offer_id: int
@@ -231,7 +251,16 @@ class OrderItemCreateSchema(Schema):
 class OrderItemUpdateSchema(Schema):
     quantity: Optional[int] = None
     price: Optional[float] = None
-    status: str
+    status: Optional[str] = None
+
+    cancel_requested: Optional[bool] = None
+    cancel_reason: Optional[str] = None
+    cancel_approved: Optional[bool] = None
+
+
+    return_requested: Optional[bool] = None
+    return_reason: Optional[str] = None
+    return_approved: Optional[bool] = None
 
 # #############
 
