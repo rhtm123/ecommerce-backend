@@ -96,14 +96,14 @@ class OrderItemOutSchema(Schema):
     created: datetime
     updated: datetime
 
-    cancel_requested: bool
+    cancel_requested: Optional[bool] = None
     cancel_reason: Optional[str] = None
-    cancel_approved: bool
+    cancel_approved: Optional[bool] = None
 
 
-    return_requested: bool
+    return_requested: Optional[bool] = None
     return_reason: Optional[str] = None
-    return_approved:bool
+    return_approved:Optional[bool] = None
 
 
 
@@ -122,13 +122,13 @@ class OrderItemSchema(Schema):
     # applied_offers: Optional[List[AppliedOfferSchema]] = None
     created: Optional[datetime] = None
 
-    cancel_requested: bool
+    cancel_requested: Optional[bool] = None
     cancel_reason: Optional[str] = None
-    cancel_approved: bool
+    cancel_approved: Optional[bool] = None
 
-    return_requested: bool
+    return_requested: Optional[bool] = None
     return_reason: Optional[str] = None
-    return_approved:bool
+    return_approved:Optional[bool] = None
 
     
 
@@ -227,14 +227,14 @@ class OrderItemOutOneSchema(Schema):
     created: datetime
     updated: datetime
 
-    cancel_requested: bool
+    cancel_requested: Optional[bool] = None
     cancel_reason: Optional[str] = None
-    cancel_approved: bool
+    cancel_approved: Optional[bool] = None
 
 
-    return_requested: bool
+    return_requested: Optional[bool] = None
     return_reason: Optional[str] = None
-    return_approved:bool
+    return_approved:Optional[bool] = None
 
 
 # class AppliedOfferCreateSchema(Schema):
