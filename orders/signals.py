@@ -48,7 +48,7 @@ def send_order_notification(sender, instance, created, **kwargs):
                 content_template_sid = wa_content_templates["order_sid"]
                 variables = {'1': name, '2': order_number, '3': total_items}
                 print("WA message sent!!")
-                # send_wa_msg(content_template_sid, variables, mobile)
+                send_wa_msg(content_template_sid, variables, mobile)
             except Exception as e:
                 print(f"WhatsApp message send failed: {e}")
 
