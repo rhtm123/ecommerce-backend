@@ -74,6 +74,10 @@ class Order(models.Model):
     def __str__(self):
         return f"Order #{self.id} - {self.user.username}"
 
+    @property
+    def subtotal_amount(self):
+        """Calculate the subtotal amount before any discounts"""
+        return sum(item.quantity * item.price for item in self.order_items.all())
 
     def update_totals(self):
         # Update product listing count and total units
@@ -92,6 +96,7 @@ class Order(models.Model):
         
         # Calculate coupon discount if a valid coupon is applied
         if self.coupon and self.coupon.is_valid():
+            print("applying coupon")
             if self.coupon.coupon_type == 'cart':
                 # Cart-wide coupon
                 if self.subtotal_amount >= self.coupon.min_cart_value:
@@ -229,12 +234,14 @@ class OrderItem(models.Model):
             
             super().save(*args, **kwargs)
 
+
         # Set shipped date if status is shipped
         if self.status == "shipped":
             self.shipped_date = timezone.now()
 
         super().save(*args, **kwargs)
-        
+        self.order.update_totals()
+
 
 
     def __str__(self):
