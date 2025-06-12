@@ -13,7 +13,7 @@ class OrderItemAdmin(admin.ModelAdmin):
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     extra = 1
-    readonly_fields = ['quantity']
+    # readonly_fields = ['quantity']
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):

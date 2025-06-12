@@ -224,6 +224,7 @@ def retrieve_product(request, product_id: int):
         'description': product.description,
         'important_info': product.important_info,
         'base_price': product.base_price,
+        'is_service': product.is_service,
         'tax_category': product.tax_category_id if product.tax_category else None,
         'country_of_origin': product.country_of_origin,
         'created': product.created,
@@ -274,6 +275,7 @@ def product_listings(
     category_id: str = None,
     seller_id: int = None,
     product_id:int = None,
+    is_service: bool = None,
     search: str = None,
     ordering: str = None,
     featured: bool = None,
@@ -332,6 +334,10 @@ def product_listings(
         qs = qs.filter(price__lte=max_price)
         query = query + "&max_price=" + str(max_price)
 
+    if is_service:
+        qs = qs.filter(is_service=is_service)
+        query = query + "&is_service=" + str(is_service)
+        
     # Filter by features
     if feature_filters:
         query = query + "&feature_filters=" + feature_filters

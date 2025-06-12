@@ -27,14 +27,15 @@ def send_wa_msg(content_template_sid, variables, receiver):
             variables_json = json.dumps(variables)  # Convert dictionary to JSON string
 
             try:
-                message = client.messages.create(
-                    from_=f'whatsapp:{sender}',  # Twilio's WhatsApp number
-                    to=f'whatsapp:{receiver}',  # Recipient's WhatsApp number
-                    content_sid=content_template_sid,
-                    content_variables=variables_json,
-                )
+                pass
+                # message = client.messages.create(
+                #     from_=f'whatsapp:{sender}',  # Twilio's WhatsApp number
+                #     to=f'whatsapp:{receiver}',  # Recipient's WhatsApp number
+                #     content_sid=content_template_sid,
+                #     content_variables=variables_json,
+                # )
 
-                print(f"Message sent! SID: {message.sid}")
+                # print(f"Message sent! SID: {message.sid}")
             except Exception as e:
                 print(f"Error sending message: {e}")
 

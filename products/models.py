@@ -22,6 +22,7 @@ from cloudinary.models import CloudinaryField
 CATEGORY_TYPE_CHOICES = [
     ('product', 'Product'),
     ('blog', 'Blog'),
+    ('service', 'Service'),
 ]
 
 
@@ -99,6 +100,7 @@ class Product(models.Model):
     description = models.TextField(blank=True, null=True)
     important_info = models.TextField(blank=True, null=True)
     base_price = models.DecimalField(default=0,max_digits=10, decimal_places=2)
+    is_service = models.BooleanField(default=False)
 
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, related_name='category_products', null=True, blank=True)
     brand = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="brand_products", null=True, blank=True)
@@ -158,7 +160,7 @@ class ProductListing(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, related_name='category_product_listings', null=True, blank=True)
     brand = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="brand_product_listings", null=True, blank=True)
     manufacturer = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="manufacturer_product_listings", null=True, blank=True)
-
+    is_service = models.BooleanField(default=False)
     tax_category = models.ForeignKey(
         TaxCategory, 
         related_name="tax_category_product_listings",
