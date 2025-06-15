@@ -3,8 +3,8 @@ import time
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db import transaction
-from utils.send_whatsapp import send_wa_msg
-from utils.constants import wa_content_templates
+from utils.send_whatsapp import send_wa_msg, send_wa_msg_plivo
+from utils.constants import wa_content_templates, wa_plivo_templates
 from .models import Order, DeliveryPackage
 from utils.send_email import send_mail_thread
 from django.conf import settings
@@ -34,21 +34,26 @@ def send_order_notification(sender, instance, created, **kwargs):
                     print("Email sent successfully")
                     # Uncomment to send email
                     ## working now !!
-                    # send_mail_thread(
-                    #     subject=subject,
-                    #     body=text_content,
-                    #     from_email=settings.EMAIL_HOST_USER,
-                    #     recipient_list=[receiver_email],
-                    #     html=formatted_email
-                    # )
+                    send_mail_thread(
+                        subject=subject,
+                        body=text_content,
+                        from_email=settings.EMAIL_HOST_USER,
+                        recipient_list=[receiver_email],
+                        html=formatted_email
+                    )
             except Exception as e:
                 print(f"Email send failed: {e}")
 
             try:
-                content_template_sid = wa_content_templates["order_sid"]
-                variables = {'1': name, '2': order_number, '3': total_items}
+                # content_template_sid = wa_content_templates["order_sid"]
+                # variables = {'1': name, '2': order_number, '3': total_items}
+    
+                # send_wa_msg(content_template_sid, variables, mobile)
+                
+                variables = [name, order_number, total_items]
+                template_name = wa_plivo_templates["order_sid"]
                 print("WA message sent!!")
-                send_wa_msg(content_template_sid, variables, mobile)
+                send_wa_msg_plivo(template_name, variables, mobile)
             except Exception as e:
                 print(f"WhatsApp message send failed: {e}")
 
@@ -94,16 +99,21 @@ def send_package_notification(sender, instance, created, **kwargs):
                 print(f"Email send failed: {e}")
 
             try:
-                content_template_sid = wa_content_templates["delivery_out_sid"]
-                variables = {
-                    'name': name,
-                    'package_number': tracking_number,
-                    'no_of_items': total_items,
-                    'de_name': de_name,
-                    'de_mobile': de_mobile
-                }
+                # content_template_sid = wa_content_templates["delivery_out_sid"]
+                # variables = {
+                #     'name': name,
+                #     'package_number': tracking_number,
+                #     'no_of_items': total_items,
+                #     'de_name': de_name,
+                #     'de_mobile': de_mobile
+                # }
+                # print("WA message sent!!")
+                # send_wa_msg(content_template_sid, variables, mobile)
+
+                variables = [name, tracking_number, total_items, de_name, de_mobile]
+                template_name = wa_plivo_templates["delivery_out_sid"]
                 print("WA message sent!!")
-                send_wa_msg(content_template_sid, variables, mobile)
+                send_wa_msg_plivo(template_name, variables, mobile)
             except Exception as e:
                 print(f"WhatsApp message send failed: {e}")
 
@@ -122,15 +132,20 @@ def send_package_notification(sender, instance, created, **kwargs):
 
 
             try:
-                content_template_sid = wa_content_templates["delivered_sid"]
-                variables = {
-                    'name': name,
-                    'package_number': tracking_number,
-                    'no_of_items': total_items,
-                    'feedback_link': "https://naigaonmarket.com",
-                }
+                # content_template_sid = wa_content_templates["delivered_sid"]
+                # variables = {
+                #     'name': name,
+                #     'package_number': tracking_number,
+                #     'no_of_items': total_items,
+                #     'feedback_link': "https://naigaonmarket.com",
+                # }
+                # print("WA message sent!!")
+                # send_wa_msg(content_template_sid, variables, mobile)
+                feedback_link = "https://naigaonmarket.com"
+                variables = [name, tracking_number, total_items, feedback_link]
+                template_name = wa_plivo_templates["delivered_sid"]
                 print("WA message sent!!")
-                send_wa_msg(content_template_sid, variables, mobile)
+                send_wa_msg_plivo(template_name, variables, mobile)
             except Exception as e:
                 print(f"WhatsApp message send failed: {e}")
 

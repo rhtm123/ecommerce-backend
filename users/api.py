@@ -40,8 +40,8 @@ from django.http import HttpResponse
 from twilio.request_validator import RequestValidator
 from twilio.twiml.messaging_response import MessagingResponse
 
-from utils.send_whatsapp import send_wa_msg
-from utils.constants import wa_content_templates
+from utils.send_whatsapp import send_wa_msg, send_wa_msg_plivo
+from utils.constants import wa_content_templates, wa_plivo_templates
 
 
 
@@ -68,9 +68,14 @@ def send_otp_api(request, data: OTPRequestSchema):
 
     otp = generate_otp()
 
-    content_template_sid = wa_content_templates["mobile_verify_sid"]
-    variables = {'1': otp}
-    send_wa_msg(content_template_sid, variables, phone_number)
+    # content_template_sid = wa_content_templates["mobile_verify_sid"]
+    # variables = {'1': otp}
+    # send_wa_msg(content_template_sid, variables, phone_number)
+
+    template_name = wa_plivo_templates["mobile_verify_sid"]
+    variables = [otp]
+    send_wa_msg_plivo(template_name, variables, phone_number)
+
     # print("WA message sent!!")
 
     MobileVerification.objects.update_or_create(
