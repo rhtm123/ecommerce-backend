@@ -5,9 +5,28 @@ from django.dispatch import receiver
 from django.db import transaction
 from utils.send_whatsapp import send_wa_msg, send_wa_msg_plivo
 from utils.constants import wa_content_templates, wa_plivo_templates
-from .models import Order, DeliveryPackage
+from .models import Order, DeliveryPackage, OrderItem
 from utils.send_email import send_mail_thread
 from django.conf import settings
+from django.core.cache import cache
+
+@receiver(post_save, sender=Order)
+def clear_order_cache(sender, instance, **kwargs):
+    pattern = f"*:/api/order/orders*user_id={instance.user.id}*"   
+    for key in cache.client.get_client().scan_iter(pattern):
+        cache.client.get_client().delete(key)
+
+@receiver(post_save, sender=OrderItem)
+def clear_order_cache(sender, instance, **kwargs):
+    pattern = f"*:/api/order/order-items*order_id={instance.order.id}*" 
+    for key in cache.client.get_client().scan_iter(pattern):
+        cache.client.get_client().delete(key)
+
+@receiver(post_save, sender=DeliveryPackage)
+def clear_delivery_package_cache(sender, instance, **kwargs):
+    pattern = f"*:/api/order/delivery-packages*order_id={instance.order.id}*" 
+    for key in cache.client.get_client().scan_iter(pattern):
+        cache.client.get_client().delete(key)
 
 
 @receiver(post_save, sender=Order)

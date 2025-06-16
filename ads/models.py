@@ -21,6 +21,9 @@ class Advertisement(models.Model):
 
     created = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
+
     def is_currently_active(self):
         today = timezone.now().date()
         return self.is_active and today <= self.end_date

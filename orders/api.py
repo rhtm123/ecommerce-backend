@@ -213,16 +213,12 @@ def create_order(request, payload: OrderCreateSchema):
 
     order = Order(**payload.dict())
     order.save()
-
-    # Invalidate the cache for this user's orders
-    
-        # print(f"Cache cleared for user_id={payload.user_id}")
     return order
 
 # Read Orders (List)
 
 @router.get("/orders/", response=PaginatedResponseSchema)
-# @cache_response()
+@cache_response()
 def orders(request, 
            page: int = Query(1), 
            page_size: int = Query(10), 

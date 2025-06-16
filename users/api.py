@@ -146,43 +146,6 @@ def verify_otp_api(request, data: OTPVerifySchema):
 #         return {"status": "error", "message": str(e)}
     
 
-
-@router.post("/twilio/webhook/")
-def twilio_whatsapp_webhook(request):
-    """Handles incoming WhatsApp messages from Twilio"""
-
-    try:
-        # Verify Twilio request
-        validator = RequestValidator(TWILIO_AUTH_TOKEN)
-        signature = request.headers.get("X-Twilio-Signature", "")
-
-        url = request.build_absolute_uri()
-        post_data = request.POST.dict()  # Convert QueryDict to a standard dict
-
-        # print(url)
-        # print(signature)
-        # print(post_data)
-      
-        if not validator.validate(url, post_data, signature):
-            print("Unauthorized request attempt - Signature validation failed!")
-            return HttpResponse("Unauthorized", status=403)
-
-        # Process Incoming Message
-        from_number = post_data.get("From", "")
-        body = post_data.get("Body", "").strip().lower()
-
-        # Auto-response logic
-        response = MessagingResponse()
-        if "hello" in body:
-            response.message("Hi there! How can I assist you today?")
-        else:
-            response.message("Sorry, I didn't understand that. Type 'hello' to start.")
-
-        return HttpResponse(str(response), content_type="application/xml")
-
-    except Exception as e:
-        # logger.error(f"Error processing webhook: {e}")
-        return HttpResponse("Internal Server Error", status=500)
     
 class TokenSchema(BaseModel):
     token: str
@@ -443,12 +406,7 @@ def create_shipping_address(request, payload: ShippingAddressCreateSchema):
 
     shipping_address = ShippingAddress(**payload.dict())   
     shipping_address.save()
-
-    if payload.user_id:
-        cache_key = f"cache:/api/user/shipping-addresses/?page=1&page_size=50&user_id={payload.user_id}"
-        print(cache_key);
-        cache.delete(cache_key)
-        print("Delete address")
+    
     return shipping_address
 
 # Read ShippingAddresss (List)
