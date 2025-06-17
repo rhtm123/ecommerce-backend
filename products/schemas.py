@@ -135,6 +135,7 @@ class ProductListingOutSchema(Schema):
     brand: Optional[EntityOut2Schema] = None  # Assuming EntityOutSchema handles the `brand` details
     slug: str
     seller_id : Optional[int] = None
+    is_service: Optional[bool]
 
     category: Optional[CategoryOutSchema] = None
 

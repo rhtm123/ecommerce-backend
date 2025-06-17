@@ -267,7 +267,7 @@ def create_product_listing(request, payload: ProductListingCreateSchema):
 
 
 @router.get("/product-listings/", response=PaginatedResponseSchema)
-@cache_response()
+# @cache_response()
 def product_listings(
     request,
     page: int = Query(1),
@@ -335,6 +335,10 @@ def product_listings(
         query = query + "&max_price=" + str(max_price)
 
     if is_service:
+        qs = qs.filter(is_service=is_service)
+        query = query + "&is_service=" + str(is_service)
+    
+    if is_service is not None:
         qs = qs.filter(is_service=is_service)
         query = query + "&is_service=" + str(is_service)
         
