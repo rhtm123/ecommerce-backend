@@ -3,6 +3,7 @@ wa_plivo_templates = {
     "delivery_out_sid":"out_for_delivery_new",
     "delivered_sid":"order_delivered_new",
     "mobile_verify_sid":"mobileverification_nm",
+    "seller_notify_sid":"seller_notify_new",
 }
 
 

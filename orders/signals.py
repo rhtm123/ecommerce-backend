@@ -9,6 +9,22 @@ from .models import Order, DeliveryPackage, OrderItem
 from utils.send_email import send_mail_thread
 from django.conf import settings
 from django.core.cache import cache
+from django.db.models import Prefetch
+
+def get_order_items_by_seller(order):
+    # Query order items for the given order, prefetching product listing and seller
+    order_items = order.order_items.prefetch_related('product_listing__seller').all()
+    
+    # Group order items by seller
+    items_by_seller = {}
+    for item in order_items:
+        seller = item.product_listing.seller  # Assuming seller is a field in ProductListing
+        if seller not in items_by_seller:
+            items_by_seller[seller] = []
+        items_by_seller[seller].append(item)
+    
+    return items_by_seller
+
 
 @receiver(post_save, sender=Order)
 def clear_order_cache(sender, instance, **kwargs):
@@ -35,7 +51,7 @@ def send_order_notification(sender, instance, created, **kwargs):
         order_id = instance.id  # Capture only the ID, not the full instance
 
         def delayed_order_notification():
-            time.sleep(2)  # 2-second delay to allow OrderItem updates
+            time.sleep(5)  # 2-second delay to allow OrderItem updates
             # Fetch the latest Order instance from the database
             order = Order.objects.get(id=order_id)
             mobile = order.user.mobile
@@ -43,6 +59,19 @@ def send_order_notification(sender, instance, created, **kwargs):
             name = f"{order.user.first_name} {order.user.last_name}"
             order_number = str(order.order_number)
             total_items = str(order.product_listing_count)
+
+            items_by_seller = get_order_items_by_seller(order) 
+
+            for seller, items in items_by_seller.items():
+                if seller:
+                    seller_name = seller.name
+                    # print(f"Seller: {seller.name}")  # Assuming seller has a name field
+                    template_name = wa_plivo_templates["seller_notify_sid"]
+                    variables = [seller_name, order_number, len(items)]
+                    print(template_name)
+                    print(variables)
+                    print("WA message sent to seller!!")
+                    send_wa_msg_plivo(template_name, variables, mobile)
 
             try:
                 with open("./utils/htmlemails/html_order.html", "r", encoding="utf-8") as file:
@@ -53,13 +82,13 @@ def send_order_notification(sender, instance, created, **kwargs):
                     print("Email sent successfully")
                     # Uncomment to send email
                     ## working now !!
-                    send_mail_thread(
-                        subject=subject,
-                        body=text_content,
-                        from_email=settings.EMAIL_HOST_USER,
-                        recipient_list=[receiver_email],
-                        html=formatted_email
-                    )
+                    # send_mail_thread(
+                    #     subject=subject,
+                    #     body=text_content,
+                    #     from_email=settings.EMAIL_HOST_USER,
+                    #     recipient_list=[receiver_email],
+                    #     html=formatted_email
+                    # )
             except Exception as e:
                 print(f"Email send failed: {e}")
 

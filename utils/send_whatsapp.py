@@ -18,9 +18,8 @@ def send_wa_msg_plivo(template_name, template_parameters, receiver):
 
     def send_message(template_name, template_parameters, receiver):
         client = plivo.RestClient(AUTH_ID, AUTH_TOKEN)
-        
-        print([{"type": "text", "text": template_parameters[i]} for i in range(len(template_parameters))])
 
+    
         if receiver:
             if receiver.startswith("0"):
                 receiver = receiver[1:]
@@ -33,7 +32,7 @@ def send_wa_msg_plivo(template_name, template_parameters, receiver):
             "components": [
                 {
                     "type": "body",
-                    "parameters": [{"type": "text", "text": template_parameters[i]} for i in range(len(template_parameters))]
+                    "parameters": [{"type": "text", "text": str(template_parameters[i])} for i in range(len(template_parameters))]
                 }
             ]
         })
