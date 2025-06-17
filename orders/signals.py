@@ -28,21 +28,36 @@ def get_order_items_by_seller(order):
 
 @receiver(post_save, sender=Order)
 def clear_order_cache(sender, instance, **kwargs):
-    pattern = f"*:/api/order/orders*user_id={instance.user.id}*"   
-    for key in cache.client.get_client().scan_iter(pattern):
-        cache.client.get_client().delete(key)
+    try:
+        pattern = f"*:/api/order/orders*user_id={instance.user.id}*"   
+        for key in cache.client.get_client().scan_iter(pattern):
+            cache.client.get_client().delete(key)
+    except Exception as e:
+        print(f"Error clearing order cache: {e}")
+        print("Non-Redis cache backend detected, clearing all cache.")
+        cache.clear()
 
 @receiver(post_save, sender=OrderItem)
 def clear_order_cache(sender, instance, **kwargs):
-    pattern = f"*:/api/order/order-items*order_id={instance.order.id}*" 
-    for key in cache.client.get_client().scan_iter(pattern):
-        cache.client.get_client().delete(key)
+    try:
+        pattern = f"*:/api/order/order-items*order_id={instance.order.id}*" 
+        for key in cache.client.get_client().scan_iter(pattern):
+            cache.client.get_client().delete(key)
+    except Exception as e:
+        print(f"Error clearing order item cache: {e}")
+        print("Non-Redis cache backend detected, clearing all cache.")
+        cache.clear()
 
 @receiver(post_save, sender=DeliveryPackage)
 def clear_delivery_package_cache(sender, instance, **kwargs):
-    pattern = f"*:/api/order/delivery-packages*order_id={instance.order.id}*" 
-    for key in cache.client.get_client().scan_iter(pattern):
-        cache.client.get_client().delete(key)
+    try:
+        pattern = f"*:/api/order/delivery-packages*order_id={instance.order.id}*" 
+        for key in cache.client.get_client().scan_iter(pattern):
+            cache.client.get_client().delete(key)
+    except Exception as e:
+        print(f"Error clearing delivery package cache: {e}")
+        print("Non-Redis cache backend detected, clearing all cache.")
+        cache.clear()
 
 
 @receiver(post_save, sender=Order)
@@ -68,9 +83,9 @@ def send_order_notification(sender, instance, created, **kwargs):
                     # print(f"Seller: {seller.name}")  # Assuming seller has a name field
                     template_name = wa_plivo_templates["seller_notify_sid"]
                     variables = [seller_name, order_number, len(items)]
-                    print(template_name)
-                    print(variables)
-                    print("WA message sent to seller!!")
+                    # print(template_name)
+                    # print(variables)
+                    # print("WA message sent to seller!!")
                     send_wa_msg_plivo(template_name, variables, mobile)
 
             try:
