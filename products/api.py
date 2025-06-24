@@ -1,8 +1,7 @@
-
 from ninja import  Router, Query
 
 # router.py
-from .models import ProductListingImage, Category, FeatureGroup, FeatureTemplate, Product, ProductListing, Feature
+from .models import ProductListingImage, Category, FeatureGroup, FeatureTemplate, Product, ProductListing, Feature, ReturnExchangePolicy
 from .schemas import ( 
     CategoryCreateSchema, CategoryOutSchema, CategoryUpdateSchema,
     # CategoryFeatureValuesOutSchema,
@@ -12,7 +11,8 @@ from .schemas import (
     ProductCreateSchema, ProductOutSchema, ProductOutOneSchema, ProductUpdateSchema,
     ProductListingUpdateSchema, ProductListingCreateSchema, ProductListingOutSchema, ProductListingOneOutSchema,
     FeatureOutSchema,
-    ProductListingImageOutSchema
+    ProductListingImageOutSchema,
+    ReturnExchangePolicySchema, ReturnExchangePolicyCreateSchema, ReturnExchangePolicyUpdateSchema
 )
 from django.shortcuts import get_object_or_404
 from utils.pagination import PaginatedResponseSchema, paginate_queryset
@@ -544,6 +544,37 @@ def delete_product_listing(request, product_listing_id: int):
     product_listing = get_object_or_404(ProductListing, id=product_listing_id)
     product_listing.delete()
     return {"success": True}
+
+
+############################ Return Exchange Policy ####################
+@router.post("/return-exchange-policies/", response=ReturnExchangePolicySchema)
+def create_return_exchange_policy(request, payload: ReturnExchangePolicyCreateSchema):
+    policy = ReturnExchangePolicy.objects.create(**payload.dict())
+    return policy
+
+@router.get("/return-exchange-policies/", response=PaginatedResponseSchema)
+def list_return_exchange_policies(request, page: int = Query(1), page_size: int = Query(10)):
+    queryset = ReturnExchangePolicy.objects.all()
+    return paginate_queryset(request, queryset, ReturnExchangePolicySchema, page, page_size)
+
+@router.get("/return-exchange-policies/{policy_id}/", response=ReturnExchangePolicySchema)
+def retrieve_return_exchange_policy(request, policy_id: int):
+    policy = get_object_or_404(ReturnExchangePolicy, id=policy_id)
+    return policy
+
+@router.put("/return-exchange-policies/{policy_id}/", response=ReturnExchangePolicySchema)
+def update_return_exchange_policy(request, policy_id: int, payload: ReturnExchangePolicyUpdateSchema):
+    policy = get_object_or_404(ReturnExchangePolicy, id=policy_id)
+    for attr, value in payload.dict(exclude_unset=True).items():
+        setattr(policy, attr, value)
+    policy.save()
+    return policy
+
+@router.delete("/return-exchange-policies/{policy_id}/", response={204: None})
+def delete_return_exchange_policy(request, policy_id: int):
+    policy = get_object_or_404(ReturnExchangePolicy, id=policy_id)
+    policy.delete()
+    return 204, None
 
 
 @router.get("/features/", response=PaginatedResponseSchema)
