@@ -137,6 +137,8 @@ class ProductListingOutSchema(Schema):
     seller_id : Optional[int] = None
     is_service: Optional[bool]
 
+    variant_name: str = Field(None, alias="variant.name")
+
     category: Optional[CategoryOutSchema] = None
 
     approved: Optional[bool] 

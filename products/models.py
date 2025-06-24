@@ -238,7 +238,7 @@ class ProductListing(models.Model):
         if self.variant:
             new_name = new_name + " [" + self.variant.name + "]"
 
-        self.slug = slugify(new_name) + "-" + str(self.id) + "nm"
+        self.slug = slugify(new_name)
         self.name = new_name
 
         # print(new_name)
