@@ -267,7 +267,7 @@ def create_product_listing(request, payload: ProductListingCreateSchema):
 
 
 @router.get("/product-listings/", response=PaginatedResponseSchema)
-# @cache_response()
+@cache_response()
 def product_listings(
     request,
     page: int = Query(1),
@@ -334,9 +334,6 @@ def product_listings(
         qs = qs.filter(price__lte=max_price)
         query = query + "&max_price=" + str(max_price)
 
-    if is_service:
-        qs = qs.filter(is_service=is_service)
-        query = query + "&is_service=" + str(is_service)
     
     if is_service is not None:
         qs = qs.filter(is_service=is_service)
@@ -370,6 +367,7 @@ def get_sidebar_filters(
     request, 
     category_id: str = None,
     search: str = None,
+    is_service: bool = None,
     brand_ids: str = Query(None, description="Comma-separated brand IDs"),  # Example: '1,2,3'
     min_price: float = Query(None, description="Minimum price"),
     max_price: float = Query(None, description="Maximum price"),
@@ -383,7 +381,7 @@ def get_sidebar_filters(
     # print(category_id, brand_ids, min_price, max_price, feature_filters)
     
     # Filter listings by category if category_id is provided
-    qs = ProductListing.objects.all()
+    qs = ProductListing.objects.filter(approved=True)
     
     # Filter by category
     
@@ -412,6 +410,9 @@ def get_sidebar_filters(
         qs = qs.filter(price__gte=min_price)
     if max_price is not None:
         qs = qs.filter(price__lte=max_price)
+
+    if is_service is not None:
+        qs = qs.filter(is_service=is_service)
 
     if feature_filters:
         try:

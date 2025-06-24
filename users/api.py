@@ -16,6 +16,7 @@ from decouple import config
 
 from django.core.cache import cache
 
+import plivo
 
 router = Router()
 
@@ -43,6 +44,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 from utils.send_whatsapp import send_wa_msg, send_wa_msg_plivo
 from utils.constants import wa_content_templates, wa_plivo_templates
 
+from django.http import JsonResponse
 
 
 GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID")
@@ -106,44 +108,38 @@ def verify_otp_api(request, data: OTPVerifySchema):
 
 
 
-# @router.post("/plivo/webhook/")
-# def whatsapp_webhook(request):
-#     """Handle incoming WhatsApp messages from Plivo."""
-#     print("Web hook is called now!!")
-#     try:
-#         # Get raw JSON payload
-#         data = request.POST.dict()
-#         print("Received webhook payload: %s", data)
+@router.post("/plivo/webhook/")
+def whatsapp_webhook(request):
+    """Handle incoming WhatsApp messages from Plivo."""
+    print("Webhook is called!")
 
-#         import plivo
-#         AUTH_ID=<AUTH_ID>
-#         AUTH_TOKEN=<AUTH_TOKEN>
-#         client = plivo.RestClient(AUTH_ID, AUTH_TOKEN)
+    try:
+        # Capture form-encoded POST data (Plivo sends x-www-form-urlencoded by default)
+        data = request.POST.dict() if hasattr(request, "POST") else request.body
+        print("Received webhook payload:", data)
 
-#         # if not data:
-#         #     return JsonResponse({"status": "error", "message": "No payload received"}, status=400)
+        # Extract basic WhatsApp message fields
+        from_number = data.get("From", "")
+        to_number = data.get("To", "")
+        message_content = data.get("Body", "")
+        message_uuid = data.get("MessageUUID", "")
+        timestamp = data.get("MessageTime", "")
 
-#         # Extract fields (no strict schema validation here for simplicity)
-#         from_number = data.get("From", "unknown")
-#         to_number = data.get("To", "unknown")
-#         message_content = data.get("Body", "unknown")
-#         # message_uuid = data.get("MessageUUID", "unknown")
-#         # timestamp = data.get("MessageTime", "unknown")
+        # Log message details
+        print(f"From: {from_number}, To: {to_number}, Body: {message_content}, UUID: {message_uuid}, Time: {timestamp}")
 
-#         try:
-#             response = client.messages.create(
-#                 src=to_number,  # Your WhatsApp number
-#                 dst=from_number,  # Sender's number
-#                 type_="whatsapp",
-#                 text=f"Thanks for your message: {message_content}"
-#             )
-#         except plivo.exceptions.PlivoRestError as e:
-#             print(f"Failed to send reply: {e}")
-#         return {"status": "success", "message": "Webhook received"}
+        # Initialize Plivo client (if you want to reply, etc.)
+        AUTH_ID = config("PLIVO_AUTH_ID")
+        AUTH_TOKEN = config("PLIVO_AUTH_TOKEN")
+        client = plivo.RestClient(AUTH_ID, AUTH_TOKEN)
 
-#     except Exception as e:
-#         print(f"Webhook processing error: {e}")
-#         return {"status": "error", "message": str(e)}
+        # You could respond or trigger business logic here if needed
+
+        return JsonResponse({"status": "success", "message": "Webhook received"}, status=200)
+
+    except Exception as e:
+        print("Error processing webhook:", str(e))
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
     
 
     
