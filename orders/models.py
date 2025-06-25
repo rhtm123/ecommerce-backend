@@ -166,9 +166,12 @@ STATUS_CHOICES = [
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_items')
     product_listing = models.ForeignKey(ProductListing, on_delete=models.CASCADE, related_name='product_listing_order_items')
-    quantity = models.PositiveIntegerField(help_text="Number of units ordered for this product") 
+    quantity = models.PositiveIntegerField(help_text="Number of units ordered for this product")
 
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='order_placed')
+
+    review_added = models.BooleanField(default=False)
+    
     price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Price per unit at time of purchase")  # Price of 1 Item 
 
     subtotal = models.DecimalField(max_digits=10, decimal_places=2, help_text="Total price for this product line (quantity × unit_price)")

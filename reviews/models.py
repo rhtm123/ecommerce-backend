@@ -35,17 +35,24 @@ class Review(models.Model):
         """Updates the review count and rating in ProductListing"""
         product = self.product_listing
         reviews = product.product_listing_reviews.filter()
+        
         product.review_count = reviews.count()
         product.rating = round(reviews.aggregate(avg_rating=models.Avg("rating"))["avg_rating"] or 0, 1)
         product.save()
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
+        order_item = self.order_item
+        order_item.review_added = True
+        order_item.save()
         self.update_product_listing_reviews()
 
     def delete(self, *args, **kwargs):
         """Ensure updates are made when a review is deleted."""
         super().delete(*args, **kwargs)
+        order_item = self.order_item
+        order_item.review_added = False
+        order_item.save()
         self.update_product_listing_reviews()
     
     
