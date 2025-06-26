@@ -63,7 +63,8 @@ class Category(MP_Node):
     def __str__(self):
         return self.name
     
-
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
 
 class FeatureGroup(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="category_feature_groups", null=True, blank=True)
@@ -273,7 +274,9 @@ class ProductListingImage(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.product_listing.product.name} - {self.product_listing.seller.name} Listing Image"
+        product_name = self.product_listing.product.name if self.product_listing and self.product_listing.product else "Unknown Product"
+        seller_name = self.product_listing.seller.name if self.product_listing and self.product_listing.seller else "Unknown Seller"
+        return f"{product_name} - {seller_name} Listing Image"
     
     class Meta:
         ordering = ['-id']  # Default ordering by 'id'

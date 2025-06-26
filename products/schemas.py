@@ -140,7 +140,7 @@ class ProductListingOutSchema(Schema):
 
     category: Optional[CategoryOutSchema] = None
 
-    approved: Optional[bool] 
+    approved: bool = False
 
     main_image: Optional[str] = Field(None, description="URL for the main product image")
     thumbnail: Optional[str] = Field(None, description="URL for the dynamically generated thumbnail")
@@ -226,7 +226,7 @@ class ProductListingOneOutSchema(Schema):
     mrp: float
     stock: int
 
-
+    approved: bool = False
     main_image: Optional[str] = Field(None, description="URL for the main product image")
     thumbnail: Optional[str] = Field(None, description="URL for the dynamically generated thumbnail")
 
@@ -343,7 +343,7 @@ class VariantUpdateSchema(Schema):
 
 class ProductListingImageCreateSchema(Schema):
     product_listing_id: int
-    image: str
+    image: str  # For file upload, Ninja will handle UploadedFile
     alt_text: Optional[str] = None
 
 class ProductListingImageUpdateSchema(Schema):

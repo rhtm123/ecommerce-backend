@@ -1,7 +1,7 @@
 from ninja import  Router, Query
 
 # router.py
-from .models import ProductListingImage, Category, FeatureGroup, FeatureTemplate, Product, ProductListing, Feature, ReturnExchangePolicy
+from .models import ProductListingImage, Category, FeatureGroup, FeatureTemplate, Product, ProductListing, Feature, ReturnExchangePolicy, Variant
 from .schemas import ( 
     CategoryCreateSchema, CategoryOutSchema, CategoryUpdateSchema,
     # CategoryFeatureValuesOutSchema,
@@ -11,11 +11,12 @@ from .schemas import (
     ProductCreateSchema, ProductOutSchema, ProductOutOneSchema, ProductUpdateSchema,
     ProductListingUpdateSchema, ProductListingCreateSchema, ProductListingOutSchema, ProductListingOneOutSchema,
     FeatureOutSchema,
-    ProductListingImageOutSchema,
+    ProductListingImageOutSchema, VariantSchema, VariantCreateSchema,
     ReturnExchangePolicySchema, ReturnExchangePolicyCreateSchema, ReturnExchangePolicyUpdateSchema
 )
 from django.shortcuts import get_object_or_404
 from utils.pagination import PaginatedResponseSchema, paginate_queryset
+from ninja.files import UploadedFile
 
 import json 
 from django.db.models import Min, Max, Count
@@ -29,6 +30,7 @@ from ninja_jwt.authentication import JWTAuth
 
 from typing import Optional
 
+from ninja import File, Form
 
 router = Router()
 
@@ -377,6 +379,77 @@ def product_listings(
     # Paginate the results
     return paginate_queryset(request, qs, ProductListingOutSchema, page, page_size, query)
 
+# Update ProductListing
+@router.put("/product-listings/{product_listing_id}/", response=ProductListingOutSchema)
+def update_product_listing(
+    request,
+    product_listing_id: int,
+    product_id: int = Form(None),
+    name: str = Form(None),
+    price: float = Form(None),
+    mrp: float = Form(None),
+    stock: int = Form(None),
+    buy_limit: int = Form(None),
+    box_items: str = Form(None),
+    features: str = Form(None),  # JSON string
+    approved: bool = Form(None),
+    featured: bool = Form(None),
+    variant_id: int = Form(None),
+    seller_id: int = Form(None),
+    packer_id: int = Form(None),
+    importer_id: int = Form(None),
+    manufacturer_id: int = Form(None),
+    return_exchange_policy_id: int = Form(None),
+    tax_category_id: int = Form(None),
+    estore_id: int = Form(None),
+    main_image: UploadedFile = File(None)
+):
+    import json
+    product_listing = get_object_or_404(ProductListing, id=product_listing_id)
+    if product_id is not None:
+        product_listing.product_id = product_id
+    if name is not None:
+        product_listing.name = name
+    if price is not None:
+        product_listing.price = price
+    if mrp is not None:
+        product_listing.mrp = mrp
+    if stock is not None:
+        product_listing.stock = stock
+    if buy_limit is not None:
+        product_listing.buy_limit = buy_limit
+    if box_items is not None:
+        product_listing.box_items = box_items
+    if features is not None:
+        try:
+            product_listing.features = json.loads(features)
+        except Exception:
+            product_listing.features = None
+    if approved is not None:
+        product_listing.approved = approved
+    if featured is not None:
+        product_listing.featured = featured
+    if variant_id is not None:
+        product_listing.variant_id = variant_id
+    if seller_id is not None:
+        product_listing.seller_id = seller_id
+    if packer_id is not None:
+        product_listing.packer_id = packer_id
+    if importer_id is not None:
+        product_listing.importer_id = importer_id
+    if manufacturer_id is not None:
+        product_listing.manufacturer_id = manufacturer_id
+    if return_exchange_policy_id is not None:
+        product_listing.return_exchange_policy_id = return_exchange_policy_id
+    if tax_category_id is not None:
+        product_listing.tax_category_id = tax_category_id
+    if estore_id is not None:
+        product_listing.estore_id = estore_id
+    if main_image is not None:
+        product_listing.main_image = main_image
+    product_listing.save()
+    return product_listing
+
 
 @router.get("/sidebar-filters/", tags=["Sidebar filters"])
 @cache_response()
@@ -624,3 +697,23 @@ def product_listing_images(request,  page: int = Query(1), page_size: int = Quer
         qs = qs.order_by(ordering)
 
     return paginate_queryset(request, qs, ProductListingImageOutSchema, page_number, page_size)
+
+
+@router.post("/product-listing-images/", response=ProductListingImageOutSchema)
+def create_product_listing_image(
+    request,
+    product_listing_id: int = Form(...),
+    image: UploadedFile = File(...),
+    alt_text: str = Form(None)
+):
+    product_listing_image = ProductListingImage.objects.create(
+        product_listing_id=product_listing_id,
+        image=image,
+        alt_text=alt_text
+    )
+    return product_listing_image
+
+@router.post("/variants/", response=VariantSchema)
+def create_variant(request, payload: VariantCreateSchema):
+    variant = Variant.objects.create(**payload.dict())
+    return variant
