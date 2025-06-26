@@ -78,19 +78,17 @@ def send_order_notification(sender, instance, created, **kwargs):
             items_by_seller = get_order_items_by_seller(order) 
 
             for seller, items in items_by_seller.items():
-                if seller and seller.user.mobile:
-                    seller_name = seller.name
-                    seller_mobile = seller.user.mobile
-                    # print(f"Seller: {seller.name}")  # Assuming seller has a name field
-                    template_name = wa_plivo_templates["seller_notify_sid"]
-                    variables = [seller_name, order_number, len(items)]
-                    # print(template_name)
-                    # print(variables)
-                    # print("WA message sent to seller!!")
-                    try:    
+                try:
+                    if seller and seller.user:
+                        seller_name = seller.name
+                        seller_mobile = seller.user.mobile
+                        # print(f"Seller: {seller.name}")  # Assuming seller has a name field
+                        template_name = wa_plivo_templates["seller_notify_sid"]
+                        variables = [seller_name, order_number, len(items)]
+                        
                         send_wa_msg_plivo(template_name, variables, seller_mobile)
-                    except Exception as e:
-                        print(f"WhatsApp message send failed: {e}")
+                except Exception as e:
+                    print(f"WhatsApp message send failed: {e}")
 
             try:
                 with open("./utils/htmlemails/html_order.html", "r", encoding="utf-8") as file:

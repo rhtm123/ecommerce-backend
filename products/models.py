@@ -63,8 +63,7 @@ class Category(MP_Node):
     def __str__(self):
         return self.name
     
-    class Meta:
-        ordering = ['-id']  # Default ordering by 'id'
+
 
 class FeatureGroup(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name="category_feature_groups", null=True, blank=True)

@@ -26,7 +26,7 @@ class MobileVerification(models.Model):
 
 
 class User(AbstractUser):
-    mobile = models.CharField(max_length=15, null=True, blank=True, unique=True)
+    mobile = models.CharField(max_length=15, null=True, blank=True)
     mobile_verified = models.BooleanField(default=False)
 
     alternate_mobile = models.CharField(max_length=15, null=True, blank=True)

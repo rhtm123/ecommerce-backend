@@ -120,6 +120,23 @@ def retrieve_category_parents_children(request, category_id: int):
     }
 
 
+@router.get("/categories/siblings/{category_id}/", response=list[CategoryOutSchema])
+@cache_response()
+def retrieve_category_siblings(request, category_id: int):
+    category = get_object_or_404(Category, id=category_id)
+    
+    # Get the parent of the current category
+    parent = category.get_parent()
+    
+    # If category has a parent, get its siblings (excluding itself)
+    if parent:
+        siblings = parent.get_children()
+    else:
+        # If no parent, get all root categories (excluding itself)
+        siblings = Category.get_root_nodes()
+    
+    return [CategoryOutSchema.from_orm(sibling) for sibling in siblings]
+
 
 # Read Single User (Retrieve)
 @router.get("/categories/{category_id}/", response=CategoryOutSchema)
