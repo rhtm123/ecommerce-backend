@@ -618,15 +618,15 @@ def retrieve_product_listing_slug(request, product_listing_slug: str):
     product_listing = get_object_or_404(ProductListing, slug=product_listing_slug)
     return product_listing
 
-# Update ProductListing
-@router.put("/product-listings/{product_listing_id}/", response=ProductListingOutSchema)
-def update_product_listing(request, product_listing_id: int, payload: ProductListingUpdateSchema):
-    product_listing = get_object_or_404(ProductListing, id=product_listing_id)
-    for attr, value in payload.dict().items():
-        if value is not None:
-            setattr(product_listing, attr, value)
-    product_listing.save()
-    return product_listing
+# # Update ProductListing
+# @router.put("/product-listings/{product_listing_id}/", response=ProductListingOutSchema)
+# def update_product_listing(request, product_listing_id: int, payload: ProductListingUpdateSchema):
+#     product_listing = get_object_or_404(ProductListing, id=product_listing_id)
+#     for attr, value in payload.dict().items():
+#         if value is not None:
+#             setattr(product_listing, attr, value)
+#     product_listing.save()
+#     return product_listing
 
 # Delete ProductListing
 @router.delete("/product-listings/{product_listing_id}/")

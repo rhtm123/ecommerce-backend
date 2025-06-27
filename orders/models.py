@@ -18,6 +18,8 @@ from django.utils import timezone
 
 from offers.models import Coupon, Offer
 
+from utils.constants import DELIVERY_FEE, FREE_DELIVERY_THRESHOLD
+
 
 PAYMENT_CHOICES = (
     ('pending', 'Pending'),
@@ -36,6 +38,8 @@ class Order(models.Model):
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, help_text="Total price of all items including taxes and discounts")
     shipping_address = models.ForeignKey(ShippingAddress, on_delete=models.SET_NULL, null=True, blank=True)
     payment_status = models.CharField(max_length=50, default='pending', choices=PAYMENT_CHOICES)
+
+    delivery_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00 ,help_text="Delivery Charges if aplicable")
     # tracking_number = models.CharField(max_length=255, blank=True, null=True)
 
     # total_items = models.PositiveIntegerField(default=1, null=True, blank=True, help_text="No. of product listings (items)")
@@ -132,6 +136,9 @@ class Order(models.Model):
         self.discount_amount_offer = round(self.discount_amount_offer)
 
         self.total_discount = self.discount_amount_coupon + self.discount_amount_offer
+
+        if self.total_amount < FREE_DELIVERY_THRESHOLD:
+            self.delivery_fee = DELIVERY_FEE
         
         # Calculate final total amount
         # self.total_amount = max(self.subtotal_amount - self.total_discount, Decimal('0.00'))

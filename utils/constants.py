@@ -1,3 +1,6 @@
+DELIVERY_FEE = 25
+FREE_DELIVERY_THRESHOLD = 200
+
 wa_plivo_templates = {
     "order_sid":"order_confirmation_new",
     "delivery_out_sid":"out_for_delivery_new",
