@@ -90,6 +90,7 @@ class OrderItemOutSchema(Schema):
     review: Optional[ReviewOutSchema] = None
     quantity: int
     price: float
+    mrp: float
     subtotal: float
     status: str
     created: datetime
@@ -114,6 +115,7 @@ class OrderItemSchema(Schema):
     quantity: Optional[int] = 0
     status: Optional[str] = None
     price: Optional[float] = 0
+    mrp: Optional[float] = 0
     # original_price: Optional[float] = None
     discount_amount: Optional[float] = 0
     subtotal: Optional[float] = 0
@@ -222,6 +224,7 @@ class OrderItemOutOneSchema(Schema):
     review: Optional[ReviewOutSchema] = None
     quantity: int
     price: float
+    mrp: float
     subtotal: float
     status: Optional[str] = "pending"
     created: datetime
