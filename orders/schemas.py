@@ -90,7 +90,7 @@ class OrderItemOutSchema(Schema):
     review: Optional[ReviewOutSchema] = None
     quantity: int
     price: float
-    mrp: float
+    mrp: Optional[float] = 0
     subtotal: float
     status: str
     created: datetime
