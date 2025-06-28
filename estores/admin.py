@@ -19,7 +19,7 @@ class ProductListingAdmin(admin.ModelAdmin):
 
 @admin.register(DeliveryPin)
 class DeliveryPinAdmin(admin.ModelAdmin):
-    list_filter = ("estore", 'pin_code')
+    list_filter = ("estore", 'pin_code', "city", "state", "cod_available")
     list_display = ("estore", 'pin_code', "city", "state")
 
 

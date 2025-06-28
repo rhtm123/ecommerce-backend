@@ -8,4 +8,5 @@ from .models import Review
 
 @admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
-    list_display = ("title", "user", "approved",)
+    list_filter = ("product_listing", 'approved')
+    list_display = ("title", "user", "approved","product_listing", "rating")

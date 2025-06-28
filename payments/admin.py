@@ -7,5 +7,5 @@ from .models import Payment
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
     search_fields = ("order", "transaction_id",)
-    list_filter = ("transaction_id",)
-    list_display = ("order", "transaction_id" ,"status", "amount")
+    list_filter = ("transaction_id","status",)
+    list_display = ("order", "transaction_id" ,"status", "amount", "updated")
