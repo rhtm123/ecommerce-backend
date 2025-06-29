@@ -322,9 +322,8 @@ def product_listings(
     if category_id:
         try:
             category = Category.objects.get(id=category_id)
-            children = category.get_children()
-            descendants = Category.objects.filter(Q(id=category.id) | Q(id__in=children.values_list('id', flat=True)))
-            qs = qs.filter(category__in=descendants)
+            descendants = category.get_descendants()
+            qs = qs.filter(category__in=[category] + list(descendants))
             query = query + "&category_id=" + category_id
         except Category.DoesNotExist:
             return {"error": "Category not found"}
@@ -478,9 +477,9 @@ def get_sidebar_filters(
     if category_id:
         try:
             category = Category.objects.get(id=category_id)
-            children = category.get_children()
-            descendants = Category.objects.filter(Q(id=category.id) | Q(id__in=children.values_list('id', flat=True)))
-            qs = qs.filter(category__in=descendants)
+            descendants = category.get_descendants()
+            qs = qs.filter(category__in=[category] + list(descendants))
+            query = query + "&category_id=" + category_id
         except Category.DoesNotExist:
             return {"error": "Category not found"}
         
