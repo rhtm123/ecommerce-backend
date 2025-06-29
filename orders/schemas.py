@@ -7,7 +7,6 @@ from decimal import Decimal
 
 from users.schemas import ShippingAddressOutSchema
 
-from products.models import ProductListing
 
 # class AppliedCouponSchema(Schema):
 #     id: int
@@ -91,6 +90,7 @@ class OrderItemOutSchema(Schema):
     review: Optional[ReviewOutSchema] = None
     quantity: int
     price: float
+    mrp: Optional[float] = 0
     subtotal: float
     status: str
     created: datetime
@@ -115,10 +115,12 @@ class OrderItemSchema(Schema):
     quantity: Optional[int] = 0
     status: Optional[str] = None
     price: Optional[float] = 0
+    mrp: Optional[float] = 0
     # original_price: Optional[float] = None
     discount_amount: Optional[float] = 0
     subtotal: Optional[float] = 0
     shipped_date: Optional[datetime] = None
+    review_added: Optional[bool] = False
     # applied_offers: Optional[List[AppliedOfferSchema]] = None
     created: Optional[datetime] = None
 
@@ -222,6 +224,7 @@ class OrderItemOutOneSchema(Schema):
     review: Optional[ReviewOutSchema] = None
     quantity: int
     price: float
+    mrp: float
     subtotal: float
     status: Optional[str] = "pending"
     created: datetime

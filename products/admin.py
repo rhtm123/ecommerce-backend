@@ -51,6 +51,7 @@ class ProductAdmin(SummernoteModelAdmin):
     summernote_fields = ['description',]
     inlines = [VariantInline,]
     # raw_id_fields = ("brand",)
+    list_display = ("name", "is_service", "tax_category")
     search_fields = ("name",)
     list_filter = ("category",)
 
@@ -58,6 +59,7 @@ class ProductAdmin(SummernoteModelAdmin):
 class ProductListingAdmin(admin.ModelAdmin):
     inlines = [ProductListingImageInline]
     readonly_fields = ("name", "tax_category", "brand", "slug", "category", )
+    list_display = ("name", "variant", "brand", "seller", "category", "price", "mrp", "is_service")
     search_fields = ("name",)
     list_filter = ("category", 'brand', 'seller', 'approved')
 

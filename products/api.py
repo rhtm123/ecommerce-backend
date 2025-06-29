@@ -1,8 +1,7 @@
-
 from ninja import  Router, Query
 
 # router.py
-from .models import ProductListingImage, Category, FeatureGroup, FeatureTemplate, Product, ProductListing, Feature
+from .models import ProductListingImage, Category, FeatureGroup, FeatureTemplate, Product, ProductListing, Feature, ReturnExchangePolicy, Variant
 from .schemas import ( 
     CategoryCreateSchema, CategoryOutSchema, CategoryUpdateSchema,
     # CategoryFeatureValuesOutSchema,
@@ -12,10 +11,12 @@ from .schemas import (
     ProductCreateSchema, ProductOutSchema, ProductOutOneSchema, ProductUpdateSchema,
     ProductListingUpdateSchema, ProductListingCreateSchema, ProductListingOutSchema, ProductListingOneOutSchema,
     FeatureOutSchema,
-    ProductListingImageOutSchema
+    ProductListingImageOutSchema, VariantSchema, VariantCreateSchema,
+    ReturnExchangePolicySchema, ReturnExchangePolicyCreateSchema, ReturnExchangePolicyUpdateSchema
 )
 from django.shortcuts import get_object_or_404
 from utils.pagination import PaginatedResponseSchema, paginate_queryset
+from ninja.files import UploadedFile
 
 import json 
 from django.db.models import Min, Max, Count
@@ -29,6 +30,7 @@ from ninja_jwt.authentication import JWTAuth
 
 from typing import Optional
 
+from ninja import File, Form
 
 router = Router()
 
@@ -119,6 +121,23 @@ def retrieve_category_parents_children(request, category_id: int):
         "children": [CategorySchema.from_orm(child) for child in children],
     }
 
+
+@router.get("/categories/siblings/{category_id}/", response=list[CategoryOutSchema])
+@cache_response()
+def retrieve_category_siblings(request, category_id: int):
+    category = get_object_or_404(Category, id=category_id)
+    
+    # Get the parent of the current category
+    parent = category.get_parent()
+    
+    # If category has a parent, get its siblings (excluding itself)
+    if parent:
+        siblings = parent.get_children()
+    else:
+        # If no parent, get all root categories (excluding itself)
+        siblings = Category.get_root_nodes()
+    
+    return [CategoryOutSchema.from_orm(sibling) for sibling in siblings]
 
 
 # Read Single User (Retrieve)
@@ -334,7 +353,8 @@ def product_listings(
         qs = qs.filter(price__lte=max_price)
         query = query + "&max_price=" + str(max_price)
 
-    if is_service:
+    
+    if is_service is not None:
         qs = qs.filter(is_service=is_service)
         query = query + "&is_service=" + str(is_service)
         
@@ -359,6 +379,77 @@ def product_listings(
     # Paginate the results
     return paginate_queryset(request, qs, ProductListingOutSchema, page, page_size, query)
 
+# Update ProductListing
+@router.put("/product-listings/{product_listing_id}/", response=ProductListingOutSchema)
+def update_product_listing(
+    request,
+    product_listing_id: int,
+    product_id: int = Form(None),
+    name: str = Form(None),
+    price: float = Form(None),
+    mrp: float = Form(None),
+    stock: int = Form(None),
+    buy_limit: int = Form(None),
+    box_items: str = Form(None),
+    features: str = Form(None),  # JSON string
+    approved: bool = Form(None),
+    featured: bool = Form(None),
+    variant_id: int = Form(None),
+    seller_id: int = Form(None),
+    packer_id: int = Form(None),
+    importer_id: int = Form(None),
+    manufacturer_id: int = Form(None),
+    return_exchange_policy_id: int = Form(None),
+    tax_category_id: int = Form(None),
+    estore_id: int = Form(None),
+    main_image: UploadedFile = File(None)
+):
+    import json
+    product_listing = get_object_or_404(ProductListing, id=product_listing_id)
+    if product_id is not None:
+        product_listing.product_id = product_id
+    if name is not None:
+        product_listing.name = name
+    if price is not None:
+        product_listing.price = price
+    if mrp is not None:
+        product_listing.mrp = mrp
+    if stock is not None:
+        product_listing.stock = stock
+    if buy_limit is not None:
+        product_listing.buy_limit = buy_limit
+    if box_items is not None:
+        product_listing.box_items = box_items
+    if features is not None:
+        try:
+            product_listing.features = json.loads(features)
+        except Exception:
+            product_listing.features = None
+    if approved is not None:
+        product_listing.approved = approved
+    if featured is not None:
+        product_listing.featured = featured
+    if variant_id is not None:
+        product_listing.variant_id = variant_id
+    if seller_id is not None:
+        product_listing.seller_id = seller_id
+    if packer_id is not None:
+        product_listing.packer_id = packer_id
+    if importer_id is not None:
+        product_listing.importer_id = importer_id
+    if manufacturer_id is not None:
+        product_listing.manufacturer_id = manufacturer_id
+    if return_exchange_policy_id is not None:
+        product_listing.return_exchange_policy_id = return_exchange_policy_id
+    if tax_category_id is not None:
+        product_listing.tax_category_id = tax_category_id
+    if estore_id is not None:
+        product_listing.estore_id = estore_id
+    if main_image is not None:
+        product_listing.main_image = main_image
+    product_listing.save()
+    return product_listing
+
 
 @router.get("/sidebar-filters/", tags=["Sidebar filters"])
 @cache_response()
@@ -366,6 +457,7 @@ def get_sidebar_filters(
     request, 
     category_id: str = None,
     search: str = None,
+    is_service: bool = None,
     brand_ids: str = Query(None, description="Comma-separated brand IDs"),  # Example: '1,2,3'
     min_price: float = Query(None, description="Minimum price"),
     max_price: float = Query(None, description="Maximum price"),
@@ -379,7 +471,7 @@ def get_sidebar_filters(
     # print(category_id, brand_ids, min_price, max_price, feature_filters)
     
     # Filter listings by category if category_id is provided
-    qs = ProductListing.objects.all()
+    qs = ProductListing.objects.filter(approved=True)
     
     # Filter by category
     
@@ -408,6 +500,9 @@ def get_sidebar_filters(
         qs = qs.filter(price__gte=min_price)
     if max_price is not None:
         qs = qs.filter(price__lte=max_price)
+
+    if is_service is not None:
+        qs = qs.filter(is_service=is_service)
 
     if feature_filters:
         try:
@@ -523,15 +618,15 @@ def retrieve_product_listing_slug(request, product_listing_slug: str):
     product_listing = get_object_or_404(ProductListing, slug=product_listing_slug)
     return product_listing
 
-# Update ProductListing
-@router.put("/product-listings/{product_listing_id}/", response=ProductListingOutSchema)
-def update_product_listing(request, product_listing_id: int, payload: ProductListingUpdateSchema):
-    product_listing = get_object_or_404(ProductListing, id=product_listing_id)
-    for attr, value in payload.dict().items():
-        if value is not None:
-            setattr(product_listing, attr, value)
-    product_listing.save()
-    return product_listing
+# # Update ProductListing
+# @router.put("/product-listings/{product_listing_id}/", response=ProductListingOutSchema)
+# def update_product_listing(request, product_listing_id: int, payload: ProductListingUpdateSchema):
+#     product_listing = get_object_or_404(ProductListing, id=product_listing_id)
+#     for attr, value in payload.dict().items():
+#         if value is not None:
+#             setattr(product_listing, attr, value)
+#     product_listing.save()
+#     return product_listing
 
 # Delete ProductListing
 @router.delete("/product-listings/{product_listing_id}/")
@@ -539,6 +634,37 @@ def delete_product_listing(request, product_listing_id: int):
     product_listing = get_object_or_404(ProductListing, id=product_listing_id)
     product_listing.delete()
     return {"success": True}
+
+
+############################ Return Exchange Policy ####################
+@router.post("/return-exchange-policies/", response=ReturnExchangePolicySchema)
+def create_return_exchange_policy(request, payload: ReturnExchangePolicyCreateSchema):
+    policy = ReturnExchangePolicy.objects.create(**payload.dict())
+    return policy
+
+@router.get("/return-exchange-policies/", response=PaginatedResponseSchema)
+def list_return_exchange_policies(request, page: int = Query(1), page_size: int = Query(10)):
+    queryset = ReturnExchangePolicy.objects.all()
+    return paginate_queryset(request, queryset, ReturnExchangePolicySchema, page, page_size)
+
+@router.get("/return-exchange-policies/{policy_id}/", response=ReturnExchangePolicySchema)
+def retrieve_return_exchange_policy(request, policy_id: int):
+    policy = get_object_or_404(ReturnExchangePolicy, id=policy_id)
+    return policy
+
+@router.put("/return-exchange-policies/{policy_id}/", response=ReturnExchangePolicySchema)
+def update_return_exchange_policy(request, policy_id: int, payload: ReturnExchangePolicyUpdateSchema):
+    policy = get_object_or_404(ReturnExchangePolicy, id=policy_id)
+    for attr, value in payload.dict(exclude_unset=True).items():
+        setattr(policy, attr, value)
+    policy.save()
+    return policy
+
+@router.delete("/return-exchange-policies/{policy_id}/", response={204: None})
+def delete_return_exchange_policy(request, policy_id: int):
+    policy = get_object_or_404(ReturnExchangePolicy, id=policy_id)
+    policy.delete()
+    return 204, None
 
 
 @router.get("/features/", response=PaginatedResponseSchema)
@@ -571,3 +697,23 @@ def product_listing_images(request,  page: int = Query(1), page_size: int = Quer
         qs = qs.order_by(ordering)
 
     return paginate_queryset(request, qs, ProductListingImageOutSchema, page_number, page_size)
+
+
+@router.post("/product-listing-images/", response=ProductListingImageOutSchema)
+def create_product_listing_image(
+    request,
+    product_listing_id: int = Form(...),
+    image: UploadedFile = File(...),
+    alt_text: str = Form(None)
+):
+    product_listing_image = ProductListingImage.objects.create(
+        product_listing_id=product_listing_id,
+        image=image,
+        alt_text=alt_text
+    )
+    return product_listing_image
+
+@router.post("/variants/", response=VariantSchema)
+def create_variant(request, payload: VariantCreateSchema):
+    variant = Variant.objects.create(**payload.dict())
+    return variant

@@ -1,4 +1,3 @@
-
 from datetime import datetime
 from typing import Optional, List
 from ninja import Schema, ModelSchema
@@ -135,10 +134,13 @@ class ProductListingOutSchema(Schema):
     brand: Optional[EntityOut2Schema] = None  # Assuming EntityOutSchema handles the `brand` details
     slug: str
     seller_id : Optional[int] = None
+    is_service: Optional[bool]
+
+    variant_name: str = Field(None, alias="variant.name")
 
     category: Optional[CategoryOutSchema] = None
 
-    approved: Optional[bool] 
+    approved: bool = False
 
     main_image: Optional[str] = Field(None, description="URL for the main product image")
     thumbnail: Optional[str] = Field(None, description="URL for the dynamically generated thumbnail")
@@ -183,6 +185,24 @@ class ReturnExchangePolicySchema(ModelSchema):
         fields = ['id', 'name', 'return_available', 'exchange_available', 'return_days', 'exchange_days', 'conditions']
 
 
+class ReturnExchangePolicyCreateSchema(Schema):
+    name: str
+    return_available: Optional[bool] = False
+    exchange_available: Optional[bool] = False
+    return_days: Optional[int] = None
+    exchange_days: Optional[int] = None
+    conditions: Optional[str] = None
+
+
+class ReturnExchangePolicyUpdateSchema(Schema):
+    name: Optional[str] = None
+    return_available: Optional[bool] = None
+    exchange_available: Optional[bool] = None
+    return_days: Optional[int] = None
+    exchange_days: Optional[int] = None
+    conditions: Optional[str] = None
+
+
 class ProductListingOneOutSchema(Schema):
     id: int
     name: Optional[str] = None
@@ -206,7 +226,7 @@ class ProductListingOneOutSchema(Schema):
     mrp: float
     stock: int
 
-
+    approved: bool = False
     main_image: Optional[str] = Field(None, description="URL for the main product image")
     thumbnail: Optional[str] = Field(None, description="URL for the dynamically generated thumbnail")
 
@@ -323,7 +343,7 @@ class VariantUpdateSchema(Schema):
 
 class ProductListingImageCreateSchema(Schema):
     product_listing_id: int
-    image: str
+    image: str  # For file upload, Ninja will handle UploadedFile
     alt_text: Optional[str] = None
 
 class ProductListingImageUpdateSchema(Schema):

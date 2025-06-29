@@ -16,6 +16,7 @@ from decouple import config
 
 from django.core.cache import cache
 
+import plivo
 
 router = Router()
 
@@ -40,9 +41,10 @@ from django.http import HttpResponse
 from twilio.request_validator import RequestValidator
 from twilio.twiml.messaging_response import MessagingResponse
 
-from utils.send_whatsapp import send_wa_msg
-from utils.constants import wa_content_templates
+from utils.send_whatsapp import send_wa_msg, send_wa_msg_plivo
+from utils.constants import wa_content_templates, wa_plivo_templates
 
+from django.http import JsonResponse
 
 
 GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID")
@@ -68,9 +70,14 @@ def send_otp_api(request, data: OTPRequestSchema):
 
     otp = generate_otp()
 
-    content_template_sid = wa_content_templates["mobile_verify_sid"]
-    variables = {'1': otp}
-    send_wa_msg(content_template_sid, variables, phone_number)
+    # content_template_sid = wa_content_templates["mobile_verify_sid"]
+    # variables = {'1': otp}
+    # send_wa_msg(content_template_sid, variables, phone_number)
+
+    template_name = wa_plivo_templates["mobile_verify_sid"]
+    variables = [otp]
+    send_wa_msg_plivo(template_name, variables, phone_number)
+
     # print("WA message sent!!")
 
     MobileVerification.objects.update_or_create(
@@ -101,83 +108,40 @@ def verify_otp_api(request, data: OTPVerifySchema):
 
 
 
-# @router.post("/plivo/webhook/")
-# def whatsapp_webhook(request):
-#     """Handle incoming WhatsApp messages from Plivo."""
-#     print("Web hook is called now!!")
-#     try:
-#         # Get raw JSON payload
-#         data = request.POST.dict()
-#         print("Received webhook payload: %s", data)
-
-#         import plivo
-#         AUTH_ID=<AUTH_ID>
-#         AUTH_TOKEN=<AUTH_TOKEN>
-#         client = plivo.RestClient(AUTH_ID, AUTH_TOKEN)
-
-#         # if not data:
-#         #     return JsonResponse({"status": "error", "message": "No payload received"}, status=400)
-
-#         # Extract fields (no strict schema validation here for simplicity)
-#         from_number = data.get("From", "unknown")
-#         to_number = data.get("To", "unknown")
-#         message_content = data.get("Body", "unknown")
-#         # message_uuid = data.get("MessageUUID", "unknown")
-#         # timestamp = data.get("MessageTime", "unknown")
-
-#         try:
-#             response = client.messages.create(
-#                 src=to_number,  # Your WhatsApp number
-#                 dst=from_number,  # Sender's number
-#                 type_="whatsapp",
-#                 text=f"Thanks for your message: {message_content}"
-#             )
-#         except plivo.exceptions.PlivoRestError as e:
-#             print(f"Failed to send reply: {e}")
-#         return {"status": "success", "message": "Webhook received"}
-
-#     except Exception as e:
-#         print(f"Webhook processing error: {e}")
-#         return {"status": "error", "message": str(e)}
-    
-
-
-@router.post("/twilio/webhook/")
-def twilio_whatsapp_webhook(request):
-    """Handles incoming WhatsApp messages from Twilio"""
+@router.post("/plivo/webhook/")
+def whatsapp_webhook(request):
+    """Handle incoming WhatsApp messages from Plivo."""
+    print("Webhook is called!")
 
     try:
-        # Verify Twilio request
-        validator = RequestValidator(TWILIO_AUTH_TOKEN)
-        signature = request.headers.get("X-Twilio-Signature", "")
+        # Capture form-encoded POST data (Plivo sends x-www-form-urlencoded by default)
+        data = request.POST.dict() if hasattr(request, "POST") else request.body
+        print("Received webhook payload:", data)
 
-        url = request.build_absolute_uri()
-        post_data = request.POST.dict()  # Convert QueryDict to a standard dict
+        # Extract basic WhatsApp message fields
+        from_number = data.get("From", "")
+        to_number = data.get("To", "")
+        message_content = data.get("Body", "")
+        message_uuid = data.get("MessageUUID", "")
+        timestamp = data.get("MessageTime", "")
 
-        # print(url)
-        # print(signature)
-        # print(post_data)
-      
-        if not validator.validate(url, post_data, signature):
-            print("Unauthorized request attempt - Signature validation failed!")
-            return HttpResponse("Unauthorized", status=403)
+        # Log message details
+        print(f"From: {from_number}, To: {to_number}, Body: {message_content}, UUID: {message_uuid}, Time: {timestamp}")
 
-        # Process Incoming Message
-        from_number = post_data.get("From", "")
-        body = post_data.get("Body", "").strip().lower()
+        # Initialize Plivo client (if you want to reply, etc.)
+        AUTH_ID = config("PLIVO_AUTH_ID")
+        AUTH_TOKEN = config("PLIVO_AUTH_TOKEN")
+        client = plivo.RestClient(AUTH_ID, AUTH_TOKEN)
 
-        # Auto-response logic
-        response = MessagingResponse()
-        if "hello" in body:
-            response.message("Hi there! How can I assist you today?")
-        else:
-            response.message("Sorry, I didn't understand that. Type 'hello' to start.")
+        # You could respond or trigger business logic here if needed
 
-        return HttpResponse(str(response), content_type="application/xml")
+        return JsonResponse({"status": "success", "message": "Webhook received"}, status=200)
 
     except Exception as e:
-        # logger.error(f"Error processing webhook: {e}")
-        return HttpResponse("Internal Server Error", status=500)
+        print("Error processing webhook:", str(e))
+        return JsonResponse({"status": "error", "message": str(e)}, status=500)
+    
+
     
 class TokenSchema(BaseModel):
     token: str
@@ -438,12 +402,7 @@ def create_shipping_address(request, payload: ShippingAddressCreateSchema):
 
     shipping_address = ShippingAddress(**payload.dict())   
     shipping_address.save()
-
-    if payload.user_id:
-        cache_key = f"cache:/api/user/shipping-addresses/?page=1&page_size=50&user_id={payload.user_id}"
-        print(cache_key);
-        cache.delete(cache_key)
-        print("Delete address")
+    
     return shipping_address
 
 # Read ShippingAddresss (List)

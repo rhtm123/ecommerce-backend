@@ -38,6 +38,8 @@ from payments.api import router as payments_api
 from ads.api import router as ads_api
 from offers.api import router as offers_api
 
+from taxations.api import router as taxations_api
+
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -68,6 +70,8 @@ api.add_router("blog/", blogs_api, tags=['blogs API'])
 api.add_router("estore/", estores_api, tags=['Estores API'])
 
 api.add_router("offer/", offers_api, tags=['Offers API'])
+
+api.add_router("taxation/", taxations_api, tags=['Taxations API'])
 
 
 

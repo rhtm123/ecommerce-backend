@@ -2,7 +2,7 @@ from typing import List
 from ninja import Router
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.db import transaction
+# from django.db import transaction
 from django.db.models import Q
 
 from .models import Coupon, Offer, ProductOffer, UserCouponUsage
@@ -15,8 +15,10 @@ from .schemas import (
 )
 from products.models import ProductListing
 from decimal import Decimal
-
+from utils.cache import cache_response
 router = Router()
+
+
 
 # Coupon Endpoints
 @router.post("/coupons", response=CouponOut, tags=["Coupons"])
@@ -25,6 +27,7 @@ def create_coupon(request, payload: CouponCreate):
     return coupon
 
 @router.get("/coupons", response=List[CouponOut], tags=["Coupons"])
+@cache_response()
 def list_coupons(request, is_active: bool = None):
     qs = Coupon.objects.all()
     if is_active is not None:
@@ -57,6 +60,7 @@ def create_offer(request, payload: OfferCreate):
     return offer
 
 @router.get("/offers", response=List[OfferOut], tags=["Offers"])
+@cache_response()
 def list_offers(request, is_active: bool = None):
     qs = Offer.objects.all()
     if is_active is not None:
@@ -88,6 +92,7 @@ def create_product_offer(request, payload: ProductOfferCreate):
     return product_offer
 
 @router.get("/product-offers", response=List[ProductOfferOut], tags=["Product Offers"])
+@cache_response()
 def list_product_offers(request, product_id: int = None):
     qs = ProductOffer.objects.all()
     if product_id:
@@ -101,6 +106,7 @@ def delete_product_offer(request, product_offer_id: int):
     return {"success": True}
 
 @router.get("/product-offers/{product_listing_id}/", response=List[OfferOut], tags=["Offers"])
+@cache_response()
 def get_product_offers(request, product_listing_id: int):
     """
     Get all active offers for a specific product listing.
@@ -146,6 +152,7 @@ def get_product_offers(request, product_listing_id: int):
 
 # Validation Endpoints
 @router.get("/validate-coupon/{coupon_code}", response=CouponValidationResponse, tags=["Validation"])
+@cache_response()
 def validate_coupon(
     request, 
     coupon_code: str, 

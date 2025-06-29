@@ -5,9 +5,15 @@ from .models import User, Entity, ShippingAddress, MobileVerification
 
 # admin.site.register(User)
 
-admin.site.register(Entity)
+@admin.register(Entity)
+class EntityAdmin(admin.ModelAdmin):
+    list_display = ("name","entity_type","user", "website")
 
-admin.site.register(ShippingAddress)
+@admin.register(ShippingAddress)
+class ShippingAddressAdmin(admin.ModelAdmin):
+    list_display = ("user","name","address", "mobile","type", "is_default")
+
+
 
 admin.site.register(MobileVerification)
 

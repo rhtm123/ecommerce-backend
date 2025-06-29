@@ -21,12 +21,12 @@ class MobileVerification(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
     def is_valid(self):
-        return self.created >= now() - timedelta(minutes=5)  # OTP expires in 5 minutes
+        return self.created >= now() - timedelta(minutes=10)  # OTP expires in 5 minutes
     
 
 
 class User(AbstractUser):
-    mobile = models.CharField(max_length=15, null=True, blank=True, unique=True)
+    mobile = models.CharField(max_length=15, null=True, blank=True)
     mobile_verified = models.BooleanField(default=False)
 
     alternate_mobile = models.CharField(max_length=15, null=True, blank=True)
