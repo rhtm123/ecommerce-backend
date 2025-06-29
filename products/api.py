@@ -479,7 +479,6 @@ def get_sidebar_filters(
             category = Category.objects.get(id=category_id)
             descendants = category.get_descendants()
             qs = qs.filter(category__in=[category] + list(descendants))
-            query = query + "&category_id=" + category_id
         except Category.DoesNotExist:
             return {"error": "Category not found"}
         
