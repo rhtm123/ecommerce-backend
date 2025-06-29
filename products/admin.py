@@ -10,6 +10,10 @@ from .models import Category
 
 class MyAdmin(TreeAdmin):
     form = movenodeform_factory(Category)
+    list_display = ["name", "level" ,"estore","approved"]
+    list_filter = ['level', "estore", "approved"]
+    search_fields = ("name",)
+
 
 admin.site.register(Category, MyAdmin)
 

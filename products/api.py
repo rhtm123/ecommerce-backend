@@ -75,7 +75,7 @@ def categories(
         has_blogs: Optional[bool] = Query(None, description="Filter categories that have associated blogs"),
         category_type: Optional[str] = Query("product", description="Type of category"),
     ):
-    qs = Category.objects.all()
+    qs = Category.objects.filter(approved=True)
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
 
