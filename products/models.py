@@ -27,11 +27,11 @@ CATEGORY_TYPE_CHOICES = [
 
 
 class Category(MP_Node):
-    name = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
     estore = models.ForeignKey(EStore, on_delete=models.CASCADE, null=True, blank=True, related_name="estore_categories")
     
     description = models.TextField(null=True, blank=True)
-    slug = models.SlugField(default="", null=False, blank=True)
+    slug = models.SlugField(default="", null=False, blank=True, unique=True)
     
     category_type = models.CharField(
         max_length=10,
@@ -39,7 +39,8 @@ class Category(MP_Node):
         default='product',
         help_text='Specify if the category is for a product or a blog.'
     )
-    
+    approved = models.BooleanField(default=False, help_text="Category will be shown on the website/app")
+
     image = CloudinaryField(
         "image",
         folder="kb/product_listings/",
@@ -53,11 +54,31 @@ class Category(MP_Node):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    @staticmethod
+    def generate_unique_slug(name, parent=None):
+        base_slug = slugify(name)
+        slug = base_slug
+        counter = 1
+
+        while Category.objects.filter(slug=slug).exists():
+            if parent:
+                parent_slug = slugify(parent.name)
+                slug = f"{parent_slug}-{base_slug}"
+            else:
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+        return slug
+
+
     def save(self, *args, **kwargs):
         # Automatically update the level before saving
         self.level = self.get_depth()
 
-        self.slug = slugify(self.name)
+        if not self.slug:
+            # Create full path slug using parent chain
+            parent = self.get_parent()
+            self.slug = self.generate_unique_slug(self.name, parent)
+
         super(Category, self).save(*args, **kwargs)
 
     def __str__(self):
