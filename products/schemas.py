@@ -4,6 +4,8 @@ from ninja import Schema, ModelSchema
 from ninja.schema import Field
 
 from typing import Dict
+from pydantic import computed_field
+
 
 
 from .models import ReturnExchangePolicy, ProductListing, Category, ProductListingImage
@@ -43,8 +45,20 @@ class CategorySchema(Schema):
     name: str
     slug: str
     level: int
-    # created: str
-    # updated: str
+
+    image: Optional[str] = None
+
+    @staticmethod
+    def resolve_image(obj: Category) -> Optional[str]:
+        """
+        Resolves the URL for the main image.
+        """
+        try:
+            # print(obj.main_image)
+            # print(obj.main_image.url)
+            return obj.image.url if obj.image else None
+        except:
+            return None
 
 class CategoryParentChildrenOutSchema(Schema):
     parents: List[CategorySchema]
