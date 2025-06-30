@@ -151,7 +151,7 @@ def retrieve_category(request, category_id: int):
 @cache_response()
 def retrieve_category_slug(request, category_slug: str):
     category = get_object_or_404(Category, slug=category_slug)
-    return category
+    return CategoryOutSchema.from_orm(category)
 
 # Update User
 @router.put("/categories/{category_id}/", response=CategoryOutSchema)
@@ -614,7 +614,7 @@ def retrieve_product_listing(request, product_listing_id: int):
 @cache_response()
 def retrieve_product_listing_slug(request, product_listing_slug: str):
     product_listing = get_object_or_404(ProductListing, slug=product_listing_slug)
-    return product_listing
+    return ProductListingOneOutSchema.from_orm(product_listing)
 
 # # Update ProductListing
 # @router.put("/product-listings/{product_listing_id}/", response=ProductListingOutSchema)

@@ -2,6 +2,8 @@ from functools import wraps
 from django.core.cache import cache
 from django.http import JsonResponse
 from pydantic import BaseModel
+from ninja import Schema, ModelSchema  # ✅ Import these
+
 import json
 
 
@@ -19,7 +21,6 @@ def cache_response(timeout=60 * 15, cache_key_func=None):
                 else f"cache:{request.path}?{query_params}"
             )
 
-            print(key)
 
             cached = cache.get(key)
             if cached is not None:
@@ -29,7 +30,7 @@ def cache_response(timeout=60 * 15, cache_key_func=None):
             response = view_func(request, *args, **kwargs)
 
             # Ensure response is cacheable (if it's a Pydantic model)
-            if isinstance(response, BaseModel):
+            if isinstance(response, (BaseModel, Schema, ModelSchema)):
                 print("Storing to cache")
                 cache.set(key, response.model_dump_json(), timeout=timeout)
                 return JsonResponse(json.loads(response.model_dump_json()), safe=False)
