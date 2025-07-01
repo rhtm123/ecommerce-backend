@@ -20,3 +20,4 @@ django_summernote==0.8.20.0
 twilio==9.4.4
 django-redis==5.4.0
 plivo==4.59.1
+openpyxl==3.1.5
