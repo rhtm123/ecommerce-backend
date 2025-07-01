@@ -221,10 +221,11 @@ class OrderItemOutOneSchema(Schema):
     id: int
     order: Optional[OrderSchema] = None
     product_listing: Optional[ProductListingSchema] = None
+    product_main_image: Optional[str] = Field(None, description="URL for the main product image")
     review: Optional[ReviewOutSchema] = None
     quantity: int
     price: float
-    mrp: float
+    mrp: Optional[float] = 0
     subtotal: float
     status: Optional[str] = "pending"
     created: datetime
