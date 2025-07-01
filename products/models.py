@@ -154,7 +154,7 @@ class Variant(models.Model):
         ordering = ['-id']  # Default ordering by 'id'
 
     def __str__(self):
-        return self.name 
+        return f"{self.product.name} - {self.name}"
 
 
 
