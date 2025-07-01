@@ -63,7 +63,11 @@ class ProductAdmin(SummernoteModelAdmin):
 class ProductListingAdmin(admin.ModelAdmin):
     inlines = [ProductListingImageInline]
     readonly_fields = ("name", "tax_category", "brand", "slug", "category", )
-    list_display = ("name", "variant", "brand", "seller", "category", "price", "mrp", "is_service")
+    list_display = ("name", "variant","approved", "brand", "seller", "category", "price", "mrp", "is_service")
     search_fields = ("name",)
     list_filter = ("category", 'brand', 'seller', 'approved')
+    actions = ['approve_product_listings']
+
+    def approve_product_listings(self, request, queryset):
+        queryset.update(approved=True)
 
