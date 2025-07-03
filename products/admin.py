@@ -10,13 +10,9 @@ from .models import Category
 
 class MyAdmin(TreeAdmin):
     form = movenodeform_factory(Category)
-    list_display = ["name", "level" ,"estore","approved"]
+    list_display = ["name","id" ,"level" ,"estore","approved"]
     list_filter = ['level', "estore", "approved"]
     search_fields = ("name",)
-    actions = ['approve_categories']
-
-    def approve_categories(self, request, queryset):
-        queryset.update(approved=True)  
 
 
 admin.site.register(Category, MyAdmin)
