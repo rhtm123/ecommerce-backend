@@ -1,5 +1,8 @@
 from ninja import  Router, Query
 
+from ninja.files import UploadedFile
+
+
 # router.py
 from .models import ProductListingImage, Category, FeatureGroup, FeatureTemplate, Product, ProductListing, Feature, ReturnExchangePolicy, Variant
 from .schemas import ( 
@@ -33,6 +36,112 @@ from typing import Optional
 from ninja import File, Form
 
 router = Router()
+
+from openpyxl import load_workbook
+from users.models import Entity
+from taxations.models import TaxCategory
+from estores.models import EStore
+from ast import literal_eval
+
+############################ Product Listing Upload from files ############################
+
+def parse_bool(value):
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        return value.strip().lower() in ['true', '1', 'yes']
+    if isinstance(value, int):
+        return value == 1
+    return False
+
+
+def get_or_create_entity(name, entity_type):
+    if not name:
+        return None
+    return Entity.objects.get_or_create(name=name.strip(), entity_type=entity_type)[0]
+
+def get_or_create_category(name):
+    if not name or str(name).strip() == "":
+        return None
+    return Category.objects.get_or_create(name=name.strip())[0]
+
+def get_category_by_id(category_id):
+    if not category_id:
+        return None
+    return Category.objects.filter(id=category_id).first()
+
+
+def get_tax_category_by_id(tax_id):
+    if not tax_id:
+        return None
+    return TaxCategory.objects.filter(id=tax_id).first()
+
+
+@router.post("/upload-products/")
+def upload_products_from_excel(request, file: UploadedFile = File(...)):
+    wb = load_workbook(filename=file.file)
+    sheet = wb.active
+    headers = [cell.value for cell in sheet[1]]
+
+    created_count = 0
+    errors = []
+
+    for idx, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
+        row_data = dict(zip(headers, row))
+        try:
+            product, _ = Product.objects.get_or_create(
+                name=row_data['product_name'],
+                defaults={
+                    'about': row_data.get('product_about') or "",
+                    'description': row_data.get('product_description') or "",
+                    'base_price': row_data.get('base_price') or 0,
+                    'is_service': parse_bool(row_data.get('is_service')),
+                    'category': get_category_by_id(row_data.get('category_id')),
+                    'brand': get_or_create_entity(row_data.get('brand_name'), 'brand'),
+                    'tax_category': get_tax_category_by_id(row_data.get('tax_category_id')),
+                }
+            )
+
+            # Create Variant
+            try:
+                attributes = literal_eval(row_data.get('variant_attributes') or "[]")
+            except:
+                attributes = []
+            variant, _ = Variant.objects.get_or_create(
+                product=product,
+                name=row_data['variant_name'],
+                defaults={'attributes': attributes}
+            )
+
+            # Create ProductListing
+            listing_name = f"{product.name} [{variant.name}]"
+            ProductListing.objects.create(
+                product=product,
+                variant=variant,
+                name=listing_name,
+                price=row_data.get('price') or 0,
+                mrp=row_data.get('mrp') or 0,
+                stock=row_data.get('stock') or 0,
+                approved=False,
+                featured=False,
+                seller=Entity.objects.filter(id=row_data.get('seller_id')).first(),
+                estore=EStore.objects.filter(id=row_data.get('estore_id')).first()
+            )
+
+            created_count += 1
+
+        except Exception as e:
+            errors.append({
+                "row": idx,
+                "error": str(e),
+                "data": row_data
+            })
+
+    return {
+        "status": "success" if not errors else "partial",
+        "created": created_count,
+        "errors": errors
+    }
 
 ############################ Category ############################
 # Create Category
@@ -74,12 +183,17 @@ def categories(
         level: Optional[int] = Query(None, description="Filter by category level"),
         has_blogs: Optional[bool] = Query(None, description="Filter categories that have associated blogs"),
         category_type: Optional[str] = Query("product", description="Type of category"),
+        search: Optional[str] = Query(None, description="Search by category name"),
     ):
     qs = Category.objects.filter(approved=True)
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
 
     query = ""
+
+    if search:
+        qs = qs.filter(name__icontains=search)
+        query = query + "&search=" + search
 
     if estore_id is not None:
         qs = qs.filter(estore__id=estore_id)

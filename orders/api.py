@@ -510,14 +510,14 @@ def order_items(
                 "id": item.product_listing.id,
                 "slug": item.product_listing.slug,
                 "price": item.product_listing.price,
-                "mrp": float(item.order_item.mrp) if item.order_item.mrp else float(item.order_item.product_listing.mrp or item.order_item.price),
+                "mrp": float(item.product_listing.mrp) if item.product_listing.mrp else float(item.product_listing.mrp or item.product_listing.price),
                 "cgst_rate": item.product_listing.tax_category.cgst_rate if item.product_listing.tax_category else None,
                 "sgst_rate": item.product_listing.tax_category.sgst_rate if item.product_listing.tax_category else None,
                 "igst_rate": item.product_listing.tax_category.igst_rate if item.product_listing.tax_category else None,
             },
             "quantity": item.quantity,
             "price": float(item.price or 0),
-            "mrp": float(item.order_item.mrp) if item.order_item.mrp else float(item.order_item.product_listing.mrp or item.order_item.price),
+            "mrp": float(item.product_listing.mrp) if item.product_listing.mrp else float(item.product_listing.mrp or item.product_listing.price),
             "subtotal": float(item.subtotal or 0),
             "status": item.status,
             "created": item.created,
@@ -557,6 +557,14 @@ def retrieve_order_item(request, order_item_id: int):
     # Access the review safely
     review = getattr(order_item, 'order_item_reviews', None)
 
+    # Ensure mrp is always present and valid
+    product_listing = order_item.product_listing
+    mrp = product_listing.mrp
+    if mrp is None:
+        # Fallback to product_listing.price, then order_item.price
+        mrp = product_listing.price if product_listing.price is not None else order_item.price
+    mrp = float(mrp) if mrp is not None else 0.0
+
     return {
         "id": order_item.id,
         "order": {
@@ -564,17 +572,19 @@ def retrieve_order_item(request, order_item_id: int):
             "user_id": order_item.order.user.id,
         },
          "product_listing": {
-                "name":order_item.product_listing.name,
-                "id": order_item.product_listing.id,
-                "slug":order_item.product_listing.slug,
-                "price": order_item.product_listing.price,
-                "mrp": float(order_item.order_item.mrp) if order_item.order_item.mrp else float(order_item.order_item.product_listing.mrp or order_item.order_item.price),
-                "cgst_rate": order_item.product_listing.tax_category.cgst_rate if order_item.product_listing.tax_category else None,
-                "sgst_rate": order_item.product_listing.tax_category.sgst_rate if order_item.product_listing.tax_category else None,
-                "igst_rate": order_item.product_listing.tax_category.igst_rate if order_item.product_listing.tax_category else None,
+                "name": product_listing.name,
+                "id": product_listing.id,
+                "slug": product_listing.slug,
+                "price": product_listing.price,
+                "mrp": mrp,
+                "cgst_rate": product_listing.tax_category.cgst_rate if product_listing.tax_category else None,
+                "sgst_rate": product_listing.tax_category.sgst_rate if product_listing.tax_category else None,
+                "igst_rate": product_listing.tax_category.igst_rate if product_listing.tax_category else None,
         }, 
+        "product_main_image": product_listing.main_image.url if product_listing.main_image else None,
         "quantity": order_item.quantity,
         "price": float(order_item.price),
+        "mrp": mrp,
         "subtotal": float(order_item.subtotal),
         "status": order_item.status,
         "created": order_item.created,
