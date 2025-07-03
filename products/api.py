@@ -65,6 +65,12 @@ def get_or_create_category(name):
         return None
     return Category.objects.get_or_create(name=name.strip())[0]
 
+def get_category_by_id(category_id):
+    if not category_id:
+        return None
+    return Category.objects.filter(id=category_id).first()
+
+
 def get_tax_category_by_id(tax_id):
     if not tax_id:
         return None
@@ -90,7 +96,7 @@ def upload_products_from_excel(request, file: UploadedFile = File(...)):
                     'description': row_data.get('product_description') or "",
                     'base_price': row_data.get('base_price') or 0,
                     'is_service': parse_bool(row_data.get('is_service')),
-                    'category': get_or_create_category(row_data.get('category_name')),
+                    'category': get_category_by_id(row_data.get('category_id')),
                     'brand': get_or_create_entity(row_data.get('brand_name'), 'brand'),
                     'tax_category': get_tax_category_by_id(row_data.get('tax_category_id')),
                 }
@@ -177,12 +183,17 @@ def categories(
         level: Optional[int] = Query(None, description="Filter by category level"),
         has_blogs: Optional[bool] = Query(None, description="Filter categories that have associated blogs"),
         category_type: Optional[str] = Query("product", description="Type of category"),
+        search: Optional[str] = Query(None, description="Search by category name"),
     ):
     qs = Category.objects.filter(approved=True)
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
 
     query = ""
+
+    if search:
+        qs = qs.filter(name__icontains=search)
+        query = query + "&search=" + search
 
     if estore_id is not None:
         qs = qs.filter(estore__id=estore_id)
