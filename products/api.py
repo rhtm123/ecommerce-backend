@@ -416,8 +416,10 @@ def product_listings(
     min_price: int = Query(None, description="Minimum price"),
     max_price: int = Query(None, description="Maximum price"),
     feature_filters: str = Query(None, description="Feature filters as JSON string"),
+    estore_id: int = Query(None, description="EStore ID"),
+    approved: bool = Query(None, description="Approved"),
 ):
-    qs = ProductListing.objects.filter(approved=True)
+    qs = ProductListing.objects.all()
     query = ""
 
     # print("Product",category_id, brand_ids, min_price, max_price, feature_filters)
@@ -446,7 +448,15 @@ def product_listings(
         qs = qs.filter(featured =featured)
         query = query + "&featured=" + str(featured)
 
-    # Filter by search term
+    if estore_id:
+        qs = qs.filter(estore__id=estore_id)
+        query = query + "&estore_id=" + str(estore_id)
+
+    if approved is not None:
+        qs = qs.filter(approved=approved)
+        query = query + "&approved=" + str(approved)
+
+        # Filter by search term
     if search:
         qs = qs.filter(Q(name__icontains=search) | Q(product__name__icontains=search))
         query = query + "&search=" + search
@@ -575,6 +585,8 @@ def get_sidebar_filters(
     min_price: float = Query(None, description="Minimum price"),
     max_price: float = Query(None, description="Maximum price"),
     feature_filters: str = Query(None, description="Feature filters as JSON string"),  # Example: '{"1": ["4GB", "6GB"], "2": ["128GB"]}'
+    estore_id: int = Query(None, description="EStore ID"),
+    approved: bool = Query(None, description="Approved"),
     ):
     """
     API to fetch sidebar filters for product listings.
@@ -584,7 +596,7 @@ def get_sidebar_filters(
     # print(category_id, brand_ids, min_price, max_price, feature_filters)
     
     # Filter listings by category if category_id is provided
-    qs = ProductListing.objects.filter(approved=True)
+    qs = ProductListing.objects.all()
     
     # Filter by category
     
@@ -596,7 +608,13 @@ def get_sidebar_filters(
         except Category.DoesNotExist:
             return {"error": "Category not found"}
         
+    if estore_id:
+        qs = qs.filter(estore__id=estore_id)
+        query = query + "&estore_id=" + str(estore_id)
 
+    if approved is not None:
+        qs = qs.filter(approved=approved)
+        query = query + "&approved=" + str(approved)
     
     if search:
         qs = qs.filter(Q(name__icontains=search) | Q(product__name__icontains=search))
