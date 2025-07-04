@@ -98,6 +98,8 @@ def upload_products_from_excel(request, file: UploadedFile = File(...)):
                     'is_service': parse_bool(row_data.get('is_service')),
                     'category': get_category_by_id(row_data.get('category_id')),
                     'brand': get_or_create_entity(row_data.get('brand_name'), 'brand'),
+                    'unit_size': row_data.get('unit_size') or 1,
+                    'size_unit': row_data.get('size_unit') or "",
                     'tax_category': get_tax_category_by_id(row_data.get('tax_category_id')),
                 }
             )
@@ -124,6 +126,7 @@ def upload_products_from_excel(request, file: UploadedFile = File(...)):
                 stock=row_data.get('stock') or 0,
                 approved=False,
                 featured=False,
+                units_per_pack=row_data.get('units_per_pack') or 1,
                 seller=Entity.objects.filter(id=row_data.get('seller_id')).first(),
                 estore=EStore.objects.filter(id=row_data.get('estore_id')).first()
             )
