@@ -276,7 +276,12 @@ class ProductListing(models.Model):
         # Build listing name
         new_name = self.product.name
         if self.variant:
-            new_name += f" {self.total_size}{self.size_unit} ({self.variant.name})"
+            if self.total_size == int(self.total_size):
+                size_str = str(int(self.total_size))
+            else:
+                size_str = str(self.total_size)
+            
+            new_name += f" {size_str}{self.size_unit} ({self.variant.name})"
         
         self.name = new_name
         self.slug = slugify(new_name)
