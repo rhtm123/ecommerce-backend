@@ -86,7 +86,19 @@ def upload_products_from_excel(request, file: UploadedFile = File(...)):
     created_count = 0
     errors = []
 
+    empty_row_count = 0
+
     for idx, row in enumerate(sheet.iter_rows(min_row=2, values_only=True), start=2):
+        
+        if not any(cell not in (None, "", " ") for cell in row):
+            empty_row_count += 1
+            if empty_row_count >= 2:
+                break  # stop after 2 consecutive empty rows
+            continue  # skip this empty row
+        else:
+            empty_row_count = 0  # reset if row is not empty
+
+
         row_data = dict(zip(headers, row))
         try:
             product, _ = Product.objects.get_or_create(
