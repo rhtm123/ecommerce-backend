@@ -2,11 +2,8 @@ from django.db import models
 from users.models import Entity
 
 from estores.models import EStore
+import re
 
-# from imagekit.models import ProcessedImageField
-# from imagekit.processors import ResizeToFill
-
-# from imagekit.models import ImageSpecField
 
 from treebeard.mp_tree import MP_Node
 from taxations.models import TaxCategory
@@ -121,6 +118,10 @@ class Product(models.Model):
     base_price = models.DecimalField(default=0,max_digits=10, decimal_places=2)
     is_service = models.BooleanField(default=False)
 
+    unit_size = models.DecimalField( max_digits=10, decimal_places=2, default=1.00, help_text="Size of a single unit (e.g., 200.5)")
+
+    size_unit = models.CharField(max_length=20, default="", help_text="Unit of measurement (e.g., ml, g)")
+
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, related_name='category_products', null=True, blank=True)
     brand = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="brand_products", null=True, blank=True)
 
@@ -145,7 +146,7 @@ class Product(models.Model):
 
 class Variant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_variants')
-    name = models.CharField(max_length=255) # example "Red, 128GB"
+    name = models.CharField(max_length=255) # example "Red, 128GB", "Pack of 3"
     attributes = models.JSONField() # [ {'name':"color", "value":"Red", "real_value":"#ff0000"}, {'name':"storage", "value":"128GB", "real_value":"128"}]
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -185,6 +186,15 @@ class ProductListing(models.Model):
         related_name="tax_category_product_listings",
         on_delete=models.SET_NULL, null=True,blank=True
     )
+
+    units_per_pack = models.PositiveIntegerField(default=1, help_text="Number of units in the pack (e.g., 3)")
+    total_size = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text="Total size (e.g., 600.75)"
+    )
+
+    size_unit = models.CharField(max_length=20, null=True, blank=True, help_text="Total unit of measure (e.g., ml)")
+
 
     return_exchange_policy = models.ForeignKey(
         ReturnExchangePolicy,
@@ -242,27 +252,36 @@ class ProductListing(models.Model):
         ordering = ['-id']
     
     def save(self, *args, **kwargs):
-
-        if self.product.category:
-            self.category = self.product.category
+        # Default values
         
-        if self.product.tax_category:
-            self.tax_category = self.product.tax_category
 
-        if self.product.brand:
-            self.brand = self.product.brand
+        
 
+        # Inherit values from product
+        if self.product:
+            if self.product.category:
+                self.category = self.product.category
 
+            if self.product.tax_category:
+                self.tax_category = self.product.tax_category
+
+            if self.product.brand:
+                self.brand = self.product.brand
+
+            # Compute total size
+            if self.product.unit_size and self.product.size_unit:
+                self.total_size = self.units_per_pack * self.product.unit_size
+                self.size_unit = self.product.size_unit
+
+        # Build listing name
         new_name = self.product.name
         if self.variant:
-            new_name = new_name + " [" + self.variant.name + "]"
-
-        self.slug = slugify(new_name)
+            new_name += f" {self.total_size}{self.size_unit} ({self.variant.name})"
+        
         self.name = new_name
+        self.slug = slugify(new_name)
 
-        # print(new_name)
-
-        super(ProductListing, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def get_full_main_image_url(self):
         """
