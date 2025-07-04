@@ -2,7 +2,7 @@ from django.db import models
 from users.models import Entity
 
 from estores.models import EStore
-import re
+from decimal import Decimal
 
 
 from treebeard.mp_tree import MP_Node
@@ -270,7 +270,7 @@ class ProductListing(models.Model):
 
             # Compute total size
             if self.product.unit_size and self.product.size_unit:
-                self.total_size = self.units_per_pack * self.product.unit_size
+                self.total_size = Decimal(self.units_per_pack) * self.product.unit_size
                 self.size_unit = self.product.size_unit
 
         # Build listing name
