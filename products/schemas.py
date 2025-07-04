@@ -94,7 +94,7 @@ class FeatureTemplateOutSchema(Schema):
 class VariantSchema(Schema):
     id: int
     name: str
-    attributes: Dict  # JSONField in the model, represented as a dict in Python
+    attributes: List[Dict]  # JSONField in the model, represented as a dict in Python
     created: datetime
     updated: datetime
 
