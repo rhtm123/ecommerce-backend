@@ -94,7 +94,7 @@ class FeatureTemplateOutSchema(Schema):
 class VariantSchema(Schema):
     id: int
     name: str
-    attributes: Dict  # JSONField in the model, represented as a dict in Python
+    attributes: List[Dict]  # JSONField in the model, represented as a dict in Python
     created: datetime
     updated: datetime
 
@@ -119,6 +119,8 @@ class ProductOutSchema(Schema):
     base_price: float
     category: Optional[CategoryOutSchema] = None
     brand: Optional[EntityOut2Schema] = None
+    unit_size: float = 1.00
+    size_unit: str = "pcs"  # pcs, ml, g, etc.
     # category_id: int
     created: datetime
     updated: datetime
@@ -151,6 +153,10 @@ class ProductListingOutSchema(Schema):
     is_service: Optional[bool]
 
     variant_name: str = Field(None, alias="variant.name")
+
+    units_per_pack: Optional[int] = None
+    total_size: Optional[float] = None
+    size_unit: Optional[str] = None
 
     category: Optional[CategoryOutSchema] = None
 
@@ -232,6 +238,10 @@ class ProductListingOneOutSchema(Schema):
     rating: Optional[float] = None
     review_count: int
     popularity : Optional[int] = None
+
+    units_per_pack: Optional[int] = None
+    total_size: Optional[float] = None
+    size_unit: Optional[str] = None
 
     return_exchange_policy: Optional[ReturnExchangePolicySchema] = None
 
@@ -349,11 +359,11 @@ class ProductListingImageOutSchema(Schema):
 class VariantCreateSchema(Schema):
     product_id: int
     name: str
-    attributes: Dict
+    attributes: List
 
 class VariantUpdateSchema(Schema):
     name: Optional[str] = None
-    attributes: Optional[Dict] = None
+    attributes: Optional[List] = None
 
 class ProductListingImageCreateSchema(Schema):
     product_listing_id: int
