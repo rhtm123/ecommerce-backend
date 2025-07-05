@@ -121,11 +121,15 @@ def upload_products_from_excel(request, file: UploadedFile = File(...)):
                 attributes = literal_eval(row_data.get('variant_attributes') or "[]")
             except:
                 attributes = []
-            variant, _ = Variant.objects.get_or_create(
-                product=product,
-                name=row_data['variant_name'],
-                defaults={'attributes': attributes}
-            )
+            
+            if row_data.get('variant_name'):
+                variant, _ = Variant.objects.get_or_create(
+                    product=product,
+                    name=row_data['variant_name'],
+                    defaults={'attributes': attributes}
+                )
+            else:
+                variant = None
 
             # Create ProductListing
             listing_name = f"{product.name} [{variant.name}]"
