@@ -632,7 +632,6 @@ def get_sidebar_filters(
 
     if approved is not None:
         qs = qs.filter(approved=approved)
-        query = query + "&approved=" + str(approved)
     
     if search:
         qs = qs.filter(Q(name__icontains=search) | Q(product__name__icontains=search))
