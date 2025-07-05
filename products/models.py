@@ -253,10 +253,6 @@ class ProductListing(models.Model):
     
     def save(self, *args, **kwargs):
         # Default values
-        
-
-        
-
         # Inherit values from product
         if self.product:
             if self.product.category:
@@ -275,14 +271,22 @@ class ProductListing(models.Model):
 
         # Build listing name
         new_name = self.product.name
+
         if self.variant:
-            if self.total_size == int(self.total_size):
-                size_str = str(int(self.total_size))
-            else:
-                size_str = str(self.total_size)
-            
-            new_name += f" {size_str}{self.size_unit} ({self.variant.name})"
-        
+            new_name += f" | {self.variant.name},"
+
+        unit_size = (
+            str(int(self.product.unit_size))
+            if self.product.unit_size == int(self.product.unit_size)
+            else str(self.product.unit_size)
+        )
+
+        # Format the units per pack
+        pack_suffix = f"x{int(self.units_per_pack)}" if self.units_per_pack != 1 else ""
+
+        # Append to the name
+        new_name += f" {unit_size}{self.product.size_unit}{pack_suffix}"
+
         self.name = new_name
         self.slug = slugify(new_name)
 
