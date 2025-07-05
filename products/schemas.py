@@ -155,7 +155,7 @@ class ProductListingOutSchema(Schema):
     variant_name: str = Field(None, alias="variant.name")
 
     units_per_pack: Optional[int] = None
-    total_size: Optional[float] = None
+    unit_size: Optional[float] = None
     size_unit: Optional[str] = None
 
     category: Optional[CategoryOutSchema] = None
@@ -240,7 +240,7 @@ class ProductListingOneOutSchema(Schema):
     popularity : Optional[int] = None
 
     units_per_pack: Optional[int] = None
-    total_size: Optional[float] = None
+    unit_size: Optional[float] = None
     size_unit: Optional[str] = None
 
     return_exchange_policy: Optional[ReturnExchangePolicySchema] = None
