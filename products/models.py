@@ -188,7 +188,7 @@ class ProductListing(models.Model):
     )
 
     units_per_pack = models.PositiveIntegerField(default=1, help_text="Number of units in the pack (e.g., 3)")
-    total_size = models.DecimalField(
+    unit_size = models.DecimalField(
         max_digits=10, decimal_places=2, null=True, blank=True,
         help_text="Total size (e.g., 600.75)"
     )
@@ -264,9 +264,8 @@ class ProductListing(models.Model):
             if self.product.brand:
                 self.brand = self.product.brand
 
-            # Compute total size
             if self.product.unit_size and self.product.size_unit:
-                self.total_size = Decimal(self.units_per_pack) * Decimal(self.product.unit_size)
+                self.unit_size = self.product.unit_size
                 self.size_unit = self.product.size_unit
 
         # Build listing name
