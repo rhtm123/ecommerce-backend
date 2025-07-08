@@ -284,7 +284,7 @@ class ProductListing(models.Model):
         pack_suffix = f"x{int(self.units_per_pack)}" if self.units_per_pack != 1 else ""
 
         # Append to the name
-        new_name += f" {unit_size}{self.product.size_unit}{pack_suffix}"
+        new_name += f" {unit_size} {self.product.size_unit}{pack_suffix}"
 
         self.name = new_name
         self.slug = slugify(new_name)
