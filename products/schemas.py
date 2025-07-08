@@ -11,6 +11,7 @@ from pydantic import computed_field
 from .models import ReturnExchangePolicy, ProductListing, Category, ProductListingImage
 
 from users.schemas import EntityOut2Schema
+from taxations.schemas import TaxCategoryOutSchema
 
 
 class CategoryOutSchema(Schema):
@@ -107,6 +108,8 @@ class ProductOutOneSchema(Schema):
     important_info: Optional[str]  # blank=True, null=True
     base_price: float   # DecimalField in model
     tax_category: Optional[int]  # ForeignKey, using ID, nullable
+    unit_size: float = 1.00
+    size_unit: str = "pcs"  # pcs, ml, g, etc.
     country_of_origin: str
     created: datetime
     updated: datetime
@@ -119,6 +122,7 @@ class ProductOutSchema(Schema):
     base_price: float
     category: Optional[CategoryOutSchema] = None
     brand: Optional[EntityOut2Schema] = None
+    tax_category:Optional[TaxCategoryOutSchema] = None
     unit_size: float = 1.00
     size_unit: str = "pcs"  # pcs, ml, g, etc.
     # category_id: int
@@ -130,7 +134,9 @@ class ProductCreateSchema(Schema):
     about: Optional[str] = None
     description: Optional[str] = None
     important_info: Optional[str] = None
-    # base_price: Optional[float] = 0
+    unit_size: Optional[float] = 1.00
+    size_unit: Optional[str] = ""
+    is_service: Optional[bool] = False
     category_id: Optional[int] = None
     brand_id: Optional[int] = None
     tax_category_id: Optional[int] = None
@@ -138,9 +144,16 @@ class ProductCreateSchema(Schema):
 
 class ProductUpdateSchema(Schema):
     name: Optional[str] = None
+    about: Optional[str] = None
     description: Optional[str] = None
+    important_info: Optional[str] = None
+    unit_size: Optional[float] = None
+    size_unit: Optional[str] = None
+    is_service: Optional[bool] = None
+    category_id: Optional[int] = None
+    brand_id: Optional[int] = None
     tax_category_id: Optional[int] = None
-    base_price: Optional[float] = None
+    country_of_origin: Optional[str] = None
 
 
 class ProductListingOutSchema(Schema):
@@ -227,8 +240,15 @@ class ProductListingOneOutSchema(Schema):
     id: int
     name: Optional[str] = None
     product: Optional[ProductOutSchema] = None
-    brand: Optional[EntityOut2Schema] = None
+    # brand: Optional[EntityOut2Schema] = None
     seller: Optional[EntityOut2Schema] = None
+    manufacturer: Optional[EntityOut2Schema] = None
+    packer: Optional[EntityOut2Schema] = None
+    importer: Optional[EntityOut2Schema] = None
+    return_exchange_policy: Optional[ReturnExchangePolicySchema] = None
+    tax_category: Optional[TaxCategoryOutSchema] = None
+    estore_id: Optional[int] = None
+    variant: Optional[VariantSchema] = None
     slug: Optional[str] = None
     category: Optional[CategoryOutSchema] = None
 
@@ -242,9 +262,6 @@ class ProductListingOneOutSchema(Schema):
     units_per_pack: Optional[int] = None
     unit_size: Optional[float] = None
     size_unit: Optional[str] = None
-
-    return_exchange_policy: Optional[ReturnExchangePolicySchema] = None
-
     buy_limit: int
     price: float
     mrp: float
