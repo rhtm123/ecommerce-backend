@@ -1,3 +1,10 @@
-from django.shortcuts import render
+from django.http import JsonResponse
+from django.contrib.admin.views.decorators import staff_member_required
+from .models import Variant
 
-# Create your views here.
+@staff_member_required
+def get_variants_for_product(request):
+    product_id = request.GET.get('product_id')
+    variants = Variant.objects.filter(product_id=product_id).values('id', 'name')
+    return JsonResponse(list(variants), safe=False)
+
