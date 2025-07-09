@@ -29,13 +29,19 @@ def cache_response(timeout=60 * 15, cache_key_func=None):
 
             response = view_func(request, *args, **kwargs)
 
-            # Ensure response is cacheable (if it's a Pydantic model)
+            # Support caching for Pydantic models, dicts, lists
             if isinstance(response, (BaseModel, Schema, ModelSchema)):
-                print("Storing to cache")
-                cache.set(key, response.model_dump_json(), timeout=timeout)
-                return JsonResponse(json.loads(response.model_dump_json()), safe=False)
+                data = response.model_dump()
+            elif isinstance(response, (dict, list)):
+                data = response
+            else:
+                # Do not cache non-serializable or HttpResponse types
+                return response
 
-            return response
+            print("Storing to cache")
+            cache.set(key, json.dumps(data, default=str), timeout=timeout)
+            return JsonResponse(data, safe=False)
+        
 
         return wrapped_view
 

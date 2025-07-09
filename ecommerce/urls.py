@@ -80,6 +80,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', api.urls),
     path('summernote/', include('django_summernote.urls')),
+    path('view/product/', include('products.urls')),
 
 ]
 

@@ -5,17 +5,16 @@ from .models import Category
 
 from django.contrib import admin
 from .models import Category
+from django import forms
+
+
+
+
+
 # from django.utils.safestring import mark_safe
 
 
-class MyAdmin(TreeAdmin):
-    form = movenodeform_factory(Category)
-    list_display = ["name","id" ,"level" ,"estore","approved"]
-    list_filter = ['level', "estore", "approved"]
-    search_fields = ("name",)
 
-
-admin.site.register(Category, MyAdmin)
 
 
 from django.contrib import admin
@@ -26,6 +25,14 @@ from .models import FeatureGroup, FeatureTemplate, Feature
 from django_summernote.admin import SummernoteModelAdmin
 
 
+class MyAdmin(TreeAdmin):
+    form = movenodeform_factory(Category)
+    list_display = ["name","id" ,"level" ,"estore","approved"]
+    list_filter = ['level', "estore", "approved"]
+    search_fields = ("name",)
+
+
+admin.site.register(Category, MyAdmin)
 
 admin.site.register(ReturnExchangePolicy)
 admin.site.register(FeatureGroup)
@@ -59,15 +66,32 @@ class ProductAdmin(SummernoteModelAdmin):
     search_fields = ("name",)
     list_filter = ("category",)
 
+
+class ProductListingForm(forms.ModelForm):
+    class Meta:
+        model = ProductListing
+        fields = '__all__'
+
+    class Media:
+        js = ('admin/js/jquery.init.js', 'admin/js/product_variant_filter.js',)
+
+
+
 @admin.register(ProductListing)
 class ProductListingAdmin(admin.ModelAdmin):
+    form = ProductListingForm
     inlines = [ProductListingImageInline]
     readonly_fields = ("name", "tax_category", "brand", "slug", "category", )
-    list_display = ("name", "variant","approved", "brand", "seller", "category", "price", "mrp", "is_service")
+    list_display = ("name", "variant","approved", "brand", "seller", "category", "price", "mrp", "stock" ,"is_service")
     search_fields = ("name",)
     list_filter = ("category", 'brand', 'seller', 'approved')
-    actions = ['approve_product_listings']
+    actions = ['approve_product_listings', "unapprove_product_listings", "make_out_of_stock"]
 
     def approve_product_listings(self, request, queryset):
         queryset.update(approved=True)
 
+    def unapprove_product_listings(self, request, queryset):
+        queryset.update(approved=False)
+    
+    def make_out_of_stock(self, request, queryset):
+        queryset.update(stock=0)

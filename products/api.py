@@ -14,7 +14,7 @@ from .schemas import (
     ProductCreateSchema, ProductOutSchema, ProductOutOneSchema, ProductUpdateSchema,
     ProductListingUpdateSchema, ProductListingCreateSchema, ProductListingOutSchema, ProductListingOneOutSchema,
     FeatureOutSchema,
-    ProductListingImageOutSchema, VariantSchema, VariantCreateSchema,
+    ProductListingImageOutSchema, VariantSchema, VariantCreateSchema,VariantUpdateSchema,
     ReturnExchangePolicySchema, ReturnExchangePolicyCreateSchema, ReturnExchangePolicyUpdateSchema
 )
 from django.shortcuts import get_object_or_404
@@ -405,10 +405,66 @@ def delete_product(request, product_id: int):
 
 
 @router.post("/product-listings/", response=ProductListingOutSchema)
-def create_product_listing(request, payload: ProductListingCreateSchema):
-
-    product_listing = ProductListing(**payload.dict())
-        
+def create_product_listing(
+    request,
+    product_id: int = Form(...),
+    name: str = Form(None),
+    category_id: int = Form(None),
+    brand_id: int = Form(None),
+    manufacturer_id: int = Form(None),
+    tax_category_id: int = Form(None),
+    return_exchange_policy_id: int = Form(None),
+    estore_id: int = Form(None),
+    box_items: str = Form(None),
+    features: str = Form(None),  # JSON string
+    approved: bool = Form(False),
+    featured: bool = Form(False),
+    variant_id: int = Form(None),
+    seller_id: int = Form(None),
+    packer_id: int = Form(None),
+    importer_id: int = Form(None),
+    price: float = Form(...),
+    mrp: float = Form(None),
+    stock: int = Form(0),
+    buy_limit: int = Form(10),
+    rating: float = Form(5.0),
+    review_count: int = Form(1),
+    popularity: int = Form(100),
+    main_image: UploadedFile = File(None)
+):
+    import json
+    product_listing = ProductListing(
+        product_id=product_id,
+        name=name,
+        category_id=category_id,
+        brand_id=brand_id,
+        manufacturer_id=manufacturer_id,
+        tax_category_id=tax_category_id,
+        return_exchange_policy_id=return_exchange_policy_id,
+        estore_id=estore_id,
+        box_items=box_items,
+        approved=approved,
+        featured=featured,
+        variant_id=variant_id,
+        seller_id=seller_id,
+        packer_id=packer_id,
+        importer_id=importer_id,
+        price=price,
+        mrp=mrp,
+        stock=stock,
+        buy_limit=buy_limit,
+        rating=rating,
+        review_count=review_count,
+        popularity=popularity,
+    )
+    if features is not None:
+        try:
+            product_listing.features = json.loads(features)
+        except Exception:
+            product_listing.features = None
+    if main_image is not None:
+        if hasattr(main_image, 'size') and main_image.size > 0:
+            product_listing.main_image = main_image
     product_listing.save()
     return product_listing
 
@@ -860,7 +916,23 @@ def create_product_listing_image(
     )
     return product_listing_image
 
+@router.delete("/product-listing-images/{image_id}/")
+def delete_product_listing_image(request, image_id: int):
+    from .models import ProductListingImage
+    image = get_object_or_404(ProductListingImage, id=image_id)
+    image.delete()
+    return {"success": True}
+
 @router.post("/variants/", response=VariantSchema)
 def create_variant(request, payload: VariantCreateSchema):
     variant = Variant.objects.create(**payload.dict())
+    return variant
+
+@router.put("/variants/{variant_id}/", response=VariantSchema)
+def update_variant(request, variant_id: int, payload: VariantUpdateSchema):
+    variant = get_object_or_404(Variant, id=variant_id)
+    for attr, value in payload.dict(exclude_unset=True).items():
+        if value is not None:
+            setattr(variant, attr, value)
+    variant.save()
     return variant
