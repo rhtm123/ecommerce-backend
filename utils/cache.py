@@ -1,11 +1,20 @@
+import json
 from functools import wraps
-from django.core.cache import cache
 from django.http import JsonResponse
 from pydantic import BaseModel
-from ninja import Schema, ModelSchema  # ✅ Import these
+from ninja.schema import Schema
+from ninja.orm import ModelSchema
+from django.core.cache import cache
 
-import json
-
+def convert_pydantic(obj):
+    """Recursively convert Pydantic models to dicts"""
+    if isinstance(obj, (BaseModel, Schema, ModelSchema)):
+        return obj.model_dump()
+    elif isinstance(obj, dict):
+        return {k: convert_pydantic(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_pydantic(v) for v in obj]
+    return obj
 
 def cache_response(timeout=60 * 15, cache_key_func=None):
     def decorator(view_func):
@@ -13,14 +22,12 @@ def cache_response(timeout=60 * 15, cache_key_func=None):
         def wrapped_view(request, *args, **kwargs):
             print("Cache function called")
 
-            # Generate cache key with query parameters
-            query_params = request.GET.urlencode()  # Convert query parameters to a string
+            query_params = request.GET.urlencode()
             key = (
                 cache_key_func(request, *args, **kwargs)
                 if cache_key_func
                 else f"cache:{request.path}?{query_params}"
             )
-
 
             cached = cache.get(key)
             if cached is not None:
@@ -29,20 +36,12 @@ def cache_response(timeout=60 * 15, cache_key_func=None):
 
             response = view_func(request, *args, **kwargs)
 
-            # Support caching for Pydantic models, dicts, lists
-            if isinstance(response, (BaseModel, Schema, ModelSchema)):
-                data = response.model_dump()
-            elif isinstance(response, (dict, list)):
-                data = response
-            else:
-                # Do not cache non-serializable or HttpResponse types
-                return response
+            # Convert nested Pydantic objects to dict
+            data = convert_pydantic(response)
 
             print("Storing to cache")
             cache.set(key, json.dumps(data, default=str), timeout=timeout)
             return JsonResponse(data, safe=False)
-        
 
         return wrapped_view
-
     return decorator
