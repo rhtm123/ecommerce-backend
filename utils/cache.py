@@ -5,9 +5,13 @@ from pydantic import BaseModel
 from ninja.schema import Schema
 from ninja.orm import ModelSchema
 from django.core.cache import cache
+from django.db.models.query import QuerySet
+
 
 def convert_pydantic(obj):
     """Recursively convert Pydantic models to dicts"""
+    if isinstance(obj, QuerySet):
+        obj = list(obj)
     if isinstance(obj, (BaseModel, Schema, ModelSchema)):
         return obj.model_dump()
     elif isinstance(obj, dict):
