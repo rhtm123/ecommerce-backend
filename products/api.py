@@ -363,10 +363,14 @@ def products(request,  page: int = Query(1), page_size: int = Query(10), categor
 
 # Read Single Product (Retrieve)
 @router.get("/products/{product_id}/", response=ProductOutOneSchema)
+@cache_response()
 def retrieve_product(request, product_id: int):
-    # product = get_object_or_404(Product, id=product_id)
 
-    product = Product.objects.prefetch_related('product_variants').get(id=product_id)
+    product = get_object_or_404(
+        Product.objects.prefetch_related('product_variants'), 
+        id=product_id
+    )
+
 
     return {
         'id': product.id,
@@ -380,7 +384,7 @@ def retrieve_product(request, product_id: int):
         'country_of_origin': product.country_of_origin,
         'created': product.created,
         'updated': product.updated,
-        'variants': product.product_variants.all()  # Queryset of Variant instances
+        'variants': [VariantSchema.from_orm(v).model_dump() for v in product.product_variants.all()]
     }
 
 # Update Product
