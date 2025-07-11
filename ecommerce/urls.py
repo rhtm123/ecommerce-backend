@@ -42,6 +42,7 @@ from taxations.api import router as taxations_api
 
 from django.conf import settings
 from django.conf.urls.static import static
+from search.api import router as search_apis
 
 
 from ninja_jwt.controller import NinjaJWTDefaultController
@@ -55,6 +56,7 @@ api.register_controllers(NinjaJWTDefaultController)
 
 
 api.add_router("ads/", ads_api, tags=['Advertisements API'])
+api.add_router("search/", search_apis, tags=['Search API']) 
 
 api.add_router("payment/", payments_api, tags=['Payments API'])
 

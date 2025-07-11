@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'django_cleanup.apps.CleanupConfig',
     "treebeard",
     'django_summernote',
+    "django_elasticsearch_dsl",
     "users.apps.UsersConfig",
     "locations.apps.LocationsConfig",
     "products.apps.ProductsConfig",
@@ -77,6 +78,8 @@ INSTALLED_APPS = [
     "payments.apps.PaymentsConfig",
     "ads.apps.AdsConfig",
     "offers.apps.OffersConfig",
+    "keys.apps.KeysConfig",
+    "search.apps.SearchConfig", 
 ]
 
 MIDDLEWARE = [
@@ -202,3 +205,13 @@ else:  # Default to LocMemCache for test/localhost
         }
     }
 
+ELASTICSEARCH_DSL = {
+
+    'default': {
+        'hosts': config('ELASTIC_URL', default='http://localhost:9200') ,
+        'http_auth': (config('ELASTIC_USERNAME', default=''), config('ELASTIC_PASSWORD', default='')),  # 👈 Add this
+        'verify_certs': True,
+    }
+
+
+}

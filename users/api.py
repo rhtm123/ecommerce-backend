@@ -345,7 +345,14 @@ def create_entity(request, payload: EntityCreateSchema):
 
 # Read Users (List)
 @router.get("/entities/", response=PaginatedResponseSchema)
-def entities(request,  page: int = Query(1), page_size: int = Query(10), search: str = None, entity_type:str = None , ordering: str = None,):
+@cache_response()
+def entities(request,  page: int = Query(1), 
+             page_size: int = Query(10), 
+             search: str = None, 
+             entity_type:str = None , 
+             ordering: str = None,
+             featured: bool = None,
+             ):
     qs = Entity.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
@@ -365,6 +372,10 @@ def entities(request,  page: int = Query(1), page_size: int = Query(10), search:
     if ordering:
         qs = qs.order_by(ordering)
         query = query + "&ordering=" + ordering
+
+    if featured is not None:
+        qs = qs.filter(featured=featured)
+        query = query + "&featured=" + str(featured)
 
 
     return paginate_queryset(request, qs, EntityOutSchema, page_number, page_size, query)

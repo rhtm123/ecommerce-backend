@@ -94,6 +94,8 @@ class Entity(models.Model):
         ('packager', 'Packager'),
     ]
 
+    featured = models.BooleanField(default=False)
+    
     entity_type = models.CharField(
         max_length=255,
         choices=ENTITY_TYPE_CHOICES,

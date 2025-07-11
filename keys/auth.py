@@ -17,6 +17,7 @@ def load_api_keys():
 def get_cached_api_keys():
     """Get from cache or reload if missing."""
     keys = cache.get(CACHE_KEY)
+    # print(keys)
     if keys is None:
         keys = load_api_keys()
     return keys

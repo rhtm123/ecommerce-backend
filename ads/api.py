@@ -11,10 +11,10 @@ router = Router()
 
 
 from utils.pagination import PaginatedResponseSchema, paginate_queryset
+from keys.auth import APIKeyAuth
 
 
-
-@router.get("/advertisements", response=PaginatedResponseSchema)
+@router.get("/advertisements", response=PaginatedResponseSchema , auth=APIKeyAuth())
 @cache_response()
 def advertisements(request, page: int = Query(1), page_size: int = Query(10), estore_id: int = None, ordering: str = None):
     qs = Advertisement.objects.all()
