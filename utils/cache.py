@@ -7,6 +7,7 @@ from ninja.orm import ModelSchema
 from django.core.cache import cache
 from django.db.models.query import QuerySet
 from django.db.models import Model
+from django.forms.models import model_to_dict
 
 
 def convert_pydantic(obj):
@@ -20,7 +21,7 @@ def convert_pydantic(obj):
     elif isinstance(obj, list):
         return [convert_pydantic(v) for v in obj]
     elif isinstance(obj, Model):
-        return obj.__dict__
+        return model_to_dict(obj)
     return obj
 
 def cache_response(timeout=60 * 15, cache_key_func=None):

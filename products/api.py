@@ -35,10 +35,13 @@ from typing import Optional
 
 from ninja import File, Form
 
+
+
 router = Router()
 
 from openpyxl import load_workbook
 from users.models import Entity
+from users.schemas import EntityOut2Schema
 from taxations.models import TaxCategory
 from estores.models import EStore
 from ast import literal_eval
@@ -370,9 +373,9 @@ def products(request,  page: int = Query(1), page_size: int = Query(10), categor
 @router.get("/products/{product_id}/", response=ProductOutOneSchema)
 @cache_response()
 def retrieve_product(request, product_id: int):
-    # product = get_object_or_404(Product, id=product_id)
 
-    product = Product.objects.prefetch_related('product_variants').get(id=product_id)
+    product = get_object_or_404(Product.objects.prefetch_related('product_variants'), id=product_id)
+
 
     return {
         'id': product.id,
@@ -382,15 +385,15 @@ def retrieve_product(request, product_id: int):
         'size_unit': product.size_unit,
         'unit_size': product.unit_size,
         'important_info': product.important_info,
-        'brand': product.brand,
-        'category': product.category,
+        'brand': EntityOut2Schema.from_orm(product.brand),
+        'category': CategoryOutSchema.from_orm(product.category),
         'base_price': product.base_price,
         'is_service': product.is_service,
         'tax_category': product.tax_category if product.tax_category else None,
         'country_of_origin': product.country_of_origin,
         'created': product.created,
         'updated': product.updated,
-        'variants': product.product_variants.all()  # Queryset of Variant instances
+        'variants': [VariantSchema.from_orm(v).model_dump() for v in product.product_variants.all()]
     }
 
 # Update Product
