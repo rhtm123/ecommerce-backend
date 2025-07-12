@@ -344,7 +344,7 @@ def create_product(request, payload: ProductCreateSchema):
 # Read Products (List)
 @router.get("/products/", response=PaginatedResponseSchema)
 @cache_response()
-def products(request,  page: int = Query(1), page_size: int = Query(10), category_id:str = None , ordering: str = None,):
+def products(request,  page: int = Query(1), page_size: int = Query(10), category_id:str = None , ordering: str = None, seller_id: int = None):
     qs = Product.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
@@ -354,6 +354,11 @@ def products(request,  page: int = Query(1), page_size: int = Query(10), categor
     if category_id:
         qs = qs.filter(category__id=category_id)
         query = query + "&category_id=" + category_id
+
+    if seller_id:
+        qs = qs.filter(product_listings__seller__id=seller_id).distinct()
+        query = query + "&seller_id=" + str(seller_id)
+
 
     if ordering:
         qs = qs.order_by(ordering)
@@ -365,26 +370,27 @@ def products(request,  page: int = Query(1), page_size: int = Query(10), categor
 @router.get("/products/{product_id}/", response=ProductOutOneSchema)
 @cache_response()
 def retrieve_product(request, product_id: int):
+    # product = get_object_or_404(Product, id=product_id)
 
-    product = get_object_or_404(
-        Product.objects.prefetch_related('product_variants'), 
-        id=product_id
-    )
-
+    product = Product.objects.prefetch_related('product_variants').get(id=product_id)
 
     return {
         'id': product.id,
         'name': product.name,
         'about': product.about,
         'description': product.description,
+        'size_unit': product.size_unit,
+        'unit_size': product.unit_size,
         'important_info': product.important_info,
+        'brand': product.brand,
+        'category': product.category,
         'base_price': product.base_price,
         'is_service': product.is_service,
-        'tax_category': product.tax_category_id if product.tax_category else None,
+        'tax_category': product.tax_category if product.tax_category else None,
         'country_of_origin': product.country_of_origin,
         'created': product.created,
         'updated': product.updated,
-        'variants': [VariantSchema.from_orm(v).model_dump() for v in product.product_variants.all()]
+        'variants': product.product_variants.all()  # Queryset of Variant instances
     }
 
 # Update Product

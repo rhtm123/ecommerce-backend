@@ -107,7 +107,9 @@ class ProductOutOneSchema(Schema):
     description: Optional[str]  # blank=True, null=True
     important_info: Optional[str]  # blank=True, null=True
     base_price: float   # DecimalField in model
-    tax_category: Optional[int]  # ForeignKey, using ID, nullable
+    category: Optional[CategoryOutSchema] = None
+    brand: Optional[EntityOut2Schema] = None
+    tax_category:Optional[TaxCategoryOutSchema] = None  # ForeignKey, using ID, nullable
     unit_size: float = 1.00
     size_unit: str = "pcs"  # pcs, ml, g, etc.
     country_of_origin: str
