@@ -35,9 +35,10 @@ from typing import Optional
 
 from ninja import File, Form
 
-
-
+from ninja import Schema
 router = Router()
+class ErrorSchema(Schema):
+    detail: str
 
 from openpyxl import load_workbook
 from users.models import Entity
@@ -45,6 +46,7 @@ from users.schemas import EntityOut2Schema
 from taxations.models import TaxCategory
 from estores.models import EStore
 from ast import literal_eval
+from django.db import IntegrityError
 
 ############################ Product Listing Upload from files ############################
 
@@ -589,75 +591,40 @@ def product_listings(
     # Paginate the results
     return paginate_queryset(request, qs, ProductListingOutSchema, page, page_size, query)
 
-# Update ProductListing
-@router.put("/product-listings/{product_listing_id}/", response=ProductListingOutSchema)
+# Update ProductListing (JSON, no file upload)
+@router.put("/product-listings/{product_listing_id}/", response={200: ProductListingOutSchema, 400: ErrorSchema})
 def update_product_listing(
     request,
     product_listing_id: int,
-    product_id: int = Form(None),
-    name: str = Form(None),
-    price: float = Form(None),
-    mrp: float = Form(None),
-    stock: int = Form(None),
-    buy_limit: int = Form(None),
-    box_items: str = Form(None),
-    features: str = Form(None),  # JSON string
-    approved: bool = Form(None),
-    featured: bool = Form(None),
-    variant_id: int = Form(None),
-    seller_id: int = Form(None),
-    packer_id: int = Form(None),
-    importer_id: int = Form(None),
-    manufacturer_id: int = Form(None),
-    return_exchange_policy_id: int = Form(None),
-    tax_category_id: int = Form(None),
-    estore_id: int = Form(None),
-    main_image: UploadedFile = File(None)
+    payload: ProductListingUpdateSchema
 ):
-    import json
+    print("Received JSON payload:", payload.dict())
     product_listing = get_object_or_404(ProductListing, id=product_listing_id)
-    if product_id is not None:
-        product_listing.product_id = product_id
-    if name is not None:
-        product_listing.name = name
-    if price is not None:
-        product_listing.price = price
-    if mrp is not None:
-        product_listing.mrp = mrp
-    if stock is not None:
-        product_listing.stock = stock
-    if buy_limit is not None:
-        product_listing.buy_limit = buy_limit
-    if box_items is not None:
-        product_listing.box_items = box_items
-    if features is not None:
-        try:
-            product_listing.features = json.loads(features)
-        except Exception:
-            product_listing.features = None
-    if approved is not None:
-        product_listing.approved = approved
-    if featured is not None:
-        product_listing.featured = featured
-    if variant_id is not None:
-        product_listing.variant_id = variant_id
-    if seller_id is not None:
-        product_listing.seller_id = seller_id
-    if packer_id is not None:
-        product_listing.packer_id = packer_id
-    if importer_id is not None:
-        product_listing.importer_id = importer_id
-    if manufacturer_id is not None:
-        product_listing.manufacturer_id = manufacturer_id
-    if return_exchange_policy_id is not None:
-        product_listing.return_exchange_policy_id = return_exchange_policy_id
-    if tax_category_id is not None:
-        product_listing.tax_category_id = tax_category_id
-    if estore_id is not None:
-        product_listing.estore_id = estore_id
+    # Check for variant_id uniqueness
+    if payload.variant_id is not None:
+        existing = ProductListing.objects.filter(variant_id=payload.variant_id).exclude(id=product_listing_id).first()
+        if existing:
+            return 400, {"detail": "This variant is already assigned to another listing."}
+    for attr, value in payload.dict(exclude_unset=True).items():
+        if value is not None:
+            setattr(product_listing, attr, value)
+    try:
+        product_listing.save()
+    except IntegrityError as e:
+        return 400, {"detail": f"Database integrity error: {str(e)}"}
+    return product_listing
+
+# Update ProductListing main_image only (multipart/form-data)
+@router.post("/product-listings/{product_listing_id}/update-image/", response=ProductListingOutSchema)
+def update_product_listing_image(
+    request,
+    product_listing_id: int,
+    main_image: UploadedFile = File(...)
+):
+    product_listing = get_object_or_404(ProductListing, id=product_listing_id)
     if main_image is not None:
         product_listing.main_image = main_image
-    product_listing.save()
+        product_listing.save()
     return product_listing
 
 
