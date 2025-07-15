@@ -18,7 +18,7 @@ class CustomCORSValidationMiddleware(MiddlewareMixin):
         # parsed_url = urlparse(origin)
         # origin = parsed_url.netloc  # Returns 'localhost:3000' or 'example.com'
 
-        print(origin)
+        # print(origin)
         if origin in allowed_domains:
             return None  # Allow the request
         
