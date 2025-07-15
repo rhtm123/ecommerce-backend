@@ -62,7 +62,6 @@ INSTALLED_APPS = [
     'django_cleanup.apps.CleanupConfig',
     "treebeard",
     'django_summernote',
-    "django_elasticsearch_dsl",
     "users.apps.UsersConfig",
     "locations.apps.LocationsConfig",
     "products.apps.ProductsConfig",
