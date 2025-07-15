@@ -86,6 +86,9 @@ class Entity(models.Model):
     gst_number = models.CharField(max_length=50, unique=True, null=True, blank=True)
     website = models.URLField(null=True, blank=True)
     details = models.TextField(null=True, blank=True)
+
+    estore = models.ForeignKey(EStore, on_delete=models.CASCADE, null=True, blank=True, related_name="estore_entities")
+
     
     ENTITY_TYPE_CHOICES = [
         ('brand', 'Brand'),

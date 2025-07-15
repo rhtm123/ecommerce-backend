@@ -12,12 +12,16 @@ def serialize_product_listing(listing):
         "name": listing.name,
         "slug": listing.slug,
         "brand": listing.brand.name if listing.brand else "",
+        "brand_id": listing.brand.id if listing.brand else "",
         "category": listing.category.name if listing.category else "",
+        "category_id": listing.category.id if listing.category else "",
         "description": listing.product.description if listing.product else "",
         "price": float(listing.price),
-         "estore_id": listing.estore.id if listing.estore else None,
+        "mrp": float(listing.mrp),
+        "estore_id": listing.estore.id if listing.estore else None,
         "featured": listing.featured,
         "rating": float(listing.rating or 0),
+        "main_image": listing.main_image.url if listing.main_image else None
     }
 
 def serialize_category(cat):
@@ -26,7 +30,8 @@ def serialize_category(cat):
         "name": cat.name,
         "slug": cat.slug,
         "description": cat.description or "",
-         "estore_id": cat.estore.id if cat.estore else None,
+        "estore_id": cat.estore.id if cat.estore else None,
+        "image": cat.image.url if cat.image else None
     }
 
 def serialize_brand(entity):
@@ -35,7 +40,8 @@ def serialize_brand(entity):
         "name": entity.name,
         "slug": entity.name.lower().replace(" ", "-"),
         "details": entity.details or "",
-        "estore_id": entity.user.estore.id if (entity.user and entity.user.estore) else None,
+        "estore_id": entity.estore.id if (entity.estore) else None,
+        "logo": entity.logo.url if entity.logo else None,
 
     }
 
@@ -57,28 +63,16 @@ def index_product_listings():
     
     index.update_settings({
         "searchableAttributes": ["name", "brand", "category"],
-        "displayedAttributes": ["id", "name", "slug", "brand", "category", "price"],
+        "displayedAttributes": ["id", "name", "slug", "brand", "category", "price", "main_image", "mrp"],
         "rankingRules": [
             "words", "typo", "proximity", "attribute", "exactness"
         ]
     })
 
-    index.update_filterable_attributes(["estore_id", "brand", "category", "price", "featured"])
+    index.update_filterable_attributes(["estore_id", "brand_id", "brand" , "category" ,"category_id", "price", "featured"])
     index.update_sortable_attributes(["price", "rating"])
 
-
-    print(data);
-
     task = index.add_documents(data)
-
-    print("✅ Product listings indexed successfully.")
-
-    index.wait_for_task(task.task_uid, timeout_in_ms=10000)
-
-
-    status = client.get_task(task.task_uid)
-    print("Indexing status:", status)
-    
 
 
 
@@ -98,7 +92,7 @@ def index_categories():
 
     index.update_settings({
         "searchableAttributes": ["name"],
-        "displayedAttributes": ["id", "name", "slug"],
+        "displayedAttributes": ["id", "name", "slug", "estore_id", "image"],
     })
 
     index.update_filterable_attributes(["estore_id"])
@@ -121,7 +115,7 @@ def index_brands():
 
     index.update_settings({
         "searchableAttributes": ["name"],
-        "displayedAttributes": ["id", "name", "slug"],
+        "displayedAttributes": ["id", "name", "slug", "estore_id", "logo"],
     })
 
     index.update_filterable_attributes(["estore_id"])
