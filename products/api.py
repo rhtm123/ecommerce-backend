@@ -60,9 +60,13 @@ def parse_bool(value):
     return False
 
 
-def get_or_create_entity(name, entity_type):
+def get_or_create_entity(name, entity_type, estore_id=None):
     if not name:
         return None
+    
+    if estore_id:
+        estore=EStore.objects.filter(id=estore_id).first()
+        return Entity.objects.get_or_create(name=name.strip(), entity_type=entity_type, estore=estore)[0]
     return Entity.objects.get_or_create(name=name.strip(), entity_type=entity_type)[0]
 
 def get_or_create_category(name):
@@ -83,7 +87,12 @@ def get_tax_category_by_id(tax_id):
 
 
 @router.post("/upload-products/")
-def upload_products_from_excel(request, file: UploadedFile = File(...)):
+def upload_products_from_excel(request, 
+        seller_id: int = None,
+        estore_id: int = None,
+        file: UploadedFile = File(...)
+    ):
+
     wb = load_workbook(filename=file.file)
     sheet = wb.active
     headers = [cell.value for cell in sheet[1]]
@@ -114,7 +123,7 @@ def upload_products_from_excel(request, file: UploadedFile = File(...)):
                     'base_price': row_data.get('base_price') or 0,
                     'is_service': parse_bool(row_data.get('is_service')),
                     'category': get_category_by_id(row_data.get('category_id')),
-                    'brand': get_or_create_entity(row_data.get('brand_name'), 'brand'),
+                    'brand': get_or_create_entity(row_data.get('brand_name'), 'brand', row_data.get("estore_id")),
                     'unit_size': row_data.get('unit_size') or 1,
                     'size_unit': row_data.get('size_unit') or "",
                     'tax_category': get_tax_category_by_id(row_data.get('tax_category_id')),
@@ -447,7 +456,6 @@ def create_product_listing(
     popularity: int = Form(100),
     main_image: UploadedFile = File(None)
 ):
-    import json
     product_listing = ProductListing(
         product_id=product_id,
         name=name,

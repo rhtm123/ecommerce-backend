@@ -33,14 +33,3 @@ class APIKeyAuth(APIKeyHeader):
             request.api_key_name = key_map[key]
             return key
         return None
-
-
-# from ninja import NinjaAPI
-# from .auth import APIKeyAuth
-
-# api_key_auth = APIKeyAuth()
-# api = NinjaAPI()
-
-# @api.get("/dashboard", auth=api_key_auth)
-# def dashboard(request):
-#     return {"message": f"Hello {request.api_key_name}"}
