@@ -21,7 +21,8 @@ def serialize_product_listing(listing):
         "estore_id": listing.estore.id if listing.estore else None,
         "featured": listing.featured,
         "rating": float(listing.rating or 0),
-        "main_image": listing.main_image.url if listing.main_image else None
+        "main_image": listing.main_image.url if listing.main_image else None,
+        "stock":listing.stock,
     }
 
 def serialize_category(cat):
@@ -63,7 +64,7 @@ def index_product_listings():
     
     index.update_settings({
         "searchableAttributes": ["name", "brand", "category"],
-        "displayedAttributes": ["id", "name", "slug", "brand", "category", "price", "main_image", "mrp"],
+        "displayedAttributes": ["id", "name", "slug", "brand", "category", "price", "main_image", "mrp", "stock"],
         "rankingRules": [
             "words", "typo", "proximity", "attribute", "exactness"
         ]
