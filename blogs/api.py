@@ -1,6 +1,6 @@
 
 from .models import Blog, Tag
-from ninja import  Router, Query
+from ninja import  Router
 from django.shortcuts import get_object_or_404
 from .schemas import BlogOutSchema, TagOutSchema
 # from typing import List
@@ -16,10 +16,9 @@ from utils.pagination import PaginatedResponseSchema, paginate_queryset
 
 @router.get("/tags", response=PaginatedResponseSchema)
 @cache_response()
-def tags(request, page: int = Query(1), page_size: int = Query(10), estore_id: int = None, ordering: str = None):
+def tags(request, page: int = 1, page_size: int = 10, estore_id: int = None, ordering: str = None):
     qs = Tag.objects.all()
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
+
 
     query = ""
     
@@ -31,7 +30,7 @@ def tags(request, page: int = Query(1), page_size: int = Query(10), estore_id: i
         qs = qs.order_by(ordering)
         query = query + "&ordering=" + ordering
 
-    return paginate_queryset(request, qs, TagOutSchema, page_number, page_size, query)
+    return paginate_queryset(request, qs, TagOutSchema, page, page_size, query)
 
 
 @router.get("/tags/{tag_id}", response=TagOutSchema)
@@ -49,10 +48,9 @@ def tag_slug(request, tag_slug: str):
 @router.get("/blogs", response=PaginatedResponseSchema)
 # @paginate(PageNumberPagination)
 @cache_response()
-def blogs(request, page: int = Query(1), page_size: int = Query(10), category_id: int = None, tag_id: int = None, estore_id: int = None):
+def blogs(request, page: int = 1, page_size: int = 10, category_id: int = None, tag_id: int = None, estore_id: int = None):
     qs = Blog.objects.all()
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
+
     query = ""
     if category_id:
         qs = qs.filter(category__id = category_id)
@@ -65,7 +63,7 @@ def blogs(request, page: int = Query(1), page_size: int = Query(10), category_id
     if estore_id:
         pass
 
-    return paginate_queryset(request, qs, BlogOutSchema, page_number, page_size, query)
+    return paginate_queryset(request, qs, BlogOutSchema, page, page_size, query)
 
 
 @router.get("/blogs/{blog_id}", response=BlogOutSchema)

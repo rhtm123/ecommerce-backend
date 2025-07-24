@@ -222,8 +222,8 @@ def create_order(request, payload: OrderCreateSchema):
 @router.get("/orders/", response=PaginatedResponseSchema)
 @cache_response()
 def orders(request, 
-           page: int = Query(1), 
-           page_size: int = Query(10), 
+           page: int = 1, 
+           page_size: int = 10, 
            user_id: int = None, 
            ordering: str = None, 
            items_needed: bool = False
@@ -231,8 +231,6 @@ def orders(request,
 
     qs = Order.objects.all()
 
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
 
     query = ""
 
@@ -335,7 +333,7 @@ def orders(request,
         orders_data.append(order_data)
 
 
-    return paginate_queryset(request, orders_data, OrderOutSchema, page_number, page_size, query)
+    return paginate_queryset(request, orders_data, OrderOutSchema, page, page_size, query)
 
 # Read Single Order (Retrieve)
 @router.get("/orders/{order_id}/", response=OrderOutOneSchema)
@@ -447,8 +445,8 @@ def create_order_item(request, payload: OrderItemCreateSchema):
 @cache_response()
 def order_items(
     request,  
-    page_number: int = Query(1), 
-    page_size: int = Query(10), 
+    page: int = 1, 
+    page_size: int = 10, 
     order_id: int = None, 
     seller_id: int = None, 
     status: str = None, 
@@ -544,7 +542,7 @@ def order_items(
 
         order_items_data.append(item_data)
 
-    return paginate_queryset(request, order_items_data, OrderItemOutSchema, page_number, page_size, query)
+    return paginate_queryset(request, order_items_data, OrderItemOutSchema, page, page_size, query)
      
 
 # Read Single OrderItem (Retrieve)
@@ -627,12 +625,11 @@ def delete_order_item(request, order_item_id: int):
 # Read Orders (List)
 @router.get("/delivery-packages/", response=PaginatedResponseSchema)
 @cache_response()
-def delivery_packages(request,  page: int = Query(1), page_size: int = Query(10), order_id: int = None, ordering: str = None):
+def delivery_packages(request,  page: int = 1, page_size: int = 10, order_id: int = None, ordering: str = None):
     # qs = Order.objects.all()
     qs = DeliveryPackage.objects.all()  # Fetch order items efficiently
 
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
+
 
     query = ""
 
@@ -644,7 +641,7 @@ def delivery_packages(request,  page: int = Query(1), page_size: int = Query(10)
         qs = qs.order_by(ordering)
         query = query + "&ordering=" + ordering
 
-    return paginate_queryset(request, qs, DeliveryPackageOutSchema, page_number, page_size, query)
+    return paginate_queryset(request, qs, DeliveryPackageOutSchema, page, page_size, query)
 
 # Read Single Order (Retrieve)
 @router.get("/delivery-packages/{package_id}/", response=DeliveryPackageOutSchema)
@@ -659,12 +656,11 @@ def retrieve_delivery_package(request, package_id: int):
 # Read Orders (List)
 @router.get("/package-items/", response=PaginatedResponseSchema)
 @cache_response()
-def package_items(request,  page: int = Query(1), page_size: int = Query(10), package_id: int = None, ordering: str = None):
+def package_items(request,  page: int = 1, page_size: int = 10, package_id: int = None, ordering: str = None):
     # qs = Order.objects.all()
     qs = PackageItem.objects.all()  # Fetch order items efficiently
 
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
+
 
     query = ""
 
@@ -676,7 +672,7 @@ def package_items(request,  page: int = Query(1), page_size: int = Query(10), pa
         qs = qs.order_by(ordering)
         query = query + "&ordering=" + ordering
 
-    return paginate_queryset(request, qs, PackageItemOutSchema, page_number, page_size, query)
+    return paginate_queryset(request, qs, PackageItemOutSchema, page, page_size, query)
 
 # Read Single Order (Retrieve)
 @router.get("/package-items/{package_item_id}/", response=DeliveryPackageOutSchema)

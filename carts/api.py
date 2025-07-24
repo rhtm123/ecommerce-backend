@@ -41,7 +41,7 @@ def create_cart(request, payload: CartCreateSchema):
 
 # Read Carts (List)
 @router.get("/carts/", response=PaginatedResponseSchema)
-def carts(request,  page: int = Query(1), page_size: int = Query(10), user_id: int = None, purchased: bool = None ,ordering: str = None,):
+def carts(request,  page: int = 1, page_size: int = 10, user_id: int = None, purchased: bool = None ,ordering: str = None,):
     qs = Cart.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
@@ -96,7 +96,7 @@ def create_cart_item(request, payload: CartItemCreateSchema):
 
 # Read CartItems (List)
 @router.get("/cart-items/", response=PaginatedResponseSchema)
-def cart_items(request,  page: int = Query(1), page_size: int = Query(10), product_listing_id: int = None ,cart_id: int = None, ordering: str = None):
+def cart_items(request,  page: int = 1, page_size: int = 10, product_listing_id: int = None ,cart_id: int = None, ordering: str = None):
     qs = CartItem.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
@@ -150,7 +150,7 @@ def create_wishlist(request, payload: WishlistCreateSchema):
 
 # Read Wishlists (List)
 @router.get("/wishlists/", response=PaginatedResponseSchema)
-def wishlists(request,  page: int = Query(1), page_size: int = Query(10), user_id: int = None, ordering: str = None):
+def wishlists(request,  page: int = 1, page_size: int = 10, user_id: int = None, ordering: str = None):
     qs = Wishlist.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)
@@ -201,7 +201,7 @@ def create_wishlist_item(request, payload: WishlistItemCreateSchema):
 
 # Read WishlistItems (List)
 @router.get("/wishlist_items/", response=PaginatedResponseSchema)
-def wishlist_items(request,  page: int = Query(1), page_size: int = Query(10), product_listing_id: int = None, wishlist_id: int = None, ordering: str = None):
+def wishlist_items(request,  page: int = 1, page_size: int = 10, product_listing_id: int = None, wishlist_id: int = None, ordering: str = None):
     qs = WishlistItem.objects.all()
     page_number = request.GET.get('page', 1)
     page_size = request.GET.get('page_size', 10)

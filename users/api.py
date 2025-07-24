@@ -1,4 +1,4 @@
-from ninja import  Router, Query, Schema
+from ninja import  Router
 
 # router.py
 from .models import User, Entity, ShippingAddress
@@ -277,11 +277,8 @@ def create_user(request, payload: UserCreateSchema):
 
 # Read Users (List)
 @router.get("/users/", response=PaginatedResponseSchema)
-def users(request,  page: int = Query(1), page_size: int = Query(10), search: str = None, role:str = None , ordering: str = None, estore_id: int = None):
+def users(request,  page: int = 1, page_size: int = 10, search: str = None, role:str = None , ordering: str = None, estore_id: int = None):
     qs = User.objects.all()
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
-
     query = ""
 
     if estore_id:
@@ -303,7 +300,7 @@ def users(request,  page: int = Query(1), page_size: int = Query(10), search: st
 
 
 
-    return paginate_queryset(request, qs, UserOutSchema, page_number, page_size)
+    return paginate_queryset(request, qs, UserOutSchema, page, page_size)
 
 # Read Single User (Retrieve)
 @router.get("/users/{user_id}/", response=UserOutSchema)
@@ -346,16 +343,15 @@ def create_entity(request, payload: EntityCreateSchema):
 # Read Users (List)
 @router.get("/entities/", response=PaginatedResponseSchema)
 @cache_response()
-def entities(request,  page: int = Query(1), 
-             page_size: int = Query(10), 
+def entities(request,  page: int = 1, 
+             page_size: int = 10, 
              search: str = None, 
              entity_type:str = None , 
              ordering: str = None,
              featured: bool = None,
              ):
     qs = Entity.objects.all()
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
+    
 
     query = ""
 
@@ -419,10 +415,9 @@ def create_shipping_address(request, payload: ShippingAddressCreateSchema):
 # Read ShippingAddresss (List)
 @router.get("/shipping-addresses/", response=PaginatedResponseSchema)
 @cache_response()
-def shipping_addresses(request,  page: int = Query(1), page_size: int = Query(10), user_id:int = None , is_default: bool = None, ordering: str = None,):
+def shipping_addresses(request,  page: int = 1, page_size: int = 10, user_id:int = None , is_default: bool = None, ordering: str = None,):
     qs = ShippingAddress.objects.all()
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
+
 
     if user_id:
         qs = qs.filter(user__id=user_id)
@@ -433,7 +428,7 @@ def shipping_addresses(request,  page: int = Query(1), page_size: int = Query(10
     if ordering:
         qs = qs.order_by(ordering)
 
-    return paginate_queryset(request, qs, ShippingAddressOutSchema, page_number, page_size)
+    return paginate_queryset(request, qs, ShippingAddressOutSchema, page, page_size)
 
 # Read Single ShippingAddress (Retrieve)
 @router.get("/shipping-addresses/{shipping_address_id}/", response=ShippingAddressOutSchema)

@@ -106,14 +106,13 @@ def create_payment(request, payload: PaymentCreateSchema):
 
 @router.get("/payments/", response=PaginatedResponseSchema)
 def payments(request,  
-              page: int = Query(1), 
-              page_size: int = Query(10), 
+              page: int = 1, 
+              page_size: int = 10, 
               status:str = None ,
               ordering: str = None,):
     
     qs = Payment.objects.all()
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
+
 
     query = ""
 
@@ -128,7 +127,7 @@ def payments(request,
         query = query + "&ordering=" + str(ordering)
 
 
-    return paginate_queryset(request, qs, PaymentOutSchema, page_number, page_size, query)
+    return paginate_queryset(request, qs, PaymentOutSchema, page, page_size, query)
 
 
 @router.get("/verify-payment", response=PaymentOutSchema)

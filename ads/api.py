@@ -1,6 +1,6 @@
 
 from .models import Advertisement
-from ninja import  Router, Query
+from ninja import  Router
 from django.shortcuts import get_object_or_404
 from .schemas import AdvertisementOutSchema
 # from typing import List
@@ -16,10 +16,9 @@ from keys.auth import APIKeyAuth
 
 @router.get("/advertisements", response=PaginatedResponseSchema , auth=APIKeyAuth())
 @cache_response()
-def advertisements(request, page: int = Query(1), page_size: int = Query(10), estore_id: int = None, ordering: str = None):
+def advertisements(request, page: int = 1, page_size: int = 10, estore_id: int = None, ordering: str = None):
     qs = Advertisement.objects.all()
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
+
 
     query = ""
     
@@ -31,4 +30,4 @@ def advertisements(request, page: int = Query(1), page_size: int = Query(10), es
         qs = qs.order_by(ordering)
         query = query + "&ordering=" + ordering
 
-    return paginate_queryset(request, qs, AdvertisementOutSchema, page_number, page_size, query)
+    return paginate_queryset(request, qs, AdvertisementOutSchema, page, page_size, query)

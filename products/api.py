@@ -218,8 +218,6 @@ def categories(
         search: Optional[str] = Query(None, description="Search by category name"),
     ):
     qs = Category.objects.filter(approved=True)
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
 
     query = ""
 
@@ -243,7 +241,7 @@ def categories(
         qs = qs.filter(category_blogs__isnull=False).distinct()
         query = query + "&has_blogs=" + str(has_blogs)
 
-    return paginate_queryset(request, qs, CategoryOutSchema, page_number, page_size)
+    return paginate_queryset(request, qs, CategoryOutSchema, page, page_size)
 
 @router.get("/categories/parents-children/{category_id}/", response=CategoryParentChildrenOutSchema)
 @cache_response()
@@ -318,10 +316,8 @@ def delete_category(request, category_id: int):
 
 
 @router.get("/feature-groups/", response=PaginatedResponseSchema)
-def featuregroups(request,  page: int = Query(1), page_size: int = Query(10), category_id:str = None , ordering: str = None,):
+def featuregroups(request,  page: int = 1, page_size: int = 10, category_id:str = None , ordering: str = None,):
     qs = FeatureGroup.objects.all()
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
 
     if category_id:
         qs = qs.filter(category__id=category_id)
@@ -329,15 +325,14 @@ def featuregroups(request,  page: int = Query(1), page_size: int = Query(10), ca
     if ordering:
         qs = qs.order_by(ordering)
 
-    return paginate_queryset(request, qs, FeatureGroupOutSchema , page_number, page_size)
+    return paginate_queryset(request, qs, FeatureGroupOutSchema , page, page_size)
 
 
 
 @router.get("/feature-templates/", response=PaginatedResponseSchema)
-def featuretemplates(request,  page: int = Query(1), page_size: int = Query(10), feature_group_id:str = None , ordering: str = None,):
+def featuretemplates(request,  page: int = 1, page_size: int = 10, feature_group_id:str = None , ordering: str = None,):
     qs = FeatureTemplate.objects.all()
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
+
 
     if feature_group_id:
         qs = qs.filter(feature_group__id=feature_group_id)
@@ -345,7 +340,7 @@ def featuretemplates(request,  page: int = Query(1), page_size: int = Query(10),
     if ordering:
         qs = qs.order_by(ordering)
 
-    return paginate_queryset(request, qs, FeatureTemplateOutSchema , page_number, page_size)
+    return paginate_queryset(request, qs, FeatureTemplateOutSchema , page, page_size)
 
 ############################ Product ############################
 @router.post("/products/", response=ProductOutSchema,  auth=JWTAuth())
@@ -358,10 +353,8 @@ def create_product(request, payload: ProductCreateSchema):
 # Read Products (List)
 @router.get("/products/", response=PaginatedResponseSchema)
 @cache_response()
-def products(request,  page: int = Query(1), page_size: int = Query(10), category_id:str = None , ordering: str = None, seller_id: int = None):
+def products(request,  page: int = 1, page_size: int = 10, category_id:str = None , ordering: str = None, seller_id: int = None):
     qs = Product.objects.all()
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
 
     query = ""
 
@@ -378,7 +371,7 @@ def products(request,  page: int = Query(1), page_size: int = Query(10), categor
         qs = qs.order_by(ordering)
         query = query + "&ordering=" + ordering
 
-    return paginate_queryset(request, qs, ProductOutSchema, page_number, page_size, query)
+    return paginate_queryset(request, qs, ProductOutSchema, page, page_size, query)
 
 # Read Single Product (Retrieve)
 @router.get("/products/{product_id}/", response=ProductOutOneSchema)
@@ -500,8 +493,8 @@ def create_product_listing(
 @cache_response()
 def product_listings(
     request,
-    page: int = Query(1),
-    page_size: int = Query(10),
+    page: int = 1,
+    page_size: int = 10,
     category_id: str = None,
     seller_id: int = None,
     product_id:int = None,
@@ -744,8 +737,8 @@ def get_sidebar_filters(
 def get_related_products(
     request,
     product_listing_id: int,
-    page: int = Query(1),
-    page_size: int = Query(10),
+    page: int = 1,
+    page_size: int = 10,
     ):
     """
     Get related products for a specific product listing based on category, brand, features, and price similarity.
@@ -834,7 +827,7 @@ def create_return_exchange_policy(request, payload: ReturnExchangePolicyCreateSc
     return policy
 
 @router.get("/return-exchange-policies/", response=PaginatedResponseSchema)
-def list_return_exchange_policies(request, page: int = Query(1), page_size: int = Query(10)):
+def list_return_exchange_policies(request, page: int = 1, page_size: int = 10):
     queryset = ReturnExchangePolicy.objects.all()
     return paginate_queryset(request, queryset, ReturnExchangePolicySchema, page, page_size)
 
@@ -859,10 +852,9 @@ def delete_return_exchange_policy(request, policy_id: int):
 
 
 @router.get("/features/", response=PaginatedResponseSchema)
-def features(request,  page: int = Query(1), page_size: int = Query(10), product_listing_id: int = None , ordering: str = None,):
+def features(request,  page: int = 1, page_size: int = 10, product_listing_id: int = None , ordering: str = None,):
     qs = Feature.objects.all()
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
+
 
     if product_listing_id:
         qs = qs.filter(product_listing_id__id=product_listing_id)
@@ -870,16 +862,13 @@ def features(request,  page: int = Query(1), page_size: int = Query(10), product
     if ordering:
         qs = qs.order_by(ordering)
 
-    return paginate_queryset(request, qs, FeatureOutSchema, page_number, page_size)
+    return paginate_queryset(request, qs, FeatureOutSchema, page, page_size)
 
 
 
 @router.get("/product-listing-images/", response=PaginatedResponseSchema)
-def product_listing_images(request,  page: int = Query(1), page_size: int = Query(10), product_listing_id: int = None , ordering: str = None,):
+def product_listing_images(request,  page: int = 1, page_size: int = 10, product_listing_id: int = None , ordering: str = None,):
     qs = ProductListingImage.objects.all()
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
-
 
     if product_listing_id:
         qs = qs.filter(product_listing_id__id=product_listing_id)
@@ -887,7 +876,7 @@ def product_listing_images(request,  page: int = Query(1), page_size: int = Quer
     if ordering:
         qs = qs.order_by(ordering)
 
-    return paginate_queryset(request, qs, ProductListingImageOutSchema, page_number, page_size)
+    return paginate_queryset(request, qs, ProductListingImageOutSchema, page, page_size)
 
 
 @router.post("/product-listing-images/", response=ProductListingImageOutSchema)

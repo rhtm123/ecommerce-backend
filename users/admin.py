@@ -7,7 +7,7 @@ from .models import User, Entity, ShippingAddress, MobileVerification
 
 @admin.register(Entity)
 class EntityAdmin(admin.ModelAdmin):
-    list_display = ("name","id","entity_type","user", "website", )
+    list_display = ("name","id","entity_type","user", "website", "featured")
     search_fields = ("name",)
     list_filter = ("entity_type",)
      
