@@ -33,14 +33,13 @@ def create_question(request, payload: QuestionCreateSchema):
 @router.get("/questions/", response=PaginatedResponseSchema)
 @cache_response()
 def questions(request,  
-              page: int = Query(1), 
-              page_size: int = Query(10), 
+              page: int = 1, 
+              page_size: int = 10, 
               product_listing_id:str = None ,
               answers_required: bool = False,
               ordering: str = None,):
     qs = Question.objects.all()
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
+
 
     query = ""
 
@@ -63,7 +62,7 @@ def questions(request,
 
         
 
-    return paginate_queryset(request, qs, QuestionOutSchema, page_number, page_size, query)
+    return paginate_queryset(request, qs, QuestionOutSchema, page, page_size, query)
 
 # Read Single Question (Retrieve)
 @router.get("/questions/{question_id}/", response=QuestionOutSchema)
@@ -107,10 +106,9 @@ def create_answer(request, payload: AnswerCreateSchema):
 
 # Read Answers (List)
 @router.get("/answers/", response=PaginatedResponseSchema)
-def answers(request,  page: int = Query(1), page_size: int = Query(10), question_id:str = None , ordering: str = None,):
+def answers(request,  page: int = 1, page_size: int = 10, question_id:str = None , ordering: str = None,):
     qs = Answer.objects.all()
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
+
 
     query = ""
 
@@ -125,7 +123,7 @@ def answers(request,  page: int = Query(1), page_size: int = Query(10), question
         query = query + "&ordering=" + str(ordering)
 
 
-    return paginate_queryset(request, qs, AnswerOutSchema, page_number, page_size, query)
+    return paginate_queryset(request, qs, AnswerOutSchema, page, page_size, query)
 
 # Read Single Answer (Retrieve)
 @router.get("/answers/{answer_id}/", response=AnswerOutSchema)

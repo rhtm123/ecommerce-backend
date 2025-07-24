@@ -1,5 +1,4 @@
 
-from ninja.pagination import paginate
 from typing import List
 from django.shortcuts import get_object_or_404
 from .models import Version
@@ -15,7 +14,7 @@ router = Router()
 
 
 @router.get("/versions", response=PaginatedResponseSchema)
-def list_versions(request, page: int = Query(1), page_size: int = Query(10), search: str = None, ordering: str = None):
+def list_versions(request, page: int = 1, page_size: int = 10, search: str = None, ordering: str = None):
     queryset = Version.objects.all()
     
     query = ""
@@ -26,10 +25,7 @@ def list_versions(request, page: int = Query(1), page_size: int = Query(10), sea
         queryset = queryset.order_by(ordering)
         query = query + "&ordering=" + ordering
 
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
-
-    return paginate_queryset(request, queryset, VersionSchema, page_number, page_size, query)
+    return paginate_queryset(request, queryset, VersionSchema, page, page_size, query)
 
     
 # @router.post("/versions", response=VersionSchema)

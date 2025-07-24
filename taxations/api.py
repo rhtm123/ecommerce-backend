@@ -13,7 +13,7 @@ def create_tax_category(request, payload: TaxCategoryCreateSchema):
     return tax_category
 
 @router.get("/tax-categories/", response=PaginatedResponseSchema)
-def list_tax_categories(request, page: int = Query(1), page_size: int = Query(10)):
+def list_tax_categories(request, page: int = 1, page_size: int = 10):
     queryset = TaxCategory.objects.all()
     return paginate_queryset(request, queryset, TaxCategoryOutSchema, page, page_size)
 

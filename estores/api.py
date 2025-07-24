@@ -17,16 +17,15 @@ router = Router()
 @router.get("/delivery-pins/", response=PaginatedResponseSchema)
 @cache_response()
 def deliverypins(request, 
-           page: int = Query(1), 
-           page_size: int = Query(10), 
+           page: int = 1, 
+           page_size: int = 10, 
            estore_id: int = None, 
            ordering: str = None, 
     ):
 
     qs = DeliveryPin.objects.all()
 
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
+
 
     query = ""
 
@@ -38,4 +37,4 @@ def deliverypins(request,
         qs = qs.order_by(ordering)
         query += f"&ordering={ordering}"
 
-    return paginate_queryset(request, qs, DeliveryPinOutSchema, page_number, page_size, query)
+    return paginate_queryset(request, qs, DeliveryPinOutSchema, page, page_size, query)

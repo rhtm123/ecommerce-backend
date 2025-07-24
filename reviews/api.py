@@ -34,10 +34,9 @@ def create_review(request, payload: ReviewCreateSchema):
 # Read Reviews (List)
 @router.get("/reviews/", response=PaginatedResponseSchema)
 @cache_response()
-def reviews(request,  page: int = Query(1), page_size: int = Query(10), product_listing_id:str = None, order_item_id:int =None , user_id:int=None ,ordering: str = None, estore_id: int = None, approved: bool = False):
+def reviews(request,  page: int = 1, page_size: int = 10, product_listing_id:str = None, order_item_id:int =None , user_id:int=None ,ordering: str = None, estore_id: int = None, approved: bool = False):
     qs = Review.objects.all()
-    page_number = request.GET.get('page', 1)
-    page_size = request.GET.get('page_size', 10)
+
 
     query = ""
     if estore_id:
@@ -64,7 +63,7 @@ def reviews(request,  page: int = Query(1), page_size: int = Query(10), product_
         qs = qs.order_by(ordering)
         query = query + "&ordering=" + ordering
     
-    return paginate_queryset(request, qs, ReviewOutSchema, page_number, page_size, query)
+    return paginate_queryset(request, qs, ReviewOutSchema, page, page_size, query)
 
 # Read Single Review (Retrieve)
 @router.get("/reviews/{review_id}/", response=ReviewOutSchema)

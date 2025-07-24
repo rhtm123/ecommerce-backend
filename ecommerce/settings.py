@@ -83,6 +83,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
@@ -183,6 +184,7 @@ NINJA_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=20),
 }
 
+GZIP_MIN_LENGTH = 100
 
 cache_backend = config("CACHE_BACKEND", default="locmem")
 
