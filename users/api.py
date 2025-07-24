@@ -374,7 +374,7 @@ def entities(request,  page: int = 1,
         query = query + "&featured=" + str(featured)
 
 
-    return paginate_queryset(request, qs, EntityOutSchema, page_number, page_size, query)
+    return paginate_queryset(request, qs, EntityOutSchema, page, page_size, query)
 
 # Read Single User (Retrieve)
 @router.get("/entities/{entity_id}/", response=EntityOutOneSchema)
