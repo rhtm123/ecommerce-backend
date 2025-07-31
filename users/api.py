@@ -145,6 +145,7 @@ def whatsapp_webhook(request):
 
 
 def set_refresh_cookie(response, refresh_token):
+    
     response.set_cookie(
         key='refresh_token',
         value=str(refresh_token),
