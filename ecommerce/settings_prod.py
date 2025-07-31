@@ -11,15 +11,16 @@ ALLOWED_HOSTS += [
 
 CSRF_TRUSTED_ORIGINS = ['https://nm.thelearningsetu.com', "https://emotional-cecily-codingchaska-5e686914.koyeb.app"]
 
-# CORS_ALLOWED_ORIGINS = [
-#     'http://localhost:5173',
-# ]
 
 
+CORS_ALLOW_ALL_ORIGINS = False 
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "https://www.naigaonmarket.com",
+    "https://naigaonmarket.vercel.app"
+]
 
-MIDDLEWARE += [ 'domains.middleware.CustomCORSValidationMiddleware']
+# MIDDLEWARE += [ 'domains.middleware.CustomCORSValidationMiddleware']
 
 DATABASES = {
     'default': {
