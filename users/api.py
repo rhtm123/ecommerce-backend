@@ -150,7 +150,7 @@ def set_refresh_cookie(response, refresh_token):
         value=str(refresh_token),
         httponly=True,
         secure=config('DEBUG', default=False, cast=bool),
-        samesite='Lax',  # Or 'Lax' if needed
+        samesite='None',  # Or 'Lax' if needed
         max_age=20 * 24 * 60 * 60,  # 20 days
         path='/'  # Scoped only to refresh endpoint
     )
@@ -160,7 +160,7 @@ def set_refresh_cookie(response, refresh_token):
 def refresh_token_view(request):
     try:
         refresh_token = request.COOKIES.get("refresh_token")
-        # print(refresh_token);
+
         if not refresh_token:
             return JsonResponse({"status": "error", "message": "No refresh token provided"}, status=401)
 
