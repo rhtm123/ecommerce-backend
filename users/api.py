@@ -152,7 +152,7 @@ def set_refresh_cookie(response, refresh_token):
         secure=config('DEBUG', default=False, cast=bool),
         samesite='None',  # Or 'Lax' if needed
         max_age=20 * 24 * 60 * 60,  # 20 days
-        path='/'  # Scoped only to refresh endpoint
+        # path='/'  # Scoped only to refresh endpoint
     )
     # print("cookies set");
 
