@@ -1,19 +1,21 @@
 from ecommerce.settings import *
 import cloudinary
 
-
 ALLOWED_HOSTS += [
     'kb.up.railway.app',
-    'nm.thelearningsetu.com', 
+    'nm.thelearningsetu.com',
     "emotional-cecily-codingchaska-5e686914.koyeb.app",
-    "localhost"
 ]
 
-CSRF_TRUSTED_ORIGINS = ['https://nm.thelearningsetu.com', "https://emotional-cecily-codingchaska-5e686914.koyeb.app"]
-
-
+CSRF_TRUSTED_ORIGINS = [
+    "https://nm.thelearningsetu.com",
+    "https://emotional-cecily-codingchaska-5e686914.koyeb.app",
+    "https://www.naigaonmarket.com",
+    "https://naigaonmarket.vercel.app"
+]
 
 CORS_ALLOW_ALL_ORIGINS = False 
+CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
     "https://www.naigaonmarket.com",
