@@ -22,3 +22,4 @@ django-redis==5.4.0
 plivo==4.59.1
 openpyxl==3.1.5
 meilisearch==0.36.0
+dj-database-url==3.0.1

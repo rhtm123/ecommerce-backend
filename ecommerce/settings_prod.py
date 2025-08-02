@@ -27,17 +27,17 @@ CORS_ALLOWED_ORIGINS = [
 
 # MIDDLEWARE += [ 'domains.middleware.CustomCORSValidationMiddleware']
 
+
+import dj_database_url
+
+
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DATABASE_NAME'),
-        'USER': config('DATABASE_USER'),
-        'PASSWORD': config('DATABASE_PASSWORD'),
-        'HOST': config('DATABASE_HOST'),
-        'PORT': config('DATABASE_PORT'),
-        'OPTIONS': {'sslmode': 'require'},
-        }
+    'default': dj_database_url.config(
+        default=config('DATABASE_URL'),
+        conn_max_age=600,  # recommended for production
+    )
 }
+
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': config('CLN_CLOUD_NAME'),
