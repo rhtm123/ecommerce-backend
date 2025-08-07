@@ -288,6 +288,7 @@ class DeliveryPackage(models.Model):
 
     def __str__(self):
         return f"Package #{self.id} for Order #{self.order.id}"
+    
     def save(self, *args, **kwargs):
         if not self.tracking_number:
             self.tracking_number = generate_tracking_number()
@@ -336,17 +337,11 @@ class PackageItem(models.Model):
         self.quantity = self.order_item.quantity
         super().save(*args, **kwargs)
 
-        # Batch update metrics for multiple items instead of triggering multiple saves
         self.package.update_package_metrics()
 
     def delete(self, *args, **kwargs):
         super().delete(*args, **kwargs)
         self.package.update_package_metrics()
-
-
-    # def clean(self):
-    #     if self.quantity > self.order_item.quantity:
-    #         raise ValidationError("Package quantity cannot exceed the order item quantity.")
 
     def __str__(self):
         return f"{self.order_item.product_listing.name} ({self.quantity}) in Package #{self.package.id}"

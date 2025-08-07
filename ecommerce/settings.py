@@ -26,6 +26,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECRET_KEY = 'django-insecure-fcva##l$lfzfm!xtoc!#$(2qb&m36_h^28p8f^+&o3o!f#(vov'
 SECRET_KEY = config('SECRET_KEY')
 
+
+SALT_KEY = [
+    config('SALT_KEY', default="", cast=str),
+]
+
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
 DEBUG = config('DEBUG', default=False, cast=bool)

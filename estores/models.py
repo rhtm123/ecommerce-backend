@@ -5,6 +5,8 @@ from django.db import models
 
 from cloudinary.models import CloudinaryField
 
+from encrypted_fields.fields import  EncryptedCharField
+
 
 # from imagekit.models import ProcessedImageField
 # from imagekit.processors import ResizeToFill
@@ -32,7 +34,6 @@ class EStore(models.Model):
 
     class Meta:
         ordering = ['-id']  # Default ordering by 'id'
-
 
 
 
@@ -68,3 +69,108 @@ class DeliveryPin(models.Model):
     class Meta:
         ordering = ['-id']  # Default ordering by 'id'
         unique_together = ('estore', 'pin_code')  # Ensure no duplicate store-PIN combinations
+
+class StaticPage(models.Model):
+    estore = models.ForeignKey(EStore, null=True, blank=True, on_delete=models.SET_NULL, related_name="estore_static_pages")
+    name = models.CharField(max_length=255)
+    content = models.TextField()
+
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.title} - {self.estore.name}"
+    
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
+
+class WhatsAppCredential(models.Model):
+    estore = models.ForeignKey(EStore, null=True, blank=True, on_delete=models.SET_NULL, related_name="estore_whatsapp_credentials")
+
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Is this WhatsApp credential active?"
+    )
+
+    sender_name = models.CharField(max_length=100, help_text="Name of the sender")
+    sender_number = models.CharField(max_length=15)
+
+
+    templates = models.JSONField(
+        default=dict, 
+        help_text="Templates for WhatsApp messages in JSON format. Example: {'key': 'template_name', ...}",
+        null=True,
+        blank=True
+    )
+
+    auth_id = models.CharField(
+        max_length=100,
+    )
+    auth_token = EncryptedCharField(
+        max_length=255,
+    )
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.sender_number} - {self.estore.name}"
+    
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
+
+class ShipCredential(models.Model):
+    estore = models.ForeignKey(EStore, null=True, blank=True, on_delete=models.SET_NULL, related_name="estore_shiprocket_credentials")
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Is this credential active?"
+    )
+    name = models.CharField(
+        max_length=100,         
+        help_text="Name of the service example - ShipRocket, Delhivery, etc."
+    )
+    email = models.EmailField(
+        max_length=255,         
+        help_text="Email associated with account"
+    )
+    password = EncryptedCharField(
+        max_length=255,
+    )
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.estore.name}"
+    
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
+
+class EmailCredential(models.Model):
+    estore = models.ForeignKey(EStore, null=True, blank=True, on_delete=models.SET_NULL, related_name="estore_email_send_credentials")
+    
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Is this email send credential active?"
+    )
+
+    host = models.CharField(
+        max_length=255, 
+        help_text="SMTP host for sending emails"
+    )
+
+    email = models.EmailField(
+        max_length=255,
+        help_text="Email address used for sending emails"
+    )
+    password = EncryptedCharField(
+        max_length=255,
+        help_text="Password for the email account"
+    )
+
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.email} - {self.estore.name}"
+    
+    class Meta:
+        ordering = ['-id']  # Default ordering by 'id'
