@@ -17,13 +17,57 @@ from locations.models import Address
 class EStore(models.Model):
     name = models.CharField(max_length=255,)
     website = models.URLField(blank=True, null=True)
-    logo = CloudinaryField(
-        "image",
+
+    icon = CloudinaryField(
+        "icon_image",     
         folder="kb/store/",
-        transformation={"width": 600, "height": 600, "crop": "fill"},
+        transformation={"width": 240, "height": 240, "crop": "fill"},
+        blank=True,
+        null=True       
+    )
+    logo = CloudinaryField(
+        "logo_image",
+        folder="kb/store/",
+        transformation={"crop": "fill"},
         blank=True,
         null=True,
     )
+
+    favicon = CloudinaryField(
+        "favicon",
+        folder="kb/store/",
+        transformation={"width": 32, "height": 32, "crop": "fill"},
+        blank=True,
+        null=True
+    )
+
+    mobile = models.CharField(
+        max_length=15,
+        help_text="Mobile number for the store",
+        null=True,
+        blank=True
+    )
+
+    social_accounts = models.JSONField(
+        default=dict, 
+        help_text="Social media accounts in JSON format. Example: {'facebook': 'https://facebook.com/store', 'instagram': 'https://instagram.com/store'}",
+        null=True,
+        blank=True
+    )
+
+    description = models.TextField(
+        null=True,
+        blank=True,
+        help_text="Description of the store"
+    )
+
+    tagline = models.CharField(
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text="Tagline for the store"
+    )
+
     address = models.ForeignKey(Address, on_delete=models.CASCADE,blank=True, null=True)
 
     created = models.DateTimeField(auto_now_add=True)
@@ -34,6 +78,8 @@ class EStore(models.Model):
 
     class Meta:
         ordering = ['-id']  # Default ordering by 'id'
+
+
 
 
 
@@ -70,16 +116,19 @@ class DeliveryPin(models.Model):
         ordering = ['-id']  # Default ordering by 'id'
         unique_together = ('estore', 'pin_code')  # Ensure no duplicate store-PIN combinations
 
-class StaticPage(models.Model):
+class WebPage(models.Model):
     estore = models.ForeignKey(EStore, null=True, blank=True, on_delete=models.SET_NULL, related_name="estore_static_pages")
     name = models.CharField(max_length=255)
-    content = models.TextField()
+    content = models.TextField(null=True, blank=True)
+
+    meta_title = models.CharField(max_length=255, blank=True, null=True)
+    meta_description = models.TextField(blank=True, null=True)
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.title} - {self.estore.name}"
+        return f"{self.name} - {self.estore.name}"
     
     class Meta:
         ordering = ['-id']  # Default ordering by 'id'
