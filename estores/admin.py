@@ -2,9 +2,14 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import EStore, DeliveryPin, ShipCredential, EmailCredential, WhatsAppCredential
+from .models import EStore, DeliveryPin, ShipCredential, EmailCredential, WhatsAppCredential, WebPage
 
 # admin.site.register(EStore)
+
+@admin.register(WebPage)
+class EStoreWebPageAdmin(admin.ModelAdmin):
+    list_display = ["estore", "name", "created", "updated"]
+    list_filter = ("estore",)
 
 @admin.register(ShipCredential)
 class EStoreShipCredentialAdmin(admin.ModelAdmin):
