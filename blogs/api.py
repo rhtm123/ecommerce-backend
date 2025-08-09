@@ -61,7 +61,8 @@ def blogs(request, page: int = 1, page_size: int = 10, category_id: int = None, 
         query = query + "&tag_id=" + str(tag_id)
 
     if estore_id:
-        pass
+        qs = qs.filter(estore__id = estore_id)
+        query = query + "&estore_id=" + str(estore_id)
 
     return paginate_queryset(request, qs, BlogOutSchema, page, page_size, query)
 
