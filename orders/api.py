@@ -226,6 +226,7 @@ def orders(request,
            page_size: int = 10, 
            user_id: int = None, 
            ordering: str = None, 
+           estore_id: int = None,
            items_needed: bool = False
     ):
 
@@ -237,6 +238,10 @@ def orders(request,
     if user_id:
         qs = qs.filter(user__id=user_id)
         query += f"&user_id={user_id}"
+
+    if estore_id:
+        qs = qs.filter(estore__id=estore_id)
+        query += f"&estore_id={estore_id}"
 
     if ordering:
         qs = qs.order_by(ordering)

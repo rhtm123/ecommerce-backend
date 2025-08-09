@@ -392,6 +392,7 @@ def entities(request,  page: int = 1,
              entity_type:str = None , 
              ordering: str = None,
              featured: bool = None,
+             estore_id: int = None
              ):
     qs = Entity.objects.all()
     
@@ -401,7 +402,10 @@ def entities(request,  page: int = 1,
     if entity_type:
         qs = qs.filter(entity_type=entity_type)
         query = query + "&entity_type=" + entity_type
-        
+
+    if estore_id:
+        qs = qs.filter(estore__id=estore_id)
+        query = query + "&estore_id=" + str(estore_id)
 
     if search:
         qs = qs.filter(name__icontains=search)
