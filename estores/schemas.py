@@ -5,7 +5,14 @@ from ninja import Schema
 
 from locations.schemas import AddressOutSchema
 
-from .models import EStore
+from .models import EStore, Theme 
+
+class ThemeOutSchema(Schema):
+    id: int
+    name: str
+    slug: str
+    variables: dict
+    is_default: bool 
 
 class EStoreOutSchema(Schema):
     id: int
@@ -17,9 +24,7 @@ class EStoreOutSchema(Schema):
     social_accounts: Optional[dict] = None
     website: Optional[str] = None
     address: Optional[AddressOutSchema] = None  # Assuming Address is a foreign key
-    # created: str  # Use str to represent datetime in ISO format
-    # updated: str  # Use str to represent datetime in ISO format
-
+    # theme: Optional[ThemeOutSchema] = None
     icon: Optional[str] = None
     favicon: Optional[str] = None
 

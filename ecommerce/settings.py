@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'ninja_jwt',
     'django_cleanup.apps.CleanupConfig',
     "treebeard",
+    "django_json_widget",
     'django_summernote',
     "users.apps.UsersConfig",
     "locations.apps.LocationsConfig",
