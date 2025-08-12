@@ -3,7 +3,7 @@ from ninja import  Router, Query
 
 # router.py
 from .models import DeliveryPin, WebPage, EStore
-from .schemas import DeliveryPinOutSchema, EStoreOutSchema, WebPageOutSchema
+from .schemas import DeliveryPinOutSchema, EStoreOutSchema, WebPageOutSchema, ThemeOutSchema
 from django.shortcuts import get_object_or_404
 
 
@@ -36,6 +36,14 @@ def estores(request,
         query += f"&ordering={ordering}"
 
     return paginate_queryset(request, qs, EStoreOutSchema, page, page_size, query)
+
+
+@router.get("/theme/{estore_id}", response=ThemeOutSchema)
+# @cache_response()
+def estore_theme_detail(request, estore_id: int):
+    estore = get_object_or_404(EStore, id=estore_id)
+    return estore.theme
+
 
 @router.get("/estores/{estore_id}", response=EStoreOutSchema)
 # @cache_response()

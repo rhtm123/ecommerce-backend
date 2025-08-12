@@ -2,9 +2,18 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import EStore, DeliveryPin, ShipCredential, EmailCredential, WhatsAppCredential, WebPage
+from .models import EStore, DeliveryPin, ShipCredential, EmailCredential, WhatsAppCredential, WebPage, Theme
 
-# admin.site.register(EStore)
+from django.db import models
+from django_json_widget.widgets import JSONEditorWidget
+
+
+@admin.register(Theme)
+class ThemeAdmin(admin.ModelAdmin):
+    formfield_overrides = {
+        models.JSONField: {'widget': JSONEditorWidget},
+    }
+
 
 @admin.register(WebPage)
 class EStoreWebPageAdmin(admin.ModelAdmin):

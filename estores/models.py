@@ -2,17 +2,22 @@ from django.db import models
 
 # Create your models here.
 
-
 from cloudinary.models import CloudinaryField
-
 from encrypted_fields.fields import  EncryptedCharField
 
 
-# from imagekit.models import ProcessedImageField
-# from imagekit.processors import ResizeToFill
-# from imagekit.models import ImageSpecField
-
 from locations.models import Address
+
+
+class Theme(models.Model):
+    name = models.CharField(max_length=255)
+    slug = models.SlugField(unique=True)
+    variables = models.JSONField(default=dict)  # colors, fonts, etc.
+    is_default = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name
+    
 
 class EStore(models.Model):
     name = models.CharField(max_length=255,)
@@ -47,6 +52,9 @@ class EStore(models.Model):
         null=True,
         blank=True
     )
+
+    theme = models.ForeignKey(Theme, on_delete=models.SET_NULL, null=True, blank=True)
+
 
     social_accounts = models.JSONField(
         default=dict, 
