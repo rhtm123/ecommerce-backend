@@ -53,7 +53,7 @@ def get_order_delivery_status(request, order_number: str):
                 "quantity": item.order_item.quantity,
                 "status": item.order_item.status,
                 "price": float(item.order_item.price),
-                "mrp": float(item.order_item.mrp) if item.order_item.mrp else float(item.order_item.product_listing.mrp or item.order_item.price),
+                "mrp":  float(item.order_item.product_listing.mrp or item.order_item.price),
                 "discount_amount": float(item.order_item.discount_amount) if item.order_item.discount_amount else None,
                 "subtotal": float(item.order_item.subtotal),
                 "created": item.order_item.created,
