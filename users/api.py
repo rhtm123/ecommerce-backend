@@ -27,6 +27,7 @@ from utils.cache import cache_response
 
 from ninja_jwt.tokens import RefreshToken
 
+
 from ninja_jwt.authentication import JWTAuth
 
 from google.oauth2 import id_token
@@ -36,15 +37,15 @@ from google.auth.transport import requests
 from ninja.security import HttpBearer
 from pydantic import BaseModel
 
-from django.conf import settings
-from django.http import HttpResponse
-from twilio.request_validator import RequestValidator
-from twilio.twiml.messaging_response import MessagingResponse
+# from twilio.request_validator import RequestValidator
+# from twilio.twiml.messaging_response import MessagingResponse
 
 from utils.send_whatsapp import send_wa_msg, send_wa_msg_plivo
 from utils.constants import wa_content_templates, wa_plivo_templates
 
 from django.http import JsonResponse
+
+
 
 
 GOOGLE_CLIENT_ID = config("GOOGLE_CLIENT_ID")
@@ -142,6 +143,38 @@ def whatsapp_webhook(request):
         return JsonResponse({"status": "error", "message": str(e)}, status=500)
     
 
+
+def set_refresh_cookie(response, refresh_token):
+    
+    response.set_cookie(
+        key='refresh_token',
+        value=str(refresh_token),
+        httponly=True,
+        secure=True,
+        samesite='None',  # Or 'Lax' if needed
+        max_age=20 * 24 * 60 * 60,  # 20 days
+        # path='/'  # Scoped only to refresh endpoint
+    )
+    # print("cookies set");
+
+@router.post("/token/refresh", tags=['token'])
+def refresh_token_view(request):
+    try:
+        refresh_token = request.COOKIES.get("refresh_token")
+
+        if not refresh_token:
+            return JsonResponse({"status": "error", "message": "No refresh token provided"}, status=401)
+
+        # Create a RefreshToken instance
+        refresh = RefreshToken(refresh_token)
+
+        # Generate new access token
+        access_token = str(refresh.access_token)
+
+        return JsonResponse({"access_token": access_token})
+    except Exception as e:
+        return JsonResponse({"error": "Token is invalid or expired"}, status=401)
+
     
 class TokenSchema(BaseModel):
     token: str
@@ -187,19 +220,24 @@ def auth_login(request, payload: UserLoginSchema):
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
 
-        return {
+        # print(refresh)
+
+        response = JsonResponse({
             "user_id": user.id,
             "email": user.email,
             "first_name": user.first_name,
             "google_picture": user.google_picture,
-            "last_name":user.last_name,
+            "last_name": user.last_name,
             "access_token": access_token,
-            "refresh_token": str(refresh),
             "entity": entity,
             "mobile_verified": user.mobile_verified,
             "mobile": user.mobile,
             "gender": user.gender,
-        }
+        })
+
+        set_refresh_cookie(response, refresh)
+        return response
+
     except:
         return {"error": "Invalid credentials"}
     
@@ -244,22 +282,27 @@ def google_auth(request, payload: TokenSchema):
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
 
-        return {
+        response = JsonResponse({
             "user_id": user.id,
             "email": user.email,
             "first_name": user.first_name,
             "google_picture": user.google_picture,
-            "last_name":user.last_name,
+            "last_name": user.last_name,
             "access_token": access_token,
-            "refresh_token": str(refresh),
             "entity": entity,
             "mobile_verified": user.mobile_verified,
             "mobile": user.mobile,
             "gender": user.gender,
-        }
+        })
+
+        set_refresh_cookie(response, refresh)
+        return response
     
     except ValueError:
         return {"error": "Invalid Google token"}
+    
+
+
 
 # Create User
 @router.post("/users/", response=UserOutSchema)
@@ -349,6 +392,7 @@ def entities(request,  page: int = 1,
              entity_type:str = None , 
              ordering: str = None,
              featured: bool = None,
+             estore_id: int = None
              ):
     qs = Entity.objects.all()
     
@@ -358,7 +402,10 @@ def entities(request,  page: int = 1,
     if entity_type:
         qs = qs.filter(entity_type=entity_type)
         query = query + "&entity_type=" + entity_type
-        
+
+    if estore_id:
+        qs = qs.filter(estore__id=estore_id)
+        query = query + "&estore_id=" + str(estore_id)
 
     if search:
         qs = qs.filter(name__icontains=search)

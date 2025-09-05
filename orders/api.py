@@ -53,7 +53,7 @@ def get_order_delivery_status(request, order_number: str):
                 "quantity": item.order_item.quantity,
                 "status": item.order_item.status,
                 "price": float(item.order_item.price),
-                "mrp": float(item.order_item.mrp) if item.order_item.mrp else float(item.order_item.product_listing.mrp or item.order_item.price),
+                "mrp":  float(item.order_item.product_listing.mrp or item.order_item.price),
                 "discount_amount": float(item.order_item.discount_amount) if item.order_item.discount_amount else None,
                 "subtotal": float(item.order_item.subtotal),
                 "created": item.order_item.created,
@@ -226,6 +226,7 @@ def orders(request,
            page_size: int = 10, 
            user_id: int = None, 
            ordering: str = None, 
+           estore_id: int = None,
            items_needed: bool = False
     ):
 
@@ -237,6 +238,10 @@ def orders(request,
     if user_id:
         qs = qs.filter(user__id=user_id)
         query += f"&user_id={user_id}"
+
+    if estore_id:
+        qs = qs.filter(estore__id=estore_id)
+        query += f"&estore_id={estore_id}"
 
     if ordering:
         qs = qs.order_by(ordering)

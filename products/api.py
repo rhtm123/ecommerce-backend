@@ -37,6 +37,7 @@ from ninja import File, Form
 
 from ninja import Schema
 router = Router()
+
 class ErrorSchema(Schema):
     detail: str
 
@@ -243,45 +244,63 @@ def categories(
 
     return paginate_queryset(request, qs, CategoryOutSchema, page, page_size)
 
+
 @router.get("/categories/parents-children/{category_id}/", response=CategoryParentChildrenOutSchema)
 @cache_response()
-def retrieve_category_parents_children(request, category_id: int):
+def retrieve_category_parents_children(request, category_id: int, estore_id: int = None):
     category = get_object_or_404(Category, id=category_id)
 
-    def get_all_parents(category):
+    # Get all parents with filters
+    print("Category Parents Children", category_id, estore_id)
+    def get_all_parents(category, estore_id=None):
         parents = []
-        while category.get_parent():
-            category = category.get_parent()
-            parents.insert(0,category)
+        while True:
+            parent = category.get_parent()
+            if not parent:
+                break
+            # Filter conditions for parents
+            if parent.approved and (estore_id is None or parent.estore.id == estore_id):
+                parents.insert(0, parent)
+            category = parent
         return parents
-    
-    parents = get_all_parents(category)
 
-    # Get the children categories
-    children = category.get_children()
+    parents = get_all_parents(category, estore_id)
+
+    # Get children categories with filters
+    children_qs = category.get_children()
+    if estore_id is not None:
+        children_qs = children_qs.filter(estore_id=estore_id)
+    children_qs = children_qs.filter(approved=True)
 
     return {
         "parents": [CategorySchema.from_orm(parent) for parent in parents],
-        "children": [CategorySchema.from_orm(child) for child in children],
+        "children": [CategorySchema.from_orm(child) for child in children_qs],
     }
+
+
 
 
 @router.get("/categories/siblings/{category_id}/", response=list[CategoryOutSchema])
 @cache_response()
-def retrieve_category_siblings(request, category_id: int):
+def retrieve_category_siblings(request, category_id: int, estore_id: int = None):
     category = get_object_or_404(Category, id=category_id)
-    
+
     # Get the parent of the current category
     parent = category.get_parent()
-    
-    # If category has a parent, get its siblings (excluding itself)
+
     if parent:
-        siblings = parent.get_children()
+        siblings_qs = parent.get_children()
     else:
-        # If no parent, get all root categories (excluding itself)
-        siblings = Category.get_root_nodes()
-    
-    return [CategoryOutSchema.from_orm(sibling) for sibling in siblings]
+        siblings_qs = Category.get_root_nodes()
+
+    # Apply filters
+    siblings_qs = siblings_qs.exclude(id=category.id)  # Exclude current category
+    siblings_qs = siblings_qs.filter(approved=True)
+    if estore_id is not None:
+        siblings_qs = siblings_qs.filter(estore_id=estore_id)
+
+    return [CategoryOutSchema.from_orm(sibling) for sibling in siblings_qs]
+
 
 
 # Read Single User (Retrieve)
@@ -665,7 +684,6 @@ def get_sidebar_filters(
         
     if estore_id:
         qs = qs.filter(estore__id=estore_id)
-        query = query + "&estore_id=" + str(estore_id)
 
     if approved is not None:
         qs = qs.filter(approved=approved)

@@ -22,3 +22,6 @@ django-redis==5.4.0
 plivo==4.59.1
 openpyxl==3.1.5
 meilisearch==0.36.0
+dj-database-url==3.0.1
+django-fernet-encrypted-fields==0.3.0
+django-json-widget==2.0.3

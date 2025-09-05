@@ -3,13 +3,15 @@ import time
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.db import transaction
-from utils.send_whatsapp import send_wa_msg, send_wa_msg_plivo
-from utils.constants import wa_content_templates, wa_plivo_templates
+from utils.send_whatsapp import send_wa_msg_plivo
+from utils.constants import wa_plivo_templates
 from .models import Order, DeliveryPackage, OrderItem
 from utils.send_email import send_mail_thread
 from django.conf import settings
 from django.core.cache import cache
-from django.db.models import Prefetch
+# from django.db.models import Prefetch
+
+from utils.shiporder import ShiprocketAPI
 
 def get_order_items_by_seller(order):
     # Query order items for the given order, prefetching product listing and seller
@@ -86,7 +88,7 @@ def send_order_notification(sender, instance, created, **kwargs):
                         template_name = wa_plivo_templates["seller_notify_sid"]
                         variables = [seller_name, order_number, len(items)]
                         
-                        send_wa_msg_plivo(template_name, variables, seller_mobile)
+                        send_wa_msg_plivo("seller_notify_sid", variables, seller_mobile, estore_id=order.estore.id)
                 except Exception as e:
                     print(f"WhatsApp message send failed: {e}")
 
@@ -118,7 +120,7 @@ def send_order_notification(sender, instance, created, **kwargs):
                 variables = [name, order_number, total_items]
                 template_name = wa_plivo_templates["order_sid"]
                 print("WA message sent!!")
-                send_wa_msg_plivo(template_name, variables, mobile)
+                send_wa_msg_plivo("order_sid", variables, mobile, estore_id=order.estore.id)
             except Exception as e:
                 print(f"WhatsApp message send failed: {e}")
 
@@ -136,6 +138,7 @@ def send_package_notification(sender, instance, created, **kwargs):
         time.sleep(2)  # 2-second delay to allow updates
         # Fetch the latest DeliveryPackage instance from the database
         package = DeliveryPackage.objects.get(id=package_id)
+        order = package.order
         mobile = package.order.user.mobile
         receiver_email = package.order.user.email
         name = f"{package.order.user.first_name} {package.order.user.last_name}"
@@ -143,6 +146,14 @@ def send_package_notification(sender, instance, created, **kwargs):
         total_items = str(package.product_listing_count)
         status = str(package.status)
         order_number = package.order.order_number
+
+        try:
+            if created:
+                shiprocket_api = ShiprocketAPI()
+                shiprocket_api.create_order(package)
+        except Exception as e:
+            print(f"Shiprocket order creation failed: {e}")
+
 
         if package.delivery_executive:
             de_name = f"{package.delivery_executive.first_name} {package.delivery_executive.last_name}"
@@ -176,9 +187,9 @@ def send_package_notification(sender, instance, created, **kwargs):
                 # send_wa_msg(content_template_sid, variables, mobile)
 
                 variables = [name, tracking_number, total_items, de_name, de_mobile]
-                template_name = wa_plivo_templates["delivery_out_sid"]
+                # template_name = wa_plivo_templates["delivery_out_sid"]
                 print("WA message sent!!")
-                send_wa_msg_plivo(template_name, variables, mobile)
+                send_wa_msg_plivo("delivery_out_sid", variables, mobile, estore_id=order.estore.id)
             except Exception as e:
                 print(f"WhatsApp message send failed: {e}")
 
@@ -210,7 +221,7 @@ def send_package_notification(sender, instance, created, **kwargs):
                 variables = [name, tracking_number, total_items, feedback_link]
                 template_name = wa_plivo_templates["delivered_sid"]
                 print("WA message sent!!")
-                send_wa_msg_plivo(template_name, variables, mobile)
+                send_wa_msg_plivo("delivered_sid", variables, mobile, estore_id=order.estore.id)
             except Exception as e:
                 print(f"WhatsApp message send failed: {e}")
 

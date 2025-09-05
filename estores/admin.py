@@ -2,10 +2,38 @@ from django.contrib import admin
 
 # Register your models here.
 
-from .models import EStore, DeliveryPin
+from .models import EStore, DeliveryPin, ShipCredential, EmailCredential, WhatsAppCredential, WebPage, Theme
 
-# admin.site.register(EStore)
+from django.db import models
+from django_json_widget.widgets import JSONEditorWidget
 
+
+@admin.register(Theme)
+class ThemeAdmin(admin.ModelAdmin):
+    formfield_overrides = {
+        models.JSONField: {'widget': JSONEditorWidget},
+    }
+
+
+@admin.register(WebPage)
+class EStoreWebPageAdmin(admin.ModelAdmin):
+    list_display = ["estore", "name", "created", "updated"]
+    list_filter = ("estore",)
+
+@admin.register(ShipCredential)
+class EStoreShipCredentialAdmin(admin.ModelAdmin):
+    list_display = ["estore", "is_active", "name", "email", "created", "updated"]
+
+
+@admin.register(EmailCredential)
+class EStoreEmailCredentialAdmin(admin.ModelAdmin): 
+    list_display = ["estore", "is_active", "email", "created", "updated"]
+    list_filter = ("estore", "is_active")
+
+@admin.register(WhatsAppCredential)
+class EStoreWhatsAppCredentialAdmin(admin.ModelAdmin):
+    list_display = ["estore", "is_active", "sender_name","auth_token" , "sender_number", "created", "updated"]
+    list_filter = ("estore", "is_active")
 
 class DeliveryPinInline(admin.TabularInline):
     model = DeliveryPin

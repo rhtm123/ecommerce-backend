@@ -1,37 +1,43 @@
 from ecommerce.settings import *
 import cloudinary
 
-
 ALLOWED_HOSTS += [
     'kb.up.railway.app',
-    'nm.thelearningsetu.com', 
+    'nm.thelearningsetu.com',
     "emotional-cecily-codingchaska-5e686914.koyeb.app",
-    "localhost"
+    # "localhost",
 ]
 
-CSRF_TRUSTED_ORIGINS = ['https://nm.thelearningsetu.com', "https://emotional-cecily-codingchaska-5e686914.koyeb.app"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://nm.thelearningsetu.com",
+    "https://emotional-cecily-codingchaska-5e686914.koyeb.app",
+    "https://www.naigaonmarket.com",
+    "https://naigaonmarket.vercel.app",
+    # "http://localhost:5173"
+]
 
-# CORS_ALLOWED_ORIGINS = [
-#     'http://localhost:5173',
-# ]
+CORS_ALLOW_ALL_ORIGINS = False 
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOWED_ORIGINS = [
+    "https://www.naigaonmarket.com",
+    "https://naigaonmarket.vercel.app",
+    # "http://localhost:5173",
+]
+
+# MIDDLEWARE += [ 'domains.middleware.CustomCORSValidationMiddleware']
 
 
+import dj_database_url
 
-CORS_ALLOW_ALL_ORIGINS = True
-
-MIDDLEWARE += [ 'domains.middleware.CustomCORSValidationMiddleware']
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DATABASE_NAME'),
-        'USER': config('DATABASE_USER'),
-        'PASSWORD': config('DATABASE_PASSWORD'),
-        'HOST': config('DATABASE_HOST'),
-        'PORT': config('DATABASE_PORT'),
-        'OPTIONS': {'sslmode': 'require'},
-        }
+    'default': dj_database_url.config(
+        default=config('DATABASE_URL'),
+        conn_max_age=600,  # recommended for production
+    )
 }
+
 
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': config('CLN_CLOUD_NAME'),

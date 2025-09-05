@@ -15,8 +15,6 @@ from pathlib import Path
 from decouple import config
 from datetime import timedelta
 
-from django.conf import settings
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -27,6 +25,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECRET_KEY = 'django-insecure-fcva##l$lfzfm!xtoc!#$(2qb&m36_h^28p8f^+&o3o!f#(vov'
 SECRET_KEY = config('SECRET_KEY')
+
+
+SALT_KEY = [
+    config('SALT_KEY', default="", cast=str),
+]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
@@ -61,6 +64,7 @@ INSTALLED_APPS = [
     'ninja_jwt',
     'django_cleanup.apps.CleanupConfig',
     "treebeard",
+    "django_json_widget",
     'django_summernote',
     "users.apps.UsersConfig",
     "locations.apps.LocationsConfig",
@@ -180,7 +184,7 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 NINJA_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=10),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=20),
 }
 
