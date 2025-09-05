@@ -228,19 +228,52 @@ def payments(request,
 
 @router.get("/verify-payment", response=PaymentOutSchema)
 def verify_payment(request, transaction_id: str = None):
+    """
+    Verify payment status with enhanced error handling
+    """
     payment = get_object_or_404(Payment, transaction_id=transaction_id)
+    print(f"Verifying payment: {payment.id} with transaction_id: {transaction_id}")
 
     if payment.payment_method == "pg":
-        order_status_response = check_payment_status(merchant_order_id=transaction_id)
-        status = order_status_response['state'].lower()
-
-        if payment.status != status:
-            payment.status = status
-            payment.save()
+        try:
+            order_status_response = check_payment_status(merchant_order_id=transaction_id)
+            print(f"Payment verification response: {order_status_response}")
             
-            # Send platform-specific notification if status changed
-            if status in ['completed', 'failed']:
-                notify_customer_by_platform(payment, status.upper(), float(payment.amount))
+            # Check if we got an error response from the utility function
+            if 'error_type' in order_status_response:
+                print(f"PhonePe API error detected: {order_status_response['error_type']}")
+                
+                # For API errors, keep the current status but log the issue
+                if order_status_response['error_type'] in ['API_EMPTY_RESPONSE', 'API_CONNECTION_ERROR']:
+                    print(f"Keeping current payment status '{payment.status}' due to API issues")
+                    return payment
+                elif order_status_response['error_type'] == 'UNKNOWN_ERROR':
+                    print(f"Unknown error occurred, keeping current status: {order_status_response.get('message', '')}")
+                    return payment
+            
+            # Normal response - update payment status
+            status = order_status_response.get('state', 'pending').lower()
+            print(f"Payment status from PhonePe: {status}, Current status: {payment.status}")
+            
+            if payment.status != status:
+                old_status = payment.status
+                payment.status = status
+                payment.save()
+                print(f"Payment status updated from '{old_status}' to '{status}'")
+                
+                # Send platform-specific notification if status changed
+                if status in ['completed', 'failed']:
+                    notify_customer_by_platform(payment, status.upper(), float(payment.amount))
+            else:
+                print("Payment status unchanged")
+                
+        except Exception as e:
+            print(f"Unexpected error in verify_payment: {e}")
+            print(f"Error type: {type(e).__name__}")
+            
+            # Don't fail the request, just log and return current payment state
+            print(f"Returning current payment status due to verification error: {payment.status}")
+            return payment
     
     return payment
 

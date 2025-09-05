@@ -67,6 +67,7 @@ class Payment(models.Model):
                 self.platform = 'web'
                 
             merchant_order_id = str(uuid4())  # Generate unique order ID
+            self.transaction_id = merchant_order_id
             if self.payment_method == "pg":
                 # Generate platform-specific redirect URL
                 redirect_url = self.generate_redirect_url()
@@ -76,7 +77,6 @@ class Payment(models.Model):
                     redirect_url=redirect_url
                 )
                 self.payment_url = standard_pay_response.redirect_url
-            self.transaction_id = merchant_order_id
 
         order = self.order
         order.payment_status = self.status  # Update the order status to match the payment status
@@ -95,7 +95,7 @@ class Payment(models.Model):
             return f"naigaonmarketapp://payment?transaction_id={self.transaction_id or 'temp'}&order_id={self.order.id}"
         else:
             # For web, use traditional website URL
-            base_url = getattr(self.estore, 'website_url', 'https://your-website.com')
+            base_url = getattr(self.estore, 'website_url', 'https://nm.thelearningsetu.in')
             return f"{base_url}/checkout/payment-success?transaction_id={self.transaction_id or 'temp'}&order_id={self.order.id}"
 
     class Meta:
