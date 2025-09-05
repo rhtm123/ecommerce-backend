@@ -21,11 +21,28 @@ client = StandardCheckoutClient.get_instance(
     env=ENV
 )
 
-def create_payment(amount, redirect_url="",):
+def create_payment(amount, estore=None, redirect_url=""):
+    """
+    Create payment with PhonePe
+    
+    Args:
+        amount: Payment amount in rupees
+        estore: EStore instance (optional)
+        redirect_url: Platform-specific redirect URL
+    
+    Returns:
+        tuple: (merchant_order_id, standard_pay_response)
+    """
     merchant_order_id = str(uuid4())  # Generate unique order ID
     # print(merchant_order_id);
     amount = amount*100  # In paise (e.g., 100 = 1 INR)
-    redirect_url = redirect_url
+    
+    # Use provided redirect_url or generate default one
+    if not redirect_url:
+        if estore and hasattr(estore, 'website_url'):
+            redirect_url = f"{estore.website_url}/payment-success"
+        else:
+            redirect_url = "https://naigaonmarket.com/payment-success"  # Default fallback
 
     try:
         standard_pay_request = StandardCheckoutPayRequest.build_request(
@@ -36,6 +53,8 @@ def create_payment(amount, redirect_url="",):
         standard_pay_response = client.pay(standard_pay_request)
         print("Payment Creation Response:", json.dumps(standard_pay_response.to_dict(), indent=2))
         print("Checkout URL:", standard_pay_response.redirect_url)
+        print("Redirect URL set to:", redirect_url)
+        
         # Save the merchant_order_id for later use
         return merchant_order_id, standard_pay_response
     except Exception as e:
@@ -43,6 +62,15 @@ def create_payment(amount, redirect_url="",):
         raise
 
 def check_payment_status(merchant_order_id):
+    """
+    Check payment status with PhonePe
+    
+    Args:
+        merchant_order_id: The merchant order ID
+    
+    Returns:
+        dict: Payment status response
+    """
     try:
         order_status_response = client.get_order_status(merchant_order_id=merchant_order_id)
         print("Order Status Response:", json.dumps(order_status_response.to_dict(), indent=2))
