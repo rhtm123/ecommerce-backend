@@ -290,7 +290,25 @@ def mobile_payment_callback(request, payload: PaymentWebhookCallbackSchema):
         # Verify the payment status with PhonePe
         if payment.payment_method == "pg":
             order_status_response = check_payment_status(merchant_order_id=payload.transaction_id)
-            verified_status = order_status_response['state'].lower()
+            
+            # Handle API errors gracefully
+            if 'error_type' in order_status_response:
+                print(f"PhonePe API error in mobile callback: {order_status_response['error_type']}")
+                return {
+                    "success": False,
+                    "status": payment.status,
+                    "message": f"Payment verification failed: {order_status_response.get('message', 'API error')}",
+                    "error_type": order_status_response['error_type'],
+                    "payment": {
+                        "id": payment.id,
+                        "transaction_id": payment.transaction_id,
+                        "status": payment.status,
+                        "amount": float(payment.amount),
+                        "order_id": payment.order.id
+                    }
+                }
+            
+            verified_status = order_status_response.get('state', payment.status).lower()
             
             # Update payment status if it has changed
             if payment.status != verified_status:
