@@ -259,7 +259,7 @@ def retrieve_category_parents_children(request, category_id: int, estore_id: int
             if not parent:
                 break
             # Filter conditions for parents
-            if parent.approved and (estore_id is None or parent.estore__id == estore_id):
+            if parent.approved and (estore_id is None or parent.estore.id == estore_id):
                 parents.insert(0, parent)
             category = parent
         return parents

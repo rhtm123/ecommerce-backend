@@ -20,6 +20,11 @@ PAYMENT_CHOICES = (
     ('refunded', 'Refunded'),
 )
 
+PLATFORM_CHOICES = (
+    ('web', 'Web'),
+    ('mobile', 'Mobile'),
+    ('api', 'API'),
+)
 
 
 # Add this new Payment model
@@ -45,13 +50,33 @@ class Payment(models.Model):
     payment_gateway = models.CharField(max_length=50, blank=True, null=True, default="PhonePe")  # e.g., Stripe, PayPal
     payment_url = models.TextField(blank=True, null=True)
     
+    platform = models.CharField(
+        max_length=20,
+        choices=PLATFORM_CHOICES,
+        default='web'
+    )
+    device_info = models.JSONField(
+        blank=True, 
+        null=True,
+        help_text="Store device information for mobile payments"
+    )
+    
     def save(self, *args, **kwargs):
         if not self.pk:
+            if not self.platform:
+                self.platform = 'web'
+                
             merchant_order_id = str(uuid4())  # Generate unique order ID
-            if self.payment_method=="pg":
-                merchant_order_id, standard_pay_response = create_payment(amount=self.amount, estore=self.estore)
-                self.payment_url = standard_pay_response.redirect_url;
             self.transaction_id = merchant_order_id
+            if self.payment_method == "pg":
+                # Generate platform-specific redirect URL
+                redirect_url = self.generate_redirect_url()
+                merchant_order_id, standard_pay_response = create_payment(
+                    amount=self.amount, 
+                    estore=self.estore,
+                    redirect_url=redirect_url
+                )
+                self.payment_url = standard_pay_response.redirect_url
 
         order = self.order
         order.payment_status = self.status  # Update the order status to match the payment status
@@ -61,9 +86,22 @@ class Payment(models.Model):
         cache.delete(cache_key)
         super().save(*args, **kwargs)
 
+    def generate_redirect_url(self):
+        """
+        Generate platform-specific redirect URL
+        """
+        if self.platform == 'mobile':
+            # For mobile apps, use deep link URL
+            return f"naigaonmarketapp://payment?transaction_id={self.transaction_id or 'temp'}&order_id={self.order.id}"
+        else:
+            # For web, use traditional website URL
+            base_url = getattr(self.estore, 'website_url', 'https://nm.thelearningsetu.in')
+            return f"{base_url}/checkout/payment-success?transaction_id={self.transaction_id or 'temp'}&order_id={self.order.id}"
+
     class Meta:
         ordering = ['-created']
     
     def __str__(self):
-        return f"Payment for Order #{self.order.id} - {self.amount}"
+        platform_str = f" ({self.platform})" if self.platform != 'web' else ""
+        return f"Payment for Order #{self.order.id} - {self.amount}{platform_str}"
     
