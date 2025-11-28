@@ -146,8 +146,8 @@ class Product(models.Model):
 
 class Variant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_variants')
-    name = models.CharField(max_length=255) # example "Red, 128GB", "Pack of 3"
-    attributes = models.JSONField(null=True, blank=True) # [ {'name':"color", "value":"Red", "real_value":"#ff0000"}, {'name':"storage", "value":"128GB", "real_value":"128"}]
+    name = models.CharField(max_length=255, help_text="Example: 'Red, 128GB', 'Pack of 3'") # example "Red, 128GB", "Pack of 3"
+    attributes = models.JSONField(null=True, blank=True, help_text="Example -> [ {'name':'color', 'value':'Red', 'real_value':'#ff0000'}, {'name':'storage', 'value':'128GB', 'real_value':'128'}]") # [ {'name':"color", "value":"Red", "real_value":"#ff0000"}, {'name':"storage", "value":"128GB", "real_value":"128"}]
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
