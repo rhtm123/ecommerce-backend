@@ -14,6 +14,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://nm.thelearningsetu.com",
     "https://emotional-cecily-codingchaska-5e686914.koyeb.app",
     "https://www.naigaonmarket.com",
+    "https://www.khilonabuddy.com",
     "https://naigaonmarket.vercel.app",
     # "http://localhost:5173"
 ]
@@ -24,6 +25,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "https://www.naigaonmarket.com",
     "https://naigaonmarket.vercel.app",
+    "https://www.khilonabuddy.com",
     # "http://localhost:5173",
 ]
 
