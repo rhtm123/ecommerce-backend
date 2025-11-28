@@ -4,11 +4,13 @@ import cloudinary
 ALLOWED_HOSTS += [
     'kb.up.railway.app',
     'nm.thelearningsetu.com',
+    'kb.thelearningsetu.com',
     "emotional-cecily-codingchaska-5e686914.koyeb.app",
     # "localhost",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
+    "https://kb.thelearningsetu.com",
     "https://nm.thelearningsetu.com",
     "https://emotional-cecily-codingchaska-5e686914.koyeb.app",
     "https://www.naigaonmarket.com",
