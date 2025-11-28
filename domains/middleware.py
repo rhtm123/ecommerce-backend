@@ -8,6 +8,7 @@ from django.http import JsonResponse
 # from urllib.parse import urlparse
 
 
+
 class CustomCORSValidationMiddleware(MiddlewareMixin):
     def process_request(self, request):
         origin = request.META.get('HTTP_ORIGIN')
@@ -16,12 +17,14 @@ class CustomCORSValidationMiddleware(MiddlewareMixin):
         
         allowed_domains = get_allowed_domains()
 
+        # print("CustomCORSValidationMiddleware: Origin:", origin, get_allowed_domains)
         # parsed_url = urlparse(origin)
         # origin = parsed_url.netloc  # Returns 'localhost:3000' or 'example.com'
 
         # print(origin)
         if origin in allowed_domains:
             return None  # Allow the request
+
         
         # Reject non-matching origins (optional: customize the response)
         
