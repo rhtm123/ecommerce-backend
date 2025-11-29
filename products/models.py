@@ -118,9 +118,9 @@ class Product(models.Model):
     base_price = models.DecimalField(default=0,max_digits=10, decimal_places=2)
     is_service = models.BooleanField(default=False)
 
-    unit_size = models.DecimalField( max_digits=10, decimal_places=2, default=1.00, help_text="Size of a single unit (e.g., 200.5)")
+    unit_size = models.DecimalField(max_digits=10, decimal_places=2, default=1.00, help_text="Size of a single unit (e.g., 200.5)", null=True, blank=True)
 
-    size_unit = models.CharField(max_length=20, default="", help_text="Unit of measurement (e.g., ml, g)")
+    size_unit = models.CharField(max_length=20, default="", help_text="Unit of measurement (e.g., ml, g)", null=True, blank=True)
 
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, related_name='category_products', null=True, blank=True)
     brand = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="brand_products", null=True, blank=True)
@@ -147,7 +147,7 @@ class Product(models.Model):
 class Variant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='product_variants')
     name = models.CharField(max_length=255, help_text="Example: 'Red, 128GB', 'Pack of 3'") # example "Red, 128GB", "Pack of 3"
-    attributes = models.JSONField(null=True, blank=True, help_text="Example -> [ {'name':'color', 'value':'Red', 'real_value':'#ff0000'}, {'name':'storage', 'value':'128GB', 'real_value':'128'}]") # [ {'name':"color", "value":"Red", "real_value":"#ff0000"}, {'name':"storage", "value":"128GB", "real_value":"128"}]
+    attributes = models.JSONField(null=True, blank=True, help_text='''Example -> [ {"name":"color", "value":"Red", "real_value":"#ff0000"}, {"name":"storage", "value":"128GB", "real_value":"128"}]''') # [ {'name':"color", "value":"Red", "real_value":"#ff0000"}, {'name':"storage", "value":"128GB", "real_value":"128"}]
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
@@ -284,7 +284,8 @@ class ProductListing(models.Model):
         pack_suffix = f" x{int(self.units_per_pack)}" if self.units_per_pack != 1 else ""
 
         # Append to the name
-        new_name += f" {unit_size} {self.product.size_unit}{pack_suffix}"
+        if self.product.unit_size and self.product.size_unit:
+            new_name += f" {unit_size} {self.product.size_unit}{pack_suffix}"
 
         self.name = new_name
         self.slug = slugify(new_name)

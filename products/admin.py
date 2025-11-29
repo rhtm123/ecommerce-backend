@@ -8,6 +8,9 @@ from .models import Category
 from django import forms
 
 
+from django.db import models
+from django_json_widget.widgets import JSONEditorWidget
+
 
 
 
@@ -39,11 +42,18 @@ admin.site.register(FeatureGroup)
 admin.site.register(FeatureTemplate)
 admin.site.register(Feature)
 
-admin.site.register(Variant)
+@admin.register(Variant)
+class VariantAdmin(admin.ModelAdmin):
+    formfield_overrides = {
+        models.JSONField: {'widget': JSONEditorWidget},
+    }
 
 
 class VariantInline(admin.TabularInline):
     model = Variant
+    formfield_overrides = {
+        models.JSONField: {'widget': JSONEditorWidget},
+    }
     extra = 1
 
 
