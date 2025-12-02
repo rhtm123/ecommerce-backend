@@ -126,7 +126,7 @@ def upload_products_from_excel(request,
                     'category': get_category_by_id(row_data.get('category_id')),
                     'brand': get_or_create_entity(row_data.get('brand_name'), 'brand', row_data.get("estore_id")),
                     'unit_size': row_data.get('unit_size') or 1,
-                    'size_unit': row_data.get('size_unit') or "",
+                    'size_unit': row_data.get('size_unit') or None,
                     'tax_category': get_tax_category_by_id(row_data.get('tax_category_id')),
                 }
             )

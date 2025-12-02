@@ -13,6 +13,13 @@
                     product_id: productId
                 },
                 success: function(data) {
+                    console.log("RAW RESPONSE:", data);
+
+                    if (!Array.isArray(data)) {
+                        console.error("Expected array but got:", data);
+                        return;
+                    }
+
                     variantSelect.empty();
                     variantSelect.append('<option value="" selected>---------</option>');
                     data.forEach(function(variant) {
@@ -21,6 +28,8 @@
                         );
                     });
                 }
+
+
             });
         }
 

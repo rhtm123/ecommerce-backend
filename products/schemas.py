@@ -111,7 +111,7 @@ class ProductOutOneSchema(Schema):
     brand: Optional[EntityOut2Schema] = None
     tax_category:Optional[TaxCategoryOutSchema] = None  # ForeignKey, using ID, nullable
     unit_size: float = 1.00
-    size_unit: str = "pcs"  # pcs, ml, g, etc.
+    size_unit: str = "" # pcs, ml, g, etc.
     country_of_origin: str
     created: datetime
     updated: datetime
@@ -126,7 +126,7 @@ class ProductOutSchema(Schema):
     brand: Optional[EntityOut2Schema] = None
     tax_category:Optional[TaxCategoryOutSchema] = None
     unit_size: float = 1.00
-    size_unit: str = "pcs"  # pcs, ml, g, etc.
+    size_unit: str = ""  # pcs, ml, g, etc.
     # category_id: int
     created: datetime
     updated: datetime
