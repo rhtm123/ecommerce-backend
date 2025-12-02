@@ -1,5 +1,6 @@
 (function($) {
-    console.log("product_variant_filter.js loaded");    
+    console.log("product_variant_filter.js loaded"); 
+    console.log( window.location.origin +'/view/product/admin/get-variants/');
     $(document).ready(function() {
         const productSelect = $('#id_product');
         const variantSelect = $('#id_variant');
@@ -8,7 +9,7 @@
             if (!productId) return;
 
             $.ajax({
-                url: '/view/product/admin/get-variants/',
+                url: window.location.origin +'/view/product/admin/get-variants/',
                 data: {
                     product_id: productId
                 },
