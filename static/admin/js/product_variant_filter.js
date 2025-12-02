@@ -1,5 +1,6 @@
 (function($) {
-    console.log("product_variant_filter.js loaded");    
+    console.log("product_variant_filter.js loaded"); 
+    console.log( window.location.origin +'/view/product/admin/get-variants/');
     $(document).ready(function() {
         const productSelect = $('#id_product');
         const variantSelect = $('#id_variant');
@@ -8,18 +9,11 @@
             if (!productId) return;
 
             $.ajax({
-                url: window.location.pathname + 'get-variants/',
+                url: window.location.origin +'/view/product/admin/get-variants/',
                 data: {
                     product_id: productId
                 },
                 success: function(data) {
-                    console.log("RAW RESPONSE:", data);
-
-                    if (!Array.isArray(data)) {
-                        console.error("Expected array but got:", data);
-                        return;
-                    }
-
                     variantSelect.empty();
                     variantSelect.append('<option value="" selected>---------</option>');
                     data.forEach(function(variant) {
@@ -28,8 +22,6 @@
                         );
                     });
                 }
-
-
             });
         }
 
