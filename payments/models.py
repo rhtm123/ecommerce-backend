@@ -70,13 +70,13 @@ class Payment(models.Model):
             self.transaction_id = merchant_order_id
             if self.payment_method == "pg":
                 # Generate platform-specific redirect URL
-                redirect_url = self.generate_redirect_url()
+                redirect_url_after_payment = self.generate_redirect_url()
                 merchant_order_id, standard_pay_response = create_payment(
                     amount=self.amount, 
                     estore=self.estore,
-                    redirect_url=redirect_url
+                    redirect_url=redirect_url_after_payment
                 )
-                self.payment_url = standard_pay_response.redirect_url
+                self.payment_url = standard_pay_response.get("redirectUrl")
 
         order = self.order
         order.payment_status = self.status  # Update the order status to match the payment status
@@ -95,8 +95,9 @@ class Payment(models.Model):
             return f"naigaonmarketapp://payment?transaction_id={self.transaction_id or 'temp'}&order_id={self.order.id}"
         else:
             # For web, use traditional website URL
-            base_url = getattr(self.estore, 'website_url', 'https://nm.thelearningsetu.in')
-            return f"{base_url}/checkout/payment-success?transaction_id={self.transaction_id or 'temp'}&order_id={self.order.id}"
+            base_url = getattr(self.estore, 'website', 'https://nm.thelearningsetu.com')
+            # print(base_url)
+            return f"{base_url}/checkout/{self.transaction_id or 'temp'}"
 
     class Meta:
         ordering = ['-created']

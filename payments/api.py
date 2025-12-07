@@ -290,7 +290,7 @@ def mobile_payment_callback(request, payload: PaymentWebhookCallbackSchema):
         # Verify the payment status with PhonePe
         if payment.payment_method == "pg":
             order_status_response = check_payment_status(merchant_order_id=payload.transaction_id)
-            
+            print(order_status_response);
             # Handle API errors gracefully
             if 'error_type' in order_status_response:
                 print(f"PhonePe API error in mobile callback: {order_status_response['error_type']}")

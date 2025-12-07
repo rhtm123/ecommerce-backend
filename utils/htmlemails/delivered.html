@@ -1,80 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Your Order #{tracking_number} Has Been Delivered</title>
-    <style>
-        body {
-            font-family: 'Arial', 'Helvetica', sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-        }
-        .email-container {
-            max-width: 600px;
-            margin: 20px auto;
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        h2 {
-            color: #333333;
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-        p {
-            color: #555555;
-            font-size: 16px;
-            line-height: 1.5;
-            margin: 10px 0;
-        }
-        .button {
-            display: inline-block;
-            padding: 12px 25px;
-            margin-top: 20px;
-            background: #ffc107;
-            color: #ffffff !important;
-            text-decoration: none;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: bold;
-        }
-        .button:hover {
-            background: #e0a800;
-        }
-        .footer {
-            margin-top: 30px;
-            font-size: 12px;
-            color: #777777;
-        }
-        .unsubscribe {
-            color: #777777;
-            text-decoration: underline;
-        }
-        @media only screen and (max-width: 600px) {
-            .email-container {
-                width: 100%;
-                padding: 15px;
-            }
-            .button {
-                width: 100%;
-                box-sizing: border-box;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>{estore_name}: Your Order #{tracking_number} Has Been Delivered</title>
 </head>
-<body>
-    <div class="email-container">
-        <h2>Hooray, {name}!</h2>
-        <p>Your order #{tracking_number} with {total_items} item(s) has been delivered!</p>
-        <p>We hope you’re excited to enjoy your purchase. Let us know what you think:</p>
-        <a href="{review_url}" class="button">Leave a Review</a>
-        <p class="footer">Questions? Contact us at <a href="mailto:naigaonmarket@gmail.com">naigaonmarket@gmail.com</a>.</p>
-        <p class="footer">You’re receiving this email because you ordered from YourStore. If you’d rather not get these updates, <a href="{unsubscribe_url}" class="unsubscribe">unsubscribe here</a>.</p>
-    </div>
+
+<body style="margin:0; padding:0; background-color:#f4f4f4; font-family:Arial, Helvetica, sans-serif;">
+
+<!-- Hidden Preheader -->
+<div style="display:none; max-height:0px; overflow:hidden; opacity:0; color:transparent;">
+  Your order #{tracking_number} from {estore_name} has been delivered.
+</div>
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f4f4; padding:20px 0;">
+  <tr>
+    <td align="center">
+
+      <!-- Main Box -->
+      <table width="600" cellpadding="0" cellspacing="0" border="0"
+             style="background:#ffffff; border:1px solid #e6e6e6; padding:20px;">
+
+        <!-- Title -->
+        <tr>
+          <td align="center" style="padding-bottom:20px;">
+            <h2 style="margin:0; color:#333333; font-size:24px; font-weight:bold;">
+              Hooray, {name}!
+            </h2>
+          </td>
+        </tr>
+
+        <!-- Message -->
+        <tr>
+          <td style="font-size:16px; color:#555555; line-height:1.5;">
+
+            <p style="margin:0 0 12px 0;">
+              Your order <strong>#{tracking_number}</strong> with 
+              <strong>{total_items} item(s)</strong> has been delivered!
+            </p>
+
+            <p style="margin:0 0 20px 0;">
+              We hope you're excited to enjoy your purchase. We'd love your feedback:
+            </p>
+          </td>
+        </tr>
+
+        <!-- Button -->
+        <tr>
+          <td align="center" style="padding-bottom:30px;">
+            <a href="{review_url}"
+               style="background:#ffc107; color:#ffffff; padding:12px 25px;
+                      text-decoration:none; font-size:16px; font-weight:bold;
+                      border-radius:4px; display:inline-block;">
+              Leave a Review
+            </a>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="font-size:12px; color:#777777; text-align:center; line-height:1.5;">
+
+
+            <p style="margin:0;">
+              You’re receiving this email because you shopped at {estore_name}.  
+              If you'd rather not get these updates,
+              <a href="{unsubscribe_url}" style="color:#777777; text-decoration:underline;">
+                unsubscribe here
+              </a>.
+            </p>
+
+          </td>
+        </tr>
+
+      </table>
+      <!-- End Main Box -->
+
+    </td>
+  </tr>
+</table>
+
 </body>
 </html>
