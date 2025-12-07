@@ -1,32 +1,98 @@
-from phonepe.sdk.pg.payments.v2.standard_checkout_client import StandardCheckoutClient
-from phonepe.sdk.pg.env import Env
-from phonepe.sdk.pg.payments.v2.models.request.standard_checkout_pay_request import StandardCheckoutPayRequest
-from uuid import uuid4
+import requests
 import json
-
+from uuid import uuid4
 from decouple import config
 
+# PhonePe Configuration
 PHONEPE_CLIENT_ID = config('PHONEPE_CLIENT_ID', default="", cast=str)
 PHONEPE_CLIENT_SECRET = config('PHONEPE_CLIENT_SECRET', default="", cast=str)
 PHONEPE_CLIENT_VERSION = config('PHONEPE_CLIENT_VERSION', default=1, cast=int)
 PHONEPE_ENV = config('PHONEPE_ENV', default="SANDBOX", cast=str)
 
-
-ENV = Env.PRODUCTION if PHONEPE_ENV == "PRODUCTION" else Env.SANDBOX
-
-client = StandardCheckoutClient.get_instance(
-    client_id=PHONEPE_CLIENT_ID,
-    client_secret=PHONEPE_CLIENT_SECRET,
-    client_version=PHONEPE_CLIENT_VERSION,
-    env=ENV
+# API Base URLs
+PHONEPE_BASE_URL = (
+    "https://api.phonepe.com/apis"
+    if PHONEPE_ENV == "PRODUCTION"
+    else "https://api-preprod.phonepe.com/apis/pg-sandbox"
 )
 
-def create_payment(amount, estore, redirect_url=""):
-    merchant_order_id = str(uuid4())  # Generate unique order ID
-    # print(merchant_order_id);
-    amount = amount*100  # In paise (e.g., 100 = 1 INR)
+# Token cache for authentication
+_auth_token_cache = {
+    "access_token": None,
+    "expires_at": 0
+}
+
+
+def _get_auth_token():
+    """
+    Get authentication token from PhonePe API.
+    Caches the token and reuses it until expiry.
     
-    # Handle redirect URL - use custom if provided, otherwise use existing logic
+    Returns:
+        str: Access token for API authentication
+    """
+    import time
+    
+    # Check if cached token is still valid
+    current_time = time.time()
+    if _auth_token_cache["access_token"] and _auth_token_cache["expires_at"] > current_time:
+        return _auth_token_cache["access_token"]
+    
+    # Get new token
+    if PHONEPE_ENV == "PRODUCTION":
+        url = "https://api.phonepe.com/apis/identity-manager/v1/oauth/token"
+    else:
+        url = "https://api-preprod.phonepe.com/apis/pg-sandbox/v1/oauth/token"
+    
+    payload = {
+        "client_id": PHONEPE_CLIENT_ID,
+        "client_secret": PHONEPE_CLIENT_SECRET,
+        "client_version": PHONEPE_CLIENT_VERSION,
+        "grant_type": "client_credentials"
+    }
+    
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    
+    try:
+        response = requests.post(url, data=payload, headers=headers)
+        response.raise_for_status()
+        
+        auth_data = response.json()
+        access_token = auth_data.get("access_token")
+        expires_at = auth_data.get("expires_at", 0)
+        
+        # Cache the token
+        _auth_token_cache["access_token"] = access_token
+        _auth_token_cache["expires_at"] = expires_at
+        
+        return access_token
+    except Exception as e:
+        print(f"Error getting auth token: {e}")
+        raise
+
+
+def create_payment(amount, estore, redirect_url=""):
+    """
+    Create payment with PhonePe
+    
+    Args:
+        amount: Payment amount in rupees
+        estore: EStore instance
+        redirect_url: Custom redirect URL (optional, defaults to estore website)
+    
+    Returns:
+        tuple: (merchant_order_id, standard_pay_response)
+        
+    The standard_pay_response is a mock object with:
+        - redirect_url: URL to redirect user for payment
+        - to_dict(): method to convert response to dictionary
+    """
+    merchant_order_id = str(uuid4())  # Generate unique order ID
+    amount_in_paise = int(amount * 100)  # Convert to paise (e.g., 100 = 1 INR)
+    
+    # BACKWARD COMPATIBILITY: Use custom redirect_url if provided, otherwise use existing logic
     if redirect_url:
         # Use the provided redirect_url (for mobile deep linking)
         ui_redirect_url = redirect_url
@@ -38,21 +104,45 @@ def create_payment(amount, estore, redirect_url=""):
         else:
             ui_redirect_url = estore.website + "/checkout/" + merchant_order_id
         print(f"Using default website redirect URL: {ui_redirect_url}")
-
+    
     try:
-        standard_pay_request = StandardCheckoutPayRequest.build_request(
-            merchant_order_id=merchant_order_id,
-            amount=amount,
-            redirect_url=ui_redirect_url
-        )
-        standard_pay_response = client.pay(standard_pay_request)
-        print("Payment Creation Response:", json.dumps(standard_pay_response.to_dict(), indent=2))
-        print("Checkout URL:", standard_pay_response.redirect_url)
+        # Get authentication token
+        auth_token = _get_auth_token()
+
+        print(auth_token)
+        
+        # Prepare API request
+        url = f"{PHONEPE_BASE_URL}/checkout/v2/pay"
+        
+        payload = {
+            "amount": amount_in_paise,
+            "merchantOrderId": merchant_order_id,
+            "paymentFlow": {
+                "type": "PG_CHECKOUT",
+                "merchantUrls": {
+                    "redirectUrl": ui_redirect_url
+                }
+            }
+        }
+        
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"O-Bearer {auth_token}"
+        }
+        
+        response = requests.post(url, json=payload, headers=headers)
+        # response.raise_for_status()
+        
+        response_data = response.json()
+        print("Payment Creation Response:", json.dumps(response_data, indent=2))
+        
         # Save the merchant_order_id for later use
-        return merchant_order_id, standard_pay_response
+        return merchant_order_id, response_data
+        
     except Exception as e:
         print(f"Error creating payment: {e}")
         raise
+
 
 def check_payment_status(merchant_order_id):
     """
@@ -66,13 +156,27 @@ def check_payment_status(merchant_order_id):
     """
     try:
         print(f"Checking payment status for order ID: {merchant_order_id}")
-        order_status_response = client.get_order_status(merchant_order_id=merchant_order_id)
         
-        # Convert to dict and return
-        order_status_dict = order_status_response.to_dict()
-        print(f"PhonePe API Response: {json.dumps(order_status_dict, indent=2)}")
+        # Get authentication token
+        auth_token = _get_auth_token()
         
-        return order_status_dict
+        # Prepare API request
+        url = f"{PHONEPE_BASE_URL}/checkout/v2/order/{merchant_order_id}/status"
+        
+        headers = {
+            # "Content-Type": "application/json",
+            "Authorization": f"O-Bearer {auth_token}"
+        }
+        
+        response = requests.get(url, headers=headers)
+        print(f"HTTP Response Status Code: {response}")
+        # response.raise_for_status()
+        
+        order_status_response = response.json()
+        
+        print(f"PhonePe API Response: {json.dumps(order_status_response, indent=2)}")
+        
+        return order_status_response
         
     except Exception as e:
         print(f"Error checking order status: {e}")

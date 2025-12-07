@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>{estore_name}: New Order #{order_number} Received</title>
+</head>
+
+<body style="margin:0; padding:0; background-color:#f4f4f4; font-family:Arial, Helvetica, sans-serif;">
+
+<!-- Hidden Preheader -->
+<div style="display:none; max-height:0px; overflow:hidden; opacity:0; color:transparent;">
+  A new order #{order_number} has been placed on {estore_name}.
+</div>
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f4f4; padding:20px 0;">
+  <tr>
+    <td align="center">
+
+      <!-- Main Container -->
+      <table width="600" cellpadding="0" cellspacing="0" border="0"
+             style="background:#ffffff; border:1px solid #e6e6e6; padding:20px;">
+
+        <!-- Header -->
+        <tr>
+          <td align="center" style="padding-bottom:20px;">
+            <h2 style="margin:0; font-size:22px; color:#333333; font-weight:bold;">
+              New Order Received
+            </h2>
+          </td>
+        </tr>
+
+        <!-- Intro -->
+        <tr>
+          <td style="font-size:15px; color:#555555; line-height:1.6;">
+            <p style="margin:0 0 10px 0;">
+              Hello,
+            </p>
+            <p style="margin:0 0 12px 0;">
+              A new order has been placed on <strong>{estore_name}</strong>.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Order Summary -->
+        <tr>
+          <td style="font-size:14px; color:#555555; line-height:1.6; padding:15px 0;">
+
+            <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="border-collapse:collapse; font-size:14px;">
+              <tr>
+                <td style="padding:4px 0; width:40%;"><strong>Order Number:</strong></td>
+                <td style="padding:4px 0;">#{order_number}</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 0;"><strong>Buyer Name:</strong></td>
+                <td style="padding:4px 0;">{name}</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 0;"><strong>Total Items:</strong></td>
+                <td style="padding:4px 0;">{total_items}</td>
+              </tr>
+            </table>
+
+          </td>
+        </tr>
+
+    
+
+
+        <!-- Note -->
+        <tr>
+          <td style="font-size:13px; color:#555555; line-height:1.6;">
+            <p style="margin:0 0 10px 0;">
+              Please log in to your seller dashboard to confirm stock, process packaging, and schedule dispatch.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="font-size:11px; color:#777777; text-align:center; line-height:1.5; padding-top:20px;">
+            <p style="margin:0 0 6px 0;">
+              This is an automatic notification for sellers on {estore_name}.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+      <!-- End Main Container -->
+
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>

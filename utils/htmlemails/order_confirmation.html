@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{estore_name}: Order Confirmed #{order_id}</title>
+</head>
+
+<body style="margin:0; padding:0; background-color:#f4f4f4; font-family:Arial, Helvetica, sans-serif;">
+
+<!-- Hidden Preheader -->
+<div style="display:none; max-height:0px; overflow:hidden; opacity:0; color:transparent;">
+  Your order #{order_number} from {estore_name} has been confirmed.
+</div>
+
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f4f4; padding:20px 0;">
+  <tr>
+    <td align="center">
+
+      <!-- Main container -->
+      <table width="600" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff; border:1px solid #e6e6e6; padding:20px;">
+
+        <tr>
+          <td align="center" style="padding-bottom:20px;">
+            <h2 style="color:#333333; font-size:24px; margin:0; font-weight:bold;">
+              Hello {name},
+            </h2>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="color:#555555; font-size:16px; line-height:1.5;">
+            <p style="margin:0 0 10px 0;">
+              This email confirms your recent order with <strong>{estore_name}</strong>.
+            </p>
+
+            <p style="margin:0 0 10px 0;">
+              Your order <strong>#{order_number}</strong> containing 
+              <strong>{total_items} item(s)</strong> has been successfully placed.
+            </p>
+
+            <p style="margin:0 0 20px 0;">
+              We're preparing your items for shipment and will notify you again when your package is on the way.
+            </p>
+
+            <p style="text-align:center; margin:0 0 20px 0;">
+              Track your order status here:
+            </p>
+          </td>
+        </tr>
+
+        <!-- Button -->
+        <tr>
+          <td align="center">
+            <a href="{tracking_url}" 
+               style="background:#007bff; color:#ffffff; padding:12px 25px; 
+               border-radius:4px; font-size:16px; font-weight:bold;
+               text-decoration:none; display:inline-block;">
+               Track Your Order
+            </a>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding-top:30px; color:#777777; font-size:12px; text-align:center; line-height:1.5;">
+            <p style="margin:0 0 10px 0;">
+              You are receiving this email because you placed an order at {estore_name}.
+            </p>
+            <p style="margin:0;">
+              If you wish to stop receiving alerts, you may 
+              <a href="{unsubscribe_url}" style="color:#777777; text-decoration:underline;">
+                unsubscribe here
+              </a>.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+      <!-- End main container -->
+
+    </td>
+  </tr>
+</table>
+
+</body>
+</html>
