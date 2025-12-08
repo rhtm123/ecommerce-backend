@@ -6,7 +6,7 @@ ALLOWED_HOSTS += [
     'nm.thelearningsetu.com',
     'kb.thelearningsetu.com',
     "emotional-cecily-codingchaska-5e686914.koyeb.app",
-    # "localhost",
+    "localhost",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
