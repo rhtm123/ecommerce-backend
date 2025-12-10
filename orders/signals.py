@@ -108,12 +108,12 @@ def send_order_notification(sender, instance, created, **kwargs):
                     # Uncomment to send email
                     ## working now !!
 
-                    # send_mail(
-                    #     subject=subject,
-                    #     body=text_content,
-                    #     recipient_list=[receiver_email],
-                    #     html=formatted_email
-                    # )
+                    send_mail(
+                        subject=subject,
+                        body=text_content,
+                        recipient_list=[receiver_email],
+                        html=formatted_email
+                    )
 
 
                 with open("./utils/htmlemails/notify_seller.html", "r", encoding="utf-8") as file:
@@ -125,12 +125,12 @@ def send_order_notification(sender, instance, created, **kwargs):
                     # Uncomment to send email
                     ## working now !!
 
-                    # send_mail(
-                    #     subject=seller_subject,
-                    #     body=seller_text_content,
-                    #     recipient_list=["khilonabuddy@gmail.com"],
-                    #     html=formatted_seller_email
-                    # )
+                    send_mail(
+                        subject=seller_subject,
+                        body=seller_text_content,
+                        recipient_list=["khilonabuddy@gmail.com"],
+                        html=formatted_seller_email
+                    )
 
 
             except Exception as e:
@@ -143,9 +143,9 @@ def send_order_notification(sender, instance, created, **kwargs):
                 # send_wa_msg(content_template_sid, variables, mobile)
                 
                 variables = [name, order_number, total_items]
-                template_name = wa_plivo_templates["order_sid"]
-                print("WA message sent!!")
-                send_wa_msg_plivo("order_sid", variables, mobile, estore_id=order.estore.id)
+                # template_name = wa_plivo_templates["order_sid"]
+                # print("WA message sent!!")
+                # send_wa_msg_plivo("order_sid", variables, mobile, estore_id=order.estore.id)
             except Exception as e:
                 print(f"WhatsApp message send failed: {e}")
 
