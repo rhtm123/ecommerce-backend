@@ -7,11 +7,11 @@ from utils.send_whatsapp import send_wa_msg_plivo
 from utils.constants import wa_plivo_templates
 from .models import Order, DeliveryPackage, OrderItem
 from utils.send_email import send_mail_thread
-from django.conf import settings
+# from django.conf import settings
 from django.core.cache import cache
 # from django.db.models import Prefetch
 
-from utils.send_gmail import send_mail
+from utils.send_mail import send_mail
 
 from utils.shiporder import ShiprocketAPI
 
@@ -108,20 +108,20 @@ def send_order_notification(sender, instance, created, **kwargs):
                     # Uncomment to send email
                     ## working now !!
 
-                    send_mail_thread(
-                        subject=subject,
-                        body=text_content,
-                        from_email=settings.EMAIL_HOST_USER,
-                        recipient_list=[receiver_email],
-                        html=formatted_email
-                    )
-
-                    # send_mail(
+                    # send_mail_thread(
                     #     subject=subject,
                     #     body=text_content,
+                    #     from_email=settings.EMAIL_HOST_USER,
                     #     recipient_list=[receiver_email],
                     #     html=formatted_email
                     # )
+
+                    send_mail(
+                        subject=subject,
+                        body=text_content,
+                        recipient_list=[receiver_email],
+                        html=formatted_email
+                    )
 
 
                 with open("./utils/htmlemails/notify_seller.html", "r", encoding="utf-8") as file:

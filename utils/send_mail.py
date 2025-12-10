@@ -5,12 +5,11 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.base import MIMEBase
 from email import encoders
 
-from django.conf import settings
-
 from decouple import config
 
-GMAIL_APP_PASSWORD = config("GMAIL_APP_PASSWORD")
-GMAIL_HOST_USER = config("GMAIL_HOST_USER")
+EMAIL_PASSWORD = config("EMAIL_HOST_PASSWORD")
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST = config("EMAIL_HOST")
 
 
 class EmailThread(threading.Thread):
@@ -23,9 +22,9 @@ class EmailThread(threading.Thread):
 
     def run(self):
         try:
-            server = smtplib.SMTP("smtp.gmail.com", 587)
+            server = smtplib.SMTP(EMAIL_HOST, 587)
             server.starttls()
-            server.login(GMAIL_HOST_USER, GMAIL_APP_PASSWORD)
+            server.login(EMAIL_HOST_USER, EMAIL_PASSWORD)
             server.sendmail(
                 self.msg["From"],
                 self.msg["To"].split(","),    # handles multiple emails
@@ -48,7 +47,7 @@ def send_mail(
     Unified email sending helper
     """
 
-    from_email = from_email or GMAIL_HOST_USER
+    from_email = from_email or EMAIL_HOST_USER
 
     # Multipart alternative for HTML + Text
     msg = MIMEMultipart("alternative")
