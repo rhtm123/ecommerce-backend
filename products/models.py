@@ -287,7 +287,7 @@ class ProductListing(models.Model):
         if self.product.unit_size and self.product.size_unit:
             new_name += f" {unit_size} {self.product.size_unit}{pack_suffix}"
 
-        self.name = new_name
+        self.name = new_name.strip(",")
         self.slug = slugify(new_name)
 
         super().save(*args, **kwargs)

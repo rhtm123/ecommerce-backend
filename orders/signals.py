@@ -70,7 +70,7 @@ def send_order_notification(sender, instance, created, **kwargs):
         order_id = instance.id  # Capture only the ID, not the full instance
 
         def delayed_order_notification():
-            time.sleep(5)  # 2-second delay to allow OrderItem updates
+            time.sleep(2)  # 2-second delay to allow OrderItem updates
             # Fetch the latest Order instance from the database
             order = Order.objects.get(id=order_id)
             mobile = order.user.mobile
@@ -116,12 +116,12 @@ def send_order_notification(sender, instance, created, **kwargs):
                     #     html=formatted_email
                     # )
 
-                    send_mail(
-                        subject=subject,
-                        body=text_content,
-                        recipient_list=[receiver_email],
-                        html=formatted_email
-                    )
+                    # send_mail(
+                    #     subject=subject,
+                    #     body=text_content,
+                    #     recipient_list=[receiver_email],
+                    #     html=formatted_email
+                    # )
 
 
                 with open("./utils/htmlemails/notify_seller.html", "r", encoding="utf-8") as file:
@@ -133,12 +133,12 @@ def send_order_notification(sender, instance, created, **kwargs):
                     # Uncomment to send email
                     ## working now !!
 
-                    send_mail(
-                        subject=seller_subject,
-                        body=seller_text_content,
-                        recipient_list=["khilonabuddy@gmail.com"],
-                        html=formatted_seller_email
-                    )
+                    # send_mail(
+                    #     subject=seller_subject,
+                    #     body=seller_text_content,
+                    #     recipient_list=["khilonabuddy@gmail.com"],
+                    #     html=formatted_seller_email
+                    # )
 
 
             except Exception as e:
@@ -205,12 +205,12 @@ def send_package_notification(sender, instance, created, **kwargs):
                     formatted_email = email_content.replace("{estore_name}", estore_name).replace("{name}", name).replace("{tracking_number}", tracking_number).replace("{total_items}", total_items).replace("{tracking_url}", f"{estore_website}/profile/orders/{order_number}").replace('{unsubscribe_url}', f"{estore_website}/profile/unsubscribe-email?email={receiver_email}")
                     subject = f"{estore_name}: Package #{tracking_number} is out for delivery"
                     print("Email sent successfully")
-                    send_mail(
-                        subject=subject,
-                        body=subject,
-                        recipient_list=[receiver_email],
-                        html=formatted_email
-                    )
+                    # send_mail(
+                    #     subject=subject,
+                    #     body=subject,
+                    #     recipient_list=[receiver_email],
+                    #     html=formatted_email
+                    # )
                     # send_mail_thread(subject, subject, settings.EMAIL_HOST_USER, [receiver_email], html=formatted_email)
             except Exception as e:
                 print(f"Email send failed: {e}")
@@ -244,12 +244,12 @@ def send_package_notification(sender, instance, created, **kwargs):
                     subject = f"{estore_name}: Package #{tracking_number} delivered successfully"
                     print("Email sent successfully")
 
-                    send_mail(
-                        subject=subject,
-                        body=subject,
-                        recipient_list=[receiver_email],
-                        html=formatted_email
-                    )
+                    # send_mail(
+                    #     subject=subject,
+                    #     body=subject,
+                    #     recipient_list=[receiver_email],
+                    #     html=formatted_email
+                    # )
                     # send_mail_thread(subject, subject, settings.EMAIL_HOST_USER, [receiver_email], html=formatted_email)
             except Exception as e:
                 print(f"Email send failed: {e}")
