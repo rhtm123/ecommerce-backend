@@ -24,7 +24,7 @@ def convert_pydantic(obj):
         return model_to_dict(obj)
     return obj
 
-def cache_response(timeout=60 * 1, cache_key_func=None):
+def cache_response(timeout=60 * 2, cache_key_func=None):
     def decorator(view_func):
         @wraps(view_func)
         def wrapped_view(request, *args, **kwargs):
