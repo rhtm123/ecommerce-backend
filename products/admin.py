@@ -92,7 +92,7 @@ class ProductListingAdmin(admin.ModelAdmin):
     form = ProductListingForm
     inlines = [ProductListingImageInline]
     readonly_fields = ("name", "tax_category", "brand", "slug", "category", )
-    list_display = ("name", "variant","approved", "brand", "seller", "category", "price", "mrp", "stock" ,"is_service")
+    list_display = ("name", "id" ,"variant", "approved", "brand", "seller", "category", "price", "mrp", "stock" )
     search_fields = ("name",)
     list_filter = ("category", 'brand', 'seller', 'approved')
     actions = ['approve_product_listings', "unapprove_product_listings", "make_out_of_stock"]
