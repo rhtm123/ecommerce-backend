@@ -181,6 +181,9 @@ class ProductListing(models.Model):
     brand = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="brand_product_listings", null=True, blank=True)
     manufacturer = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="manufacturer_product_listings", null=True, blank=True)
     is_service = models.BooleanField(default=False)
+
+    make_id = models.CharField(max_length=100, null=True, blank=True, help_text="Product identification code (e.g., SKU, UPC)")
+
     tax_category = models.ForeignKey(
         TaxCategory, 
         related_name="tax_category_product_listings",
