@@ -43,6 +43,38 @@ class PaymentWebhookCallbackSchema(Schema):
     order_id: Optional[int] = None
     platform: Optional[str] = None
 
+def map_phonepay_status(phonepay_status):
+    """
+    Map PhonePe payment status to our payment model status values
+    
+    PhonePe typically returns: PAYMENT_SUCCESS, PAYMENT_PENDING, PAYMENT_ERROR, etc.
+    We need to map these to: completed, pending, failed
+    
+    Args:
+        phonepay_status: Status string from PhonePe API (case-insensitive)
+    
+    Returns:
+        str: Mapped status value ('completed', 'pending', 'failed', 'refunded')
+    """
+    if not phonepay_status:
+        return 'pending'
+    
+    status_lower = str(phonepay_status).lower()
+    
+    # Map various PhonePe status values to our payment statuses
+    if 'success' in status_lower or 'completed' in status_lower:
+        return 'completed'
+    elif 'pending' in status_lower or 'processing' in status_lower:
+        return 'pending'
+    elif 'fail' in status_lower or 'error' in status_lower:
+        return 'failed'
+    elif 'refund' in status_lower:
+        return 'refunded'
+    else:
+        # Default to pending for unknown statuses
+        print(f"Unknown PhonePe status: {phonepay_status}, defaulting to 'pending'")
+        return 'pending'
+
 # Enhanced webhook endpoint with platform support
 @router.post("/phonepe-webhook/")
 def phonepe_webhook(request):
@@ -74,36 +106,49 @@ def phonepe_webhook(request):
 
     # Extract payment details
     payment_status = data.get("payload", {}).get("state", "UNKNOWN")
-    transaction_id = data.get("payload", {}).get("orderId", "N/A")
-    amount = data.get("payload", {}).get("amount", 0) / 100  # Convert paise to rupees
+    phonepe_order_id = data.get("payload", {}).get("orderId", None)  # PhonePe's Merchant Reference ID
+    
+    if not phonepe_order_id:
+        return HttpResponse(
+            content=json.dumps({"error": "Missing orderId in payload"}),
+            status=400,
+            content_type="application/json"
+        )
 
     # Find and update payment record
     try:
-        payment = Payment.objects.get(transaction_id=transaction_id)
-        payment.status = payment_status.lower()
-        payment.save()
+        # Try to find payment by PhonePe's order_id (Merchant Reference ID) first
+        # Fallback to transaction_id for backward compatibility
+        try:
+            payment = Payment.objects.get(phonepe_order_id=phonepe_order_id)
+        except Payment.DoesNotExist:
+            payment = Payment.objects.get(transaction_id=phonepe_order_id)
         
-        # Handle platform-specific notifications
-        notify_result = notify_customer_by_platform(payment, payment_status, amount)
-        
-        return {"success": True, "message": "Webhook received", "notification_sent": notify_result}
-    except Payment.DoesNotExist:
-        # Fallback to original notification system if payment not found
-        from .utils import notify_customer
-        if payment_status == "COMPLETED":
-            message = f"Payment of ₹{amount} for Transaction ID {transaction_id} was successful!"
-            notify_customer(message)
-        elif payment_status == "FAILED":
-            message = f"Payment for Transaction ID {transaction_id} failed. Please try again."
-            notify_customer(message)
+        # Update payment status
+        mapped_status = map_phonepay_status(payment_status)
+        if payment.status != mapped_status:
+            payment.status = mapped_status
+            payment.save()
+            print(f"Payment {payment.id} status updated to: {mapped_status}")
         else:
-            message = f"Payment for Transaction ID {transaction_id} is still processing."
-            notify_customer(message)
-
-        return {"success": True, "message": "Webhook received"}
+            print(f"Payment {payment.id} status unchanged: {mapped_status}")
+        
+        return {"success": True, "message": "Webhook received and processed"}
+        
+    except Payment.DoesNotExist:
+        print(f"Payment not found for orderId: {phonepe_order_id}")
+        return HttpResponse(
+            content=json.dumps({"error": "Payment not found"}),
+            status=404,
+            content_type="application/json"
+        )
     except Exception as e:
         print(f"Error processing webhook: {e}")
-        return {"success": False, "message": "Error processing webhook"}
+        return HttpResponse(
+            content=json.dumps({"error": "Error processing webhook"}),
+            status=500,
+            content_type="application/json"
+        )
 
 def notify_customer_by_platform(payment, payment_status, amount):
     """
@@ -236,7 +281,15 @@ def verify_payment(request, transaction_id: str = None):
 
     if payment.payment_method == "pg":
         try:
-            order_status_response = check_payment_status(merchant_order_id=transaction_id)
+            # Use PhonePe's order_id (Merchant Reference ID) for status checks, not our transaction_id
+            # Fallback to transaction_id if phonepe_order_id is not available (for backward compatibility)
+            status_check_id = payment.phonepe_order_id or payment.transaction_id
+            if payment.phonepe_order_id:
+                print(f"Using PhonePe order_id (Merchant Reference ID) for status check: {payment.phonepe_order_id}")
+            else:
+                print(f"Warning: phonepe_order_id not found, falling back to transaction_id: {payment.transaction_id}")
+            
+            order_status_response = check_payment_status(merchant_order_id=status_check_id)
             print(f"Payment verification response: {order_status_response}")
             
             # Check if we got an error response from the utility function
@@ -244,16 +297,21 @@ def verify_payment(request, transaction_id: str = None):
                 print(f"PhonePe API error detected: {order_status_response['error_type']}")
                 
                 # For API errors, keep the current status but log the issue
-                if order_status_response['error_type'] in ['API_EMPTY_RESPONSE', 'API_CONNECTION_ERROR']:
-                    print(f"Keeping current payment status '{payment.status}' due to API issues")
+                if order_status_response['error_type'] in ['API_EMPTY_RESPONSE', 'API_CONNECTION_ERROR', 'API_NO_CONTENT', 'API_INVALID_RESPONSE']:
+                    print(f"Keeping current payment status '{payment.status}' due to API issues: {order_status_response.get('message', '')}")
                     return payment
                 elif order_status_response['error_type'] == 'UNKNOWN_ERROR':
                     print(f"Unknown error occurred, keeping current status: {order_status_response.get('message', '')}")
                     return payment
+                elif order_status_response['error_type'] == 'API_HTTP_ERROR':
+                    # For HTTP errors (4xx, 5xx), also keep current status
+                    print(f"HTTP error from PhonePe API, keeping current status: {order_status_response.get('message', '')}")
+                    return payment
             
             # Normal response - update payment status
-            status = order_status_response.get('state', 'pending').lower()
-            print(f"Payment status from PhonePe: {status}, Current status: {payment.status}")
+            phonepay_status = order_status_response.get('state', 'pending')
+            status = map_phonepay_status(phonepay_status)
+            print(f"Payment status from PhonePe: {phonepay_status} -> mapped to: {status}, Current status: {payment.status}")
             
             if payment.status != status:
                 old_status = payment.status
@@ -289,7 +347,15 @@ def mobile_payment_callback(request, payload: PaymentWebhookCallbackSchema):
         
         # Verify the payment status with PhonePe
         if payment.payment_method == "pg":
-            order_status_response = check_payment_status(merchant_order_id=payload.transaction_id)
+            # Use PhonePe's order_id (Merchant Reference ID) for status checks, not transaction_id
+            # Fallback to transaction_id if phonepe_order_id is not available
+            status_check_id = payment.phonepe_order_id or payment.transaction_id
+            if payment.phonepe_order_id:
+                print(f"Using PhonePe order_id (Merchant Reference ID) for status check: {payment.phonepe_order_id}")
+            else:
+                print(f"Warning: phonepe_order_id not found, falling back to transaction_id: {payment.transaction_id}")
+            
+            order_status_response = check_payment_status(merchant_order_id=status_check_id)
             print(order_status_response);
             # Handle API errors gracefully
             if 'error_type' in order_status_response:
@@ -308,7 +374,8 @@ def mobile_payment_callback(request, payload: PaymentWebhookCallbackSchema):
                     }
                 }
             
-            verified_status = order_status_response.get('state', payment.status).lower()
+            phonepay_status = order_status_response.get('state', payment.status)
+            verified_status = map_phonepay_status(phonepay_status)
             
             # Update payment status if it has changed
             if payment.status != verified_status:

@@ -78,4 +78,4 @@ def send_mail(
                 print("Attachment error:", e)
 
     # send email in a thread
-    EmailThread(msg).start()
+    # EmailThread(msg).start()
