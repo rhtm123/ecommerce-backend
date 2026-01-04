@@ -11,7 +11,7 @@ PHONEPE_ENV = config('PHONEPE_ENV', default="SANDBOX", cast=str)
 
 # API Base URLs
 PHONEPE_BASE_URL = (
-    "https://api.phonepe.com/apis"
+    "https://api.phonepe.com/apis/pg"
     if PHONEPE_ENV == "PRODUCTION"
     else "https://api-preprod.phonepe.com/apis/pg-sandbox"
 )
@@ -124,6 +124,7 @@ def create_payment(amount, redirect_url, merchant_order_id=None):
         
         # Check if response is successful
         if response.status_code != 200:
+            print(response.json())
             print(f"PhonePe API returned non-200 status: {response.status_code}")
             raise Exception(f"Payment creation failed with HTTP {response.status_code}")
         
