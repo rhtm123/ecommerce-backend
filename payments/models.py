@@ -41,7 +41,8 @@ class Payment(models.Model):
         choices=PAYMENT_CHOICES,
         default='pending'
     )
-    transaction_id = models.CharField(max_length=100, blank=True, null=True) # merchant_order_id
+    transaction_id = models.CharField(max_length=100, blank=True, null=True) # merchant_order_id (our internal ID)
+    phonepe_order_id = models.CharField(max_length=100, blank=True, null=True, help_text="PhonePe's Merchant Reference ID (order_id from PhonePe response)")
     payment_date = models.DateTimeField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -61,22 +62,52 @@ class Payment(models.Model):
         help_text="Store device information for mobile payments"
     )
     
+    def generate_redirect_url(self, merchant_order_id):
+        """
+        Generate platform-specific redirect URL
+        """
+        if self.platform == 'mobile':
+            # For mobile apps, use deep link URL
+            return f"naigaonmarketapp://payment?transaction_id={merchant_order_id}&order_id={self.order.id}"
+        else:
+            # For web, use traditional website URL
+            base_url = getattr(self.estore, 'website', 'https://nm.thelearningsetu.com') if self.estore else 'https://nm.thelearningsetu.com'
+            if base_url[-1] == "/":
+                return f"{base_url}checkout/{merchant_order_id}"
+            else:
+                return f"{base_url}/checkout/{merchant_order_id}"
+    
     def save(self, *args, **kwargs):
         if not self.pk:
+            merchant_order_id = str(uuid4())
+            self.transaction_id = merchant_order_id
+
             if not self.platform:
                 self.platform = 'web'
-                
-            merchant_order_id = str(uuid4())  # Generate unique order ID
-            self.transaction_id = merchant_order_id
+                            
             if self.payment_method == "pg":
+                # Generate merchant_order_id first
+                
+                
                 # Generate platform-specific redirect URL
-                redirect_url_after_payment = self.generate_redirect_url()
-                merchant_order_id, standard_pay_response = create_payment(
-                    amount=self.amount, 
-                    estore=self.estore,
-                    redirect_url=redirect_url_after_payment
+                redirect_url = self.generate_redirect_url(merchant_order_id)
+                
+                # Create payment with PhonePe (pass the merchant_order_id we generated)
+                standard_pay_response = create_payment(
+                    amount=self.amount,
+                    redirect_url=redirect_url,
+                    merchant_order_id=merchant_order_id
                 )
-                self.payment_url = standard_pay_response.get("redirectUrl")
+                # Handle both camelCase (redirectUrl) and snake_case (redirect_url) formats
+                self.payment_url = standard_pay_response.get("redirectUrl") or standard_pay_response.get("redirect_url")
+                # Extract PhonePe's order_id (Merchant Reference ID) from the response
+                # This is what PhonePe uses for status checks, not our merchantOrderId
+                phonepe_order_id = standard_pay_response.get("orderId") or standard_pay_response.get("order_id")
+                if phonepe_order_id:
+                    self.phonepe_order_id = phonepe_order_id
+                    print(f"Stored PhonePe order_id (Merchant Reference ID): {phonepe_order_id}")
+                else:
+                    print(f"Warning: PhonePe order_id not found in response: {standard_pay_response}")
 
         order = self.order
         order.payment_status = self.status  # Update the order status to match the payment status
@@ -86,18 +117,6 @@ class Payment(models.Model):
         cache.delete(cache_key)
         super().save(*args, **kwargs)
 
-    def generate_redirect_url(self):
-        """
-        Generate platform-specific redirect URL
-        """
-        if self.platform == 'mobile':
-            # For mobile apps, use deep link URL
-            return f"naigaonmarketapp://payment?transaction_id={self.transaction_id or 'temp'}&order_id={self.order.id}"
-        else:
-            # For web, use traditional website URL
-            base_url = getattr(self.estore, 'website', 'https://nm.thelearningsetu.com')
-            # print(base_url)
-            return f"{base_url}/checkout/{self.transaction_id or 'temp'}"
 
     class Meta:
         ordering = ['-created']

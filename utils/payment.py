@@ -73,14 +73,14 @@ def _get_auth_token():
         raise
 
 
-def create_payment(amount, estore, redirect_url=""):
+def create_payment(amount, redirect_url, merchant_order_id=None):
     """
     Create payment with PhonePe
     
     Args:
         amount: Payment amount in rupees
-        estore: EStore instance
-        redirect_url: Custom redirect URL (optional, defaults to estore website)
+        redirect_url: Redirect URL to redirect user after payment (required)
+        merchant_order_id: Optional merchant order ID. If not provided, a UUID will be generated.
     
     Returns:
         tuple: (merchant_order_id, standard_pay_response)
@@ -89,27 +89,17 @@ def create_payment(amount, estore, redirect_url=""):
         - redirect_url: URL to redirect user for payment
         - to_dict(): method to convert response to dictionary
     """
-    merchant_order_id = str(uuid4())  # Generate unique order ID
+    if merchant_order_id is None:
+        merchant_order_id = str(uuid4())  # Generate unique order ID if not provided
     amount_in_paise = int(amount * 100)  # Convert to paise (e.g., 100 = 1 INR)
     
-    # BACKWARD COMPATIBILITY: Use custom redirect_url if provided, otherwise use existing logic
-    if redirect_url:
-        # Use the provided redirect_url (for mobile deep linking)
-        ui_redirect_url = redirect_url
-        print(f"Using custom redirect URL: {ui_redirect_url}")
-    else:
-        # Use existing logic for web redirect
-        if estore.website[-1] == "/":
-            ui_redirect_url = estore.website + "checkout/" + merchant_order_id
-        else:
-            ui_redirect_url = estore.website + "/checkout/" + merchant_order_id
-        print(f"Using default website redirect URL: {ui_redirect_url}")
+    # print(f"Using redirect URL: {redirect_url}")
     
     try:
         # Get authentication token
         auth_token = _get_auth_token()
 
-        print(auth_token)
+        # print(auth_token)
         
         # Prepare API request
         url = f"{PHONEPE_BASE_URL}/checkout/v2/pay"
@@ -120,7 +110,7 @@ def create_payment(amount, estore, redirect_url=""):
             "paymentFlow": {
                 "type": "PG_CHECKOUT",
                 "merchantUrls": {
-                    "redirectUrl": ui_redirect_url
+                    "redirectUrl": redirect_url
                 }
             }
         }
@@ -131,13 +121,23 @@ def create_payment(amount, estore, redirect_url=""):
         }
         
         response = requests.post(url, json=payload, headers=headers)
-        # response.raise_for_status()
+        
+        # Check if response is successful
+        if response.status_code != 200:
+            print(f"PhonePe API returned non-200 status: {response.status_code}")
+            raise Exception(f"Payment creation failed with HTTP {response.status_code}")
         
         response_data = response.json()
-        print("Payment Creation Response:", json.dumps(response_data, indent=2))
+        
+        # PhonePe API wraps the actual payment response in a 'data' field
+        # Extract the nested data if it exists, otherwise use the response as is
+        if 'data' in response_data and response_data['data']:
+            payment_response = response_data['data']
+        else:
+            payment_response = response_data
         
         # Save the merchant_order_id for later use
-        return merchant_order_id, response_data
+        return payment_response
         
     except Exception as e:
         print(f"Error creating payment: {e}")
@@ -155,7 +155,7 @@ def check_payment_status(merchant_order_id):
         dict: Payment status response or fallback response
     """
     try:
-        print(f"Checking payment status for order ID: {merchant_order_id}")
+        # print(f"Checking payment status for order ID: {merchant_order_id}")
         
         # Get authentication token
         auth_token = _get_auth_token()
@@ -169,18 +169,65 @@ def check_payment_status(merchant_order_id):
         }
         
         response = requests.get(url, headers=headers)
-        print(f"HTTP Response Status Code: {response}")
-        # response.raise_for_status()
+        # print(f"HTTP Response Status Code: {response.status_code}")
         
-        order_status_response = response.json()
+        # Handle HTTP 204 (No Content) - valid success response but no body
+        if response.status_code == 204:
+            # print("PhonePe API returned 204 No Content - payment may still be processing")
+            return {
+                "state": "PENDING",
+                "message": "Payment status unavailable - order may still be processing",
+                "error_type": "API_NO_CONTENT",
+                "merchant_order_id": merchant_order_id
+            }
         
-        print(f"PhonePe API Response: {json.dumps(order_status_response, indent=2)}")
+        # Check if response is successful (200-299 range)
+        if not (200 <= response.status_code < 300):
+            # print(f"PhonePe API returned error status: {response.status_code}")
+            return {
+                "state": "PENDING",
+                "message": f"Payment status check failed - HTTP {response.status_code}",
+                "error_type": "API_HTTP_ERROR",
+                "merchant_order_id": merchant_order_id
+            }
         
-        return order_status_response
+        # Try to parse JSON response
+        try:
+            order_status_response = response.json()
+        except (json.JSONDecodeError, ValueError) as e:
+            # If response is empty or not valid JSON, treat as no content
+            print(f"PhonePe API returned non-JSON response: {e}")
+            return {
+                "state": "PENDING",
+                "message": "Payment status unavailable - invalid response format",
+                "error_type": "API_INVALID_RESPONSE",
+                "merchant_order_id": merchant_order_id
+            }
+        
+        # print(f"PhonePe API Response: {json.dumps(order_status_response, indent=2)}")
+        
+        # PhonePe API wraps the actual order status in a 'data' field
+        # Extract the nested data if it exists
+        if 'data' in order_status_response and order_status_response['data']:
+            # Return the nested data which contains the actual order status
+            return order_status_response['data']
+        elif 'state' in order_status_response:
+            # If state is directly in the response, return as is (backward compatibility)
+            return order_status_response
+        else:
+            # If neither structure is found, return error
+            # print("Unexpected PhonePe API response structure")
+            return {
+                "state": "PENDING",
+                "message": "Payment status check failed - Unexpected API response structure",
+                "error_type": "API_INVALID_RESPONSE",
+                "merchant_order_id": merchant_order_id,
+                "raw_response": order_status_response
+            }
         
     except Exception as e:
-        print(f"Error checking order status: {e}")
-        print(f"Error type: {type(e).__name__}")
+        # print(f"Error checking order status: {e}")
+        # print(f"Error type: {type(e).__name__}")
         
         # Handle specific JSON decode errors from PhonePe API
         if "JSONDecodeError" in str(e) or "Expecting value" in str(e):

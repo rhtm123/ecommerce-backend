@@ -6,7 +6,7 @@ from django.db import transaction
 from utils.send_whatsapp import send_wa_msg_plivo
 from utils.constants import wa_plivo_templates
 from .models import Order, DeliveryPackage, OrderItem
-from utils.send_email import send_mail_thread
+# from utils.send_email import send_mail_thread
 # from django.conf import settings
 from django.core.cache import cache
 # from django.db.models import Prefetch
