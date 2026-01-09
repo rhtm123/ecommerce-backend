@@ -92,6 +92,7 @@ def deliverypins(request,
            page: int = 1, 
            page_size: int = 10, 
            estore_id: int = None, 
+           pin_code: str = Query(None, description="Filter by pin code"),
            ordering: str = None, 
     ):
 
@@ -104,6 +105,10 @@ def deliverypins(request,
     if estore_id:
         qs = qs.filter(estore__id=estore_id)
         query += f"&estore_id={estore_id}"
+
+    if pin_code:
+        qs = qs.filter(pin_code=pin_code)
+        query += f"&pin_code={pin_code}"
 
     if ordering:
         qs = qs.order_by(ordering)
