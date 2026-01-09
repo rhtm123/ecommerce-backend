@@ -75,6 +75,35 @@ def map_phonepay_status(phonepay_status):
         print(f"Unknown PhonePe status: {phonepay_status}, defaulting to 'pending'")
         return 'pending'
 
+def map_cashfree_status(cashfree_status):
+    """
+    Map Cashfree payment status to our payment model status values
+    
+    Args:
+        cashfree_status: Status string from Cashfree API
+    
+    Returns:
+        str: Mapped status value ('completed', 'pending', 'failed', 'refunded')
+    """
+    if not cashfree_status:
+        return 'pending'
+    
+    status_lower = str(cashfree_status).lower()
+    
+    # Map Cashfree payment status values to our payment statuses
+    # Cashfree returns: SUCCESS, PENDING, FAILED, etc.
+    if status_lower == 'success' or status_lower == 'paid':
+        return 'completed'
+    elif status_lower == 'pending' or status_lower == 'active' or 'partially' in status_lower:
+        return 'pending'
+    elif status_lower == 'failed' or status_lower == 'expired' or status_lower == 'cancelled' or status_lower == 'user_dropped':
+        return 'failed'
+    elif status_lower == 'refunded' or 'refund' in status_lower:
+        return 'refunded'
+    else:
+        print(f"Unknown Cashfree status: {cashfree_status}, defaulting to 'pending'")
+        return 'pending'
+
 # Enhanced webhook endpoint with platform support
 @router.post("/phonepe-webhook/")
 def phonepe_webhook(request):
@@ -106,9 +135,9 @@ def phonepe_webhook(request):
 
     # Extract payment details
     payment_status = data.get("payload", {}).get("state", "UNKNOWN")
-    phonepe_order_id = data.get("payload", {}).get("orderId", None)  # PhonePe's Merchant Reference ID
+    order_id = data.get("payload", {}).get("orderId", None)  # PhonePe's Merchant Reference ID
     
-    if not phonepe_order_id:
+    if not order_id:
         return HttpResponse(
             content=json.dumps({"error": "Missing orderId in payload"}),
             status=400,
@@ -117,12 +146,8 @@ def phonepe_webhook(request):
 
     # Find and update payment record
     try:
-        # Try to find payment by PhonePe's order_id (Merchant Reference ID) first
-        # Fallback to transaction_id for backward compatibility
-        try:
-            payment = Payment.objects.get(phonepe_order_id=phonepe_order_id)
-        except Payment.DoesNotExist:
-            payment = Payment.objects.get(transaction_id=phonepe_order_id)
+        # Find payment by transaction_id (which stores the gateway-specific ID)
+        payment = Payment.objects.get(transaction_id=order_id)
         
         # Update payment status
         mapped_status = map_phonepay_status(payment_status)
@@ -136,7 +161,7 @@ def phonepe_webhook(request):
         return {"success": True, "message": "Webhook received and processed"}
         
     except Payment.DoesNotExist:
-        print(f"Payment not found for orderId: {phonepe_order_id}")
+        print(f"Payment not found for orderId: {order_id}")
         return HttpResponse(
             content=json.dumps({"error": "Payment not found"}),
             status=404,
@@ -150,68 +175,158 @@ def phonepe_webhook(request):
             content_type="application/json"
         )
 
-def notify_customer_by_platform(payment, payment_status, amount):
+# Cashfree webhook endpoint
+@router.post("/cashfree-webhook/")
+def cashfree_webhook(request):
     """
-    Send platform-specific notifications to customers
-    """
-    try:
-        from .utils import notify_customer  # Your existing notification function
-        
-        if payment_status == "COMPLETED":
-            message = f"Payment of ₹{amount} for Transaction ID {payment.transaction_id} was successful!"
-            
-            if hasattr(payment, 'platform') and payment.platform == 'mobile':
-                # For mobile apps, you might want to send push notifications
-                send_mobile_notification(payment, message, 'success')
-            else:
-                # For web, use existing notification method
-                notify_customer(message)
-                
-        elif payment_status == "FAILED":
-            message = f"Payment for Transaction ID {payment.transaction_id} failed. Please try again."
-            
-            if hasattr(payment, 'platform') and payment.platform == 'mobile':
-                send_mobile_notification(payment, message, 'failed')
-            else:
-                notify_customer(message)
-        else:
-            message = f"Payment for Transaction ID {payment.transaction_id} is still processing."
-            
-            if hasattr(payment, 'platform') and payment.platform == 'mobile':
-                send_mobile_notification(payment, message, 'pending')
-            else:
-                notify_customer(message)
-        
-        return True
-    except Exception as e:
-        print(f"Error sending notification: {e}")
-        return False
-
-def send_mobile_notification(payment, message, status):
-    """
-    Send push notification to mobile app
-    You can implement this using Firebase FCM or other push notification services
+    Handle Cashfree payment webhook
+    Cashfree sends webhook notifications when payment status changes
     """
     try:
-        # Example implementation - you can integrate with Firebase FCM later
-        print(f"Mobile notification for order {payment.order.id}: {message}")
+        # Get raw POST data
+        raw_data = request.body.decode("utf-8")
+        data = json.loads(raw_data)
+        print("Cashfree webhook data:", json.dumps(data, indent=2))
         
-        # Here you would integrate with your push notification service
-        # notification_data = {
-        #     'title': 'Payment Status Update',
-        #     'body': message,
-        #     'data': {
-        #         'type': 'payment_status',
-        #         'transaction_id': payment.transaction_id,
-        #         'order_id': str(payment.order.id),
-        #         'status': status
+        # Cashfree webhook structure:
+        # {
+        #   "data": {
+        #     "order": {
+        #       "order_tags": {
+        #         "link_id": "e9fa3014-f82c-4aa9-bbc3-f0897215c159"
+        #       }
+        #     },
+        #     "payment": {
+        #       "payment_status": "SUCCESS"
         #     }
+        #   }
         # }
+        webhook_data = data.get("data", {})
+        order_data = webhook_data.get("order", {})
+        payment_data = webhook_data.get("payment", {})
         
-        return True
+        # Extract link_id from order_tags.link_id (this is what we stored in transaction_id)
+        order_tags = order_data.get("order_tags", {})
+        link_id = order_tags.get("link_id")
+        
+        # Extract payment status from payment.payment_status (e.g., "SUCCESS", "FAILED", "PENDING")
+        payment_status = payment_data.get("payment_status", "")
+        
+        if not link_id:
+            print(f"Warning: link_id not found in webhook. order_tags: {order_tags}")
+            return HttpResponse(
+                content=json.dumps({"error": "Missing link_id in webhook payload"}),
+                status=400,
+                content_type="application/json"
+            )
+        
+        # Find payment record
+        try:
+            # Find payment by transaction_id (which stores the link_id)
+            payment = Payment.objects.get(transaction_id=link_id)
+            
+            # Map Cashfree payment status to our payment status
+            if payment_status:
+                mapped_status = map_cashfree_status(payment_status)
+                if payment.status != mapped_status:
+                    old_status = payment.status
+                    payment.status = mapped_status
+                    payment.save()
+                    print(f"Payment {payment.id} status updated from '{old_status}' to '{mapped_status}' (from Cashfree: {payment_status})")
+                else:
+                    print(f"Payment {payment.id} status unchanged: {mapped_status}")
+            else:
+                print(f"Warning: No payment_status in Cashfree webhook for link_id: {link_id}")
+            
+            return {"success": True, "message": "Cashfree webhook received and processed"}
+            
+        except Payment.DoesNotExist:
+            print(f"Payment not found for Cashfree link_id: {link_id}")
+            return HttpResponse(
+                content=json.dumps({"error": "Payment not found"}),
+                status=404,
+                content_type="application/json"
+            )
+            
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        print(f"JSON decode error: {e}")
+        return HttpResponse(
+            content=json.dumps({"error": "Invalid webhook payload"}),
+            status=400,
+            content_type="application/json"
+        )
     except Exception as e:
-        print(f"Error sending mobile notification: {e}")
-        return False
+        print(f"Error processing Cashfree webhook: {e}")
+        import traceback
+        traceback.print_exc()
+        return HttpResponse(
+            content=json.dumps({"error": "Error processing webhook"}),
+            status=500,
+            content_type="application/json"
+        )
+
+# def notify_customer_by_platform(payment, payment_status, amount):
+#     """
+#     Send platform-specific notifications to customers
+#     """
+#     try:
+#         from .utils import notify_customer  # Your existing notification function
+        
+#         if payment_status == "COMPLETED":
+#             message = f"Payment of ₹{amount} for Transaction ID {payment.transaction_id} was successful!"
+            
+#             if hasattr(payment, 'platform') and payment.platform == 'mobile':
+#                 # For mobile apps, you might want to send push notifications
+#                 send_mobile_notification(payment, message, 'success')
+#             else:
+#                 # For web, use existing notification method
+#                 notify_customer(message)
+                
+#         elif payment_status == "FAILED":
+#             message = f"Payment for Transaction ID {payment.transaction_id} failed. Please try again."
+            
+#             if hasattr(payment, 'platform') and payment.platform == 'mobile':
+#                 send_mobile_notification(payment, message, 'failed')
+#             else:
+#                 notify_customer(message)
+#         else:
+#             message = f"Payment for Transaction ID {payment.transaction_id} is still processing."
+            
+#             if hasattr(payment, 'platform') and payment.platform == 'mobile':
+#                 send_mobile_notification(payment, message, 'pending')
+#             else:
+#                 notify_customer(message)
+        
+#         return True
+#     except Exception as e:
+#         print(f"Error sending notification: {e}")
+#         return False
+
+# def send_mobile_notification(payment, message, status):
+#     """
+#     Send push notification to mobile app
+#     You can implement this using Firebase FCM or other push notification services
+#     """
+#     try:
+#         # Example implementation - you can integrate with Firebase FCM later
+#         print(f"Mobile notification for order {payment.order.id}: {message}")
+        
+#         # Here you would integrate with your push notification service
+#         # notification_data = {
+#         #     'title': 'Payment Status Update',
+#         #     'body': message,
+#         #     'data': {
+#         #         'type': 'payment_status',
+#         #         'transaction_id': payment.transaction_id,
+#         #         'order_id': str(payment.order.id),
+#         #         'status': status
+#         #     }
+#         # }
+        
+#         return True
+#     except Exception as e:
+#         print(f"Error sending mobile notification: {e}")
+#         return False
 
 @router.post("/payments/", response=PaymentOutSchema, auth=JWTAuth())
 def create_payment(request, payload: PaymentCreateSchema):
@@ -281,23 +396,26 @@ def verify_payment(request, transaction_id: str = None):
 
     if payment.payment_method == "pg":
         try:
-            # Use PhonePe's order_id (Merchant Reference ID) for status checks, not our transaction_id
-            # Fallback to transaction_id if phonepe_order_id is not available (for backward compatibility)
-            status_check_id = payment.phonepe_order_id or payment.transaction_id
-            if payment.phonepe_order_id:
-                print(f"Using PhonePe order_id (Merchant Reference ID) for status check: {payment.phonepe_order_id}")
-            else:
-                print(f"Warning: phonepe_order_id not found, falling back to transaction_id: {payment.transaction_id}")
+            # Determine which gateway and ID to use for status check
+            gateway = payment.payment_gateway or "PhonePe"
             
-            order_status_response = check_payment_status(merchant_order_id=status_check_id)
+            # Use transaction_id for status checks (stores gateway-specific ID)
+            status_check_id = payment.transaction_id
+            if not status_check_id:
+                print(f"Warning: transaction_id not found for payment {payment.id}")
+                return payment
+            
+            print(f"Using {gateway} with transaction_id: {status_check_id}")
+            
+            order_status_response = check_payment_status(merchant_order_id=status_check_id, gateway=gateway)
             print(f"Payment verification response: {order_status_response}")
             
             # Check if we got an error response from the utility function
             if 'error_type' in order_status_response:
-                print(f"PhonePe API error detected: {order_status_response['error_type']}")
+                print(f"{gateway} API error detected: {order_status_response['error_type']}")
                 
                 # For API errors, keep the current status but log the issue
-                if order_status_response['error_type'] in ['API_EMPTY_RESPONSE', 'API_CONNECTION_ERROR', 'API_NO_CONTENT', 'API_INVALID_RESPONSE']:
+                if order_status_response['error_type'] in ['API_EMPTY_RESPONSE', 'API_CONNECTION_ERROR', 'API_NO_CONTENT', 'API_INVALID_RESPONSE', 'API_NOT_FOUND']:
                     print(f"Keeping current payment status '{payment.status}' due to API issues: {order_status_response.get('message', '')}")
                     return payment
                 elif order_status_response['error_type'] == 'UNKNOWN_ERROR':
@@ -305,13 +423,22 @@ def verify_payment(request, transaction_id: str = None):
                     return payment
                 elif order_status_response['error_type'] == 'API_HTTP_ERROR':
                     # For HTTP errors (4xx, 5xx), also keep current status
-                    print(f"HTTP error from PhonePe API, keeping current status: {order_status_response.get('message', '')}")
+                    print(f"HTTP error from {gateway} API, keeping current status: {order_status_response.get('message', '')}")
                     return payment
             
-            # Normal response - update payment status
-            phonepay_status = order_status_response.get('state', 'pending')
-            status = map_phonepay_status(phonepay_status)
-            print(f"Payment status from PhonePe: {phonepay_status} -> mapped to: {status}, Current status: {payment.status}")
+            # Normal response - update payment status based on gateway
+            gateway = payment.payment_gateway or "PhonePe"
+            
+            if gateway.lower() == "cashfree":
+                # Cashfree returns link_status in the response
+                cashfree_status = order_status_response.get('link_status') or order_status_response.get('state', 'pending')
+                status = map_cashfree_status(cashfree_status)
+                print(f"Payment status from Cashfree: {cashfree_status} -> mapped to: {status}, Current status: {payment.status}")
+            else:
+                # PhonePe returns state in the response
+                phonepay_status = order_status_response.get('state', 'pending')
+                status = map_phonepay_status(phonepay_status)
+                print(f"Payment status from PhonePe: {phonepay_status} -> mapped to: {status}, Current status: {payment.status}")
             
             if payment.status != status:
                 old_status = payment.status
@@ -319,9 +446,9 @@ def verify_payment(request, transaction_id: str = None):
                 payment.save()
                 print(f"Payment status updated from '{old_status}' to '{status}'")
                 
-                # Send platform-specific notification if status changed
-                if status in ['completed', 'failed']:
-                    notify_customer_by_platform(payment, status.upper(), float(payment.amount))
+                # Notification functionality commented out
+                # if status in ['completed', 'failed']:
+                #     notify_customer_by_platform(payment, status.upper(), float(payment.amount))
             else:
                 print("Payment status unchanged")
                 
@@ -345,21 +472,34 @@ def mobile_payment_callback(request, payload: PaymentWebhookCallbackSchema):
     try:
         payment = Payment.objects.get(transaction_id=payload.transaction_id)
         
-        # Verify the payment status with PhonePe
+        # Verify the payment status with the appropriate gateway
         if payment.payment_method == "pg":
-            # Use PhonePe's order_id (Merchant Reference ID) for status checks, not transaction_id
-            # Fallback to transaction_id if phonepe_order_id is not available
-            status_check_id = payment.phonepe_order_id or payment.transaction_id
-            if payment.phonepe_order_id:
-                print(f"Using PhonePe order_id (Merchant Reference ID) for status check: {payment.phonepe_order_id}")
-            else:
-                print(f"Warning: phonepe_order_id not found, falling back to transaction_id: {payment.transaction_id}")
+            gateway = payment.payment_gateway or "PhonePe"
             
-            order_status_response = check_payment_status(merchant_order_id=status_check_id)
+            # Use transaction_id for status checks (stores gateway-specific ID)
+            status_check_id = payment.transaction_id
+            if not status_check_id:
+                print(f"Warning: transaction_id not found for payment {payment.id}")
+                return {
+                    "success": False,
+                    "status": payment.status,
+                    "message": "Transaction ID not found",
+                    "payment": {
+                        "id": payment.id,
+                        "transaction_id": payment.transaction_id,
+                        "status": payment.status,
+                        "amount": float(payment.amount),
+                        "order_id": payment.order.id
+                    }
+                }
+            
+            print(f"Using {gateway} with transaction_id: {status_check_id}")
+            
+            order_status_response = check_payment_status(merchant_order_id=status_check_id, gateway=gateway)
             print(order_status_response);
             # Handle API errors gracefully
             if 'error_type' in order_status_response:
-                print(f"PhonePe API error in mobile callback: {order_status_response['error_type']}")
+                print(f"{gateway} API error in mobile callback: {order_status_response['error_type']}")
                 return {
                     "success": False,
                     "status": payment.status,
@@ -374,8 +514,13 @@ def mobile_payment_callback(request, payload: PaymentWebhookCallbackSchema):
                     }
                 }
             
-            phonepay_status = order_status_response.get('state', payment.status)
-            verified_status = map_phonepay_status(phonepay_status)
+            # Map status based on gateway
+            if gateway.lower() == "cashfree":
+                cashfree_status = order_status_response.get('link_status') or order_status_response.get('state', payment.status)
+                verified_status = map_cashfree_status(cashfree_status)
+            else:
+                phonepay_status = order_status_response.get('state', payment.status)
+                verified_status = map_phonepay_status(phonepay_status)
             
             # Update payment status if it has changed
             if payment.status != verified_status:

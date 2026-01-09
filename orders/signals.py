@@ -90,7 +90,7 @@ def send_order_notification(sender, instance, created, **kwargs):
                         template_name = wa_plivo_templates["seller_notify_sid"]
                         variables = [seller_name, order_number, len(items)]
                         
-                        send_wa_msg_plivo("seller_notify_sid", variables, seller_mobile, estore_id=order.estore.id)
+                        # send_wa_msg_plivo("seller_notify_sid", variables, seller_mobile, estore_id=order.estore.id)
                 except Exception as e:
                     print(f"WhatsApp message send failed: {e}")
 
@@ -185,7 +185,7 @@ def send_package_notification(sender, instance, created, **kwargs):
         try:
             if created:
                 shiprocket_api = ShiprocketAPI()
-                # shiprocket_api.create_order(package)
+                shiprocket_api.create_order(package)
         except Exception as e:
             print(f"Shiprocket order creation failed: {e}")
 

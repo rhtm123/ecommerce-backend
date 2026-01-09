@@ -41,14 +41,13 @@ class Payment(models.Model):
         choices=PAYMENT_CHOICES,
         default='pending'
     )
-    transaction_id = models.CharField(max_length=100, blank=True, null=True) # merchant_order_id (our internal ID)
-    phonepe_order_id = models.CharField(max_length=100, blank=True, null=True, help_text="PhonePe's Merchant Reference ID (order_id from PhonePe response)")
+    transaction_id = models.CharField(max_length=100, blank=True, null=True, help_text="Gateway-specific ID (PhonePe order_id or Cashfree cf_link_id)")
     payment_date = models.DateTimeField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     
     # Additional fields you might want
-    payment_gateway = models.CharField(max_length=50, blank=True, null=True, default="PhonePe")  # e.g., Stripe, PayPal
+    payment_gateway = models.CharField(max_length=50, blank=True, null=True, default="PhonePe")  # e.g., Stripe, PayPal (keeping for backward compatibility)
     payment_url = models.TextField(blank=True, null=True)
     
     platform = models.CharField(
@@ -71,7 +70,7 @@ class Payment(models.Model):
             return f"naigaonmarketapp://payment?transaction_id={merchant_order_id}&order_id={self.order.id}"
         else:
             # For web, use traditional website URL
-            base_url = getattr(self.estore, 'website', 'https://nm.thelearningsetu.com') if self.estore else 'https://nm.thelearningsetu.com'
+            base_url = getattr(self.estore, 'website', 'https://kb.thelearningsetu.com') if self.estore else 'https://kb.thelearningsetu.com'
             if base_url[-1] == "/":
                 return f"{base_url}checkout/{merchant_order_id}"
             else:
@@ -86,29 +85,40 @@ class Payment(models.Model):
                 self.platform = 'web'
                             
             if self.payment_method == "pg":
-                # Generate merchant_order_id first
-                
+                # Default to PhonePe if no gateway specified
+                gateway = self.payment_gateway or "PhonePe"
                 
                 # Generate platform-specific redirect URL
                 redirect_url = self.generate_redirect_url(merchant_order_id)
                 
-                # Create payment with PhonePe (pass the merchant_order_id we generated)
+                # Get customer details from order if available (for Cashfree)
+                customer_details = None
+                if self.order and hasattr(self.order, 'user'):
+                    user = self.order.user
+                    name = user.first_name + " " + user.last_name
+                    customer_details = {
+                        "customer_name": name,
+                        "customer_email": getattr(user, 'email', '[email protected]') or '[email protected]',
+                        "customer_phone": getattr(user, 'mobile', '9999999999') or '9999999999'
+                    }
+                
+                # Create payment with selected gateway
                 standard_pay_response = create_payment(
                     amount=self.amount,
                     redirect_url=redirect_url,
-                    merchant_order_id=merchant_order_id
+                    merchant_order_id=merchant_order_id,
+                    gateway=gateway,
+                    customer_details=customer_details,
+                    link_purpose=f"Payment for Order #{self.order.id}"
                 )
-                # Handle both camelCase (redirectUrl) and snake_case (redirect_url) formats
-                self.payment_url = standard_pay_response.get("redirectUrl") or standard_pay_response.get("redirect_url")
-                # Extract PhonePe's order_id (Merchant Reference ID) from the response
-                # This is what PhonePe uses for status checks, not our merchantOrderId
-                phonepe_order_id = standard_pay_response.get("orderId") or standard_pay_response.get("order_id")
-                if phonepe_order_id:
-                    self.phonepe_order_id = phonepe_order_id
-                    print(f"Stored PhonePe order_id (Merchant Reference ID): {phonepe_order_id}")
-                else:
-                    print(f"Warning: PhonePe order_id not found in response: {standard_pay_response}")
-
+                
+                # Handle payment URL from both gateways
+                self.payment_url = (
+                    standard_pay_response.get("redirectUrl") or 
+                    standard_pay_response.get("link_url") or
+                    standard_pay_response.get("redirect_url")
+                )
+            
         order = self.order
         order.payment_status = self.status  # Update the order status to match the payment status
         order.save()  # Save the updated
