@@ -47,7 +47,7 @@ class ShiprocketAPI:
         payload = {
             "order_id": order.order_number,
             "order_date": order.created.strftime("%Y-%m-%d"),
-            "pickup_location": order.estore.name,  # or static if you don't support dynamic pickups
+            "pickup_location": "work",  # or static if you don't support dynamic pickups
             "channel_id": "",  # optional
             "billing_customer_name": shipping_address.name.split()[0],
             "billing_last_name": shipping_address.name.split()[1] if len(shipping_address.name.split()) > 1 else "",
@@ -57,7 +57,7 @@ class ShiprocketAPI:
             "billing_state": shipping_address.address.state,
             "billing_country": "India",
             "billing_email": order.user.email,
-            "billing_phone": shipping_address.mobile,
+            "billing_phone": shipping_address.mobile if len(str(shipping_address.mobile)) > 0 else "8888877777",
             "shipping_is_billing": True,
             "order_items": items,
             "payment_method": "Prepaid" if order.payment_status == "completed" else "COD",
