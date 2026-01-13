@@ -20,7 +20,7 @@ PHONEPE_BASE_URL = (
 CASHFREE_CLIENT_ID = config('CASHFREE_CLIENT_ID', default="", cast=str)
 CASHFREE_CLIENT_SECRET = config('CASHFREE_CLIENT_SECRET', default="", cast=str)
 CASHFREE_ENV = config('CASHFREE_ENV', default="SANDBOX", cast=str)
-CASHFREE_API_VERSION = config('CASHFREE_API_VERSION', default="2023-08-01", cast=str)
+CASHFREE_API_VERSION = config('CASHFREE_API_VERSION', default="2025-01-01", cast=str)
 
 # Cashfree API Base URLs
 CASHFREE_BASE_URL = (
@@ -384,23 +384,16 @@ def check_payment_status_cashfree(link_id):
         }
 
 
-def check_payment_status(merchant_order_id, gateway="PhonePe"):
+def check_payment_status_phonepe(merchant_order_id):
     """
-    Check payment status with specified gateway (PhonePe or Cashfree)
+    Check payment status with PhonePe API
     
     Args:
-        merchant_order_id: The merchant order ID (for PhonePe) or link_id (for Cashfree)
-        gateway: Payment gateway to use ("PhonePe" or "Cashfree"), defaults to "PhonePe"
+        merchant_order_id: The merchant order ID
     
     Returns:
         dict: Payment status response or fallback response
     """
-    gateway = gateway.strip() if gateway else "PhonePe"
-    
-    if gateway.lower() == "cashfree":
-        return check_payment_status_cashfree(merchant_order_id)
-    
-    # Default to PhonePe for backward compatibility
     try:
         # print(f"Checking payment status for order ID: {merchant_order_id}")
         
@@ -505,3 +498,23 @@ def check_payment_status(merchant_order_id, gateway="PhonePe"):
                 "error_type": "UNKNOWN_ERROR",
                 "merchant_order_id": merchant_order_id
             }
+
+
+def check_payment_status(merchant_order_id, gateway="PhonePe"):
+    """
+    Check payment status with specified gateway (PhonePe or Cashfree)
+    
+    Args:
+        merchant_order_id: The merchant order ID (for PhonePe) or link_id (for Cashfree)
+        gateway: Payment gateway to use ("PhonePe" or "Cashfree"), defaults to "PhonePe"
+    
+    Returns:
+        dict: Payment status response or fallback response
+    """
+    gateway = gateway.strip() if gateway else "PhonePe"
+    
+    if gateway.lower() == "cashfree":
+        return check_payment_status_cashfree(merchant_order_id)
+    
+    # Default to PhonePe for backward compatibility
+    return check_payment_status_phonepe(merchant_order_id)

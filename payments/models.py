@@ -26,6 +26,11 @@ PLATFORM_CHOICES = (
     ('api', 'API'),
 )
 
+PAYMENT_GATEWAY_CHOICES = (
+    ('Cashfree', 'Cashfree'),
+    ('PhonePe', 'PhonePe'),
+)
+
 
 # Add this new Payment model
 class Payment(models.Model):
@@ -47,7 +52,13 @@ class Payment(models.Model):
     updated = models.DateTimeField(auto_now=True)
     
     # Additional fields you might want
-    payment_gateway = models.CharField(max_length=50, blank=True, null=True, default="PhonePe")  # e.g., Stripe, PayPal (keeping for backward compatibility)
+    payment_gateway = models.CharField(
+        max_length=50,
+        choices=PAYMENT_GATEWAY_CHOICES,
+        blank=True,
+        null=True,
+        default="Cashfree"
+    )
     payment_url = models.TextField(blank=True, null=True)
     
     platform = models.CharField(
