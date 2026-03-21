@@ -33,7 +33,8 @@ def get_order_items_by_seller(order):
 @receiver(post_save, sender=Order)
 def clear_order_cache(sender, instance, **kwargs):
     try:
-        pattern = f"*:/api/order/orders*user_id={instance.user.id}*"   
+        # Clear all orders list cache (admin list, user list, etc.)
+        pattern = "*:/api/order/orders*"
         for key in cache.client.get_client().scan_iter(pattern):
             cache.client.get_client().delete(key)
     except Exception as e:
