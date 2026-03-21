@@ -50,6 +50,7 @@ def get_order_delivery_status(request, order_number: str):
                 "product_listing_name": item.order_item.product_listing.name,
                 "product_slug": item.order_item.product_listing.slug,
                 "product_main_image": item.order_item.product_listing.main_image.url if item.order_item.product_listing.main_image else None,
+                "product_cost": float(item.order_item.product_listing.product_cost) if item.order_item.product_listing.product_cost is not None else None,
                 "quantity": item.order_item.quantity,
                 "status": item.order_item.status,
                 "price": float(item.order_item.price),
@@ -65,6 +66,7 @@ def get_order_delivery_status(request, order_number: str):
             "status": package.status,
             "product_listing_count": package.product_listing_count,
             "total_units": package.total_units,
+            "package_cost": float(package.package_cost or 0),
             "delivery_out_date": package.delivery_out_date.isoformat() if package.delivery_out_date else None,
             "delivered_date": package.delivered_date.isoformat() if package.delivered_date else None,
             "package_items": package_item_data,
@@ -81,6 +83,7 @@ def get_order_delivery_status(request, order_number: str):
                 "product_listing_name": order_item.product_listing.name,
                 "product_slug": order_item.product_listing.slug,
                 "product_main_image": order_item.product_listing.main_image.url if order_item.product_listing.main_image else None,
+                "product_cost": float(order_item.product_listing.product_cost) if order_item.product_listing.product_cost is not None else None,
                 "quantity": order_item.quantity,
                 "status": order_item.status,
                 "price": float(order_item.price),
@@ -101,8 +104,13 @@ def get_order_delivery_status(request, order_number: str):
         "order_id": order.id,
         "order_number": order.order_number,
         "user": order.user.email,
+        "source": order.source,
+        "order_type": order.order_type,
         "total_amount": float(order.total_amount),
         "total_discount": float(order.total_discount),
+        "package_cost": float(order.package_cost or 0),
+        "platform_cost": float(order.platform_cost or 0),
+        "total_received": float(order.total_received) if order.total_received is not None else None,
         "payment_status": order.payment_status,
         "packages": package_data,
         "items_without_package": items_without_package,
@@ -227,11 +235,12 @@ def orders(request,
            user_id: int = None, 
            ordering: str = None, 
            estore_id: int = None,
+           source: str = None,
+           order_type: str = None,
            items_needed: bool = False
     ):
 
     qs = Order.objects.all()
-
 
     query = ""
 
@@ -242,6 +251,14 @@ def orders(request,
     if estore_id:
         qs = qs.filter(estore__id=estore_id)
         query += f"&estore_id={estore_id}"
+
+    if source:
+        qs = qs.filter(source=source)
+        query += f"&source={source}"
+
+    if order_type:
+        qs = qs.filter(order_type=order_type)
+        query += f"&order_type={order_type}"
 
     if ordering:
         qs = qs.order_by(ordering)
@@ -258,8 +275,21 @@ def orders(request,
             "id": order.id,
             "order_number": order.order_number,
             "user_id": order.user_id,
+            "user": {
+                "id": order.user.id,
+                "first_name": order.user.first_name,
+                "last_name": order.user.last_name,
+                "email": order.user.email,
+            } if order.user else None,
+            "source": order.source,
+            "order_type": order.order_type,
+            "external_order_id": order.external_order_id,
+            "external_shipment_id": order.external_shipment_id,
+            "package_cost": float(order.package_cost or 0),
+            "platform_cost": float(order.platform_cost or 0),
+            "total_received": float(order.total_received) if order.total_received is not None else None,
+            "payment_gateway_fee": float(order.payment_gateway_fee or 0),
             "total_amount": float(order.total_amount or 0),
-            # "subtotal_amount": float(order.subtotal_amount or 0),
             "total_discount": float(order.total_discount or 0),
             "shipping_address_id": order.shipping_address_id,
             "payment_status": order.payment_status,
@@ -302,12 +332,12 @@ def orders(request,
                     "product_listing_name": item.product_listing.name,
                     "product_slug": item.product_listing.slug,
                     "product_main_image": item.product_listing.main_image.url if item.product_listing.main_image else None,
+                    "product_cost": float(item.product_listing.product_cost) if item.product_listing.product_cost is not None else None,
                     "quantity": item.quantity,
                     "status": item.status,
                     "price": float(item.price or 0),
                     "mrp": float(item.product_listing.mrp) if item.product_listing.mrp else float(item.product_listing.mrp or item.price),
                     "review_added": item.review_added or False,
-                    # "original_price": float(item.original_price or 0),
                     "discount_amount": float(item.discount_amount or 0),
                     "subtotal": float(item.subtotal or 0),
                     "shipped_date": item.shipped_date,
@@ -362,6 +392,7 @@ def retrieve_order(request, order_id: int):
         item_data = {
             "id": item.id,
             "product_listing_name": item.product_listing.name,
+            "product_cost": float(item.product_listing.product_cost) if item.product_listing.product_cost is not None else None,
             "quantity": item.quantity,
             "status": item.status,
             "price": float(item.price),
@@ -369,7 +400,6 @@ def retrieve_order(request, order_id: int):
             "discount_amount": float(item.discount_amount),
             "subtotal": float(item.subtotal),
             "shipped_date": item.shipped_date,
-            # "applied_offers": applied_offers
         }
         order_items.append(item_data)
     
@@ -396,8 +426,16 @@ def retrieve_order(request, order_id: int):
             "updated": order.user.updated,
         } if order.user else None,
         "order_number": order.order_number,
+        "source": order.source,
+        "order_type": order.order_type,
+        "external_order_id": order.external_order_id,
+        "external_shipment_id": order.external_shipment_id,
+        "package_cost": float(order.package_cost or 0),
+        "platform_cost": float(order.platform_cost or 0),
+        "total_received": float(order.total_received) if order.total_received is not None else None,
+        "payment_gateway_fee": float(order.payment_gateway_fee or 0),
         "total_amount": float(order.total_amount),
-        "subtotal_amount": float(order.total_amount), 
+        "subtotal_amount": float(order.total_amount),
         "total_discount": float(order.total_discount),
         "shipping_address": {
             "id": order.shipping_address.id,
@@ -514,6 +552,7 @@ def order_items(
                 "slug": item.product_listing.slug,
                 "price": item.product_listing.price,
                 "mrp": float(item.product_listing.mrp) if item.product_listing.mrp else float(item.product_listing.mrp or item.product_listing.price),
+                "product_cost": float(item.product_listing.product_cost) if item.product_listing.product_cost is not None else None,
                 "cgst_rate": item.product_listing.tax_category.cgst_rate if item.product_listing.tax_category else None,
                 "sgst_rate": item.product_listing.tax_category.sgst_rate if item.product_listing.tax_category else None,
                 "igst_rate": item.product_listing.tax_category.igst_rate if item.product_listing.tax_category else None,
@@ -580,6 +619,7 @@ def retrieve_order_item(request, order_item_id: int):
                 "slug": product_listing.slug,
                 "price": product_listing.price,
                 "mrp": mrp,
+                "product_cost": float(product_listing.product_cost) if product_listing.product_cost is not None else None,
                 "cgst_rate": product_listing.tax_category.cgst_rate if product_listing.tax_category else None,
                 "sgst_rate": product_listing.tax_category.sgst_rate if product_listing.tax_category else None,
                 "igst_rate": product_listing.tax_category.igst_rate if product_listing.tax_category else None,

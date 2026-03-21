@@ -15,6 +15,8 @@ class UserCreateSchema(Schema):
     username: str
     password: str
     email: Optional[str] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
     mobile: Optional[str] = None
     alternate_mobile: Optional[str] = None
     gender: Optional[str] = None

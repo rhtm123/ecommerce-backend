@@ -8,6 +8,7 @@ from .schemas import ShippingAddressCreateSchema, ShippingAddressUpdateSchema, S
 
 
 from django.contrib.auth.hashers import make_password
+from django.db.models import Q
 from typing import List
 from django.shortcuts import get_object_or_404
 
@@ -303,6 +304,8 @@ def create_user(request, payload: UserCreateSchema):
     user = User(
         username=payload.username,
         email=payload.email,
+        first_name=payload.first_name,
+        last_name=payload.last_name,
         mobile=payload.mobile,
         alternate_mobile=payload.alternate_mobile,
         role=payload.role,
@@ -326,7 +329,13 @@ def users(request,  page: int = 1, page_size: int = 10, search: str = None, role
         query = query + "&role=" + role
 
     if search:
-        qs = qs.filter(mobile__icontains=search)
+        qs = qs.filter(
+            Q(username__icontains=search)
+            | Q(email__icontains=search)
+            | Q(first_name__icontains=search)
+            | Q(last_name__icontains=search)
+            | Q(mobile__icontains=search)
+        )
         query = query + "&search=" + search
 
     

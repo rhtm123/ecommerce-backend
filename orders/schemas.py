@@ -30,6 +30,7 @@ class ProductListingSchema(Schema):
     slug: str
     price: Optional[float] = None
     mrp: Optional[float] = None
+    product_cost: Optional[float] = None
     cgst_rate: Optional[float] = None
     sgst_rate: Optional[float] = None
     igst_rate: Optional[float] = None
@@ -112,11 +113,11 @@ class OrderItemSchema(Schema):
     product_slug: Optional[str] = None
     product_listing_name: Optional[str] = None
     product_main_image: Optional[str] = Field(None, description="URL for the main product image")
+    product_cost: Optional[float] = None
     quantity: Optional[int] = 0
     status: Optional[str] = None
     price: Optional[float] = 0
     mrp: Optional[float] = 0
-    # original_price: Optional[float] = None
     discount_amount: Optional[float] = 0
     subtotal: Optional[float] = 0
     shipped_date: Optional[datetime] = None
@@ -140,24 +141,24 @@ class OrderOutSchema(Schema):
     id: int
     user_id: int
     order_number: Optional[str] = None
-    # status: str
+    source: Optional[str] = 'direct'
+    order_type: Optional[str] = 'new'
+    external_order_id: Optional[str] = None
+    external_shipment_id: Optional[str] = None
+    package_cost: Optional[float] = 0
+    platform_cost: Optional[float] = 0
+    total_received: Optional[float] = None
+    payment_gateway_fee: Optional[float] = 0
     total_amount: float
-    # subtotal_amount: float
-
     total_discount: Optional[float] = 0
     shipping_address_id: Optional[int] = None
     payment_status: str
-    # tracking_number: Optional[str] = None
     notes: Optional[str] = None
-    # discount: float
     created: datetime
     updated: datetime
     items: Optional[List[OrderItemSchema]] = None
-    # applied_coupons: Optional[List[AppliedCouponSchema]] = None
-
-    coupon: Optional[CouponSchema] = None 
+    coupon: Optional[CouponSchema] = None
     offer: Optional[OfferSchema] = None
-
     discount_amount_coupon: Optional[float] = 0
     discount_amount_offer: Optional[float] = 0
 
@@ -176,37 +177,52 @@ class UserOutSchema(Schema):
 class OrderOutOneSchema(Schema):
     id: int
     user: Optional[UserOutSchema] = None
-    # status: str
     order_number: Optional[str] = None
+    source: Optional[str] = 'direct'
+    order_type: Optional[str] = 'new'
+    external_order_id: Optional[str] = None
+    external_shipment_id: Optional[str] = None
+    package_cost: Optional[float] = 0
+    platform_cost: Optional[float] = 0
+    total_received: Optional[float] = None
+    payment_gateway_fee: Optional[float] = 0
     total_amount: float
-    # subtotal_amount: float
     total_discount: float
     shipping_address: Optional[ShippingAddressOutSchema] = None
     payment_status: str
-    # tracking_number: Optional[str] = None
     notes: Optional[str] = None
-    # discount: float
     created: datetime
     updated: datetime
     items: Optional[List[OrderItemSchema]] = None
-    # applied_coupons: Optional[List[AppliedCouponSchema]] = None
 
 class OrderCreateSchema(Schema):
     user_id: int
     shipping_address_id: Optional[int] = None
     estore_id: Optional[int] = None
-    # notes: Optional[str] = None
-    # discount: Optional[float] = 0.00
     total_amount: Optional[float] = 0.00
     offer_id: Optional[int] = None
     coupon_id: Optional[int] = None
+    source: Optional[str] = 'direct'
+    order_type: Optional[str] = 'new'
+    external_order_id: Optional[str] = None
+    external_shipment_id: Optional[str] = None
+    package_cost: Optional[float] = 0
+    platform_cost: Optional[float] = 0
+    total_received: Optional[float] = None
+    payment_gateway_fee: Optional[float] = 0
 
 class OrderUpdateSchema(Schema):
-    # status: Optional[str] = None
     payment_status: Optional[str] = None
-    # tracking_number: Optional[str] = None
     notes: Optional[str] = None
     discount: Optional[float] = None
+    source: Optional[str] = None
+    order_type: Optional[str] = None
+    external_order_id: Optional[str] = None
+    external_shipment_id: Optional[str] = None
+    package_cost: Optional[float] = None
+    platform_cost: Optional[float] = None
+    total_received: Optional[float] = None
+    payment_gateway_fee: Optional[float] = None
 
 
 
@@ -284,12 +300,13 @@ class DeliveryPackageUpdateSchema(Schema):
     pass 
 
 class DeliveryPackageOutSchema(Schema):
-    id: int 
+    id: int
     status: str
     order_id: int
-    tracking_number: str 
-    product_listing_count: int 
-    total_units: int 
+    tracking_number: str
+    product_listing_count: int
+    total_units: int
+    package_cost: Optional[float] = 0
     delivery_out_date: Optional[datetime] = None
     delivered_date: Optional[datetime] = None
 
@@ -325,17 +342,23 @@ class DeliveryPackageSchema(Schema):
     status: str
     product_listing_count: int
     total_units: int
+    package_cost: Optional[float] = 0
     delivery_out_date: Optional[datetime] = None
     delivered_date: Optional[datetime] = None
     package_items: List[OrderItemSchema]
-    created : Optional[datetime] = None
+    created: Optional[datetime] = None
 
 class OrderDeliveryStatusSchema(Schema):
     order_id: int
     order_number: str
     user: str
+    source: Optional[str] = 'direct'
+    order_type: Optional[str] = 'new'
     total_amount: float
     total_discount: float
+    package_cost: Optional[float] = 0
+    platform_cost: Optional[float] = 0
+    total_received: Optional[float] = None
     payment_status: str
     packages: List[DeliveryPackageSchema]
     items_without_package: List[OrderItemSchema]
