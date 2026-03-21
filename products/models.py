@@ -236,6 +236,10 @@ class ProductListing(models.Model):
     importer = models.ForeignKey(Entity, on_delete=models.SET_NULL, related_name="importer_listings", null=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     mrp = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    product_cost = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0, null=True, blank=True,
+        help_text="Cost to acquire/manufacture (for margin calculation)"
+    )
 
     rating = models.DecimalField(default=0,max_digits=4, decimal_places=2, null=True, blank=True)
 

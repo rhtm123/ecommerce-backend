@@ -182,6 +182,7 @@ class ProductListingOutSchema(Schema):
 
     price: float
     mrp: float
+    product_cost: Optional[float] = None
     stock: int
     rating: Optional[float] = None
     review_count: int
@@ -267,6 +268,7 @@ class ProductListingOneOutSchema(Schema):
     buy_limit: int
     price: float
     mrp: float
+    product_cost: Optional[float] = None
     stock: int
 
     approved: bool = False
@@ -317,6 +319,7 @@ class ProductListingCreateSchema(Schema):
     importer_id: Optional[int] = None
     price: float
     mrp: Optional[float] = None
+    product_cost: Optional[float] = None
     stock: Optional[int] = 0
     buy_limit: Optional[int] = 10
     rating: Optional[float] = 5.0
@@ -341,6 +344,7 @@ class ProductListingUpdateSchema(Schema):
     importer_id: Optional[int] = None
     price: Optional[float] = None
     mrp: Optional[float] = None
+    product_cost: Optional[float] = None
     stock: Optional[int] = None
     buy_limit: Optional[int] = None
 

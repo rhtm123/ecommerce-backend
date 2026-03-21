@@ -28,6 +28,18 @@ PAYMENT_CHOICES = (
     ('refunded', 'Refunded'),
 )
 
+ORDER_SOURCE_CHOICES = [
+    ('direct', 'Direct (Our Store)'),
+    ('amazon', 'Amazon'),
+    ('flipkart', 'Flipkart'),
+]
+
+ORDER_TYPE_CHOICES = [
+    ('new', 'New'),
+    ('replacement', 'Replacement'),
+]
+
+
 class Order(models.Model):
 
     estore = models.ForeignKey(EStore, on_delete=models.SET_NULL, null=True, blank=True, related_name="estore_orders")
@@ -62,6 +74,14 @@ class Order(models.Model):
     product_listing_count = models.PositiveIntegerField(default=0)
     total_units = models.PositiveIntegerField(default=0)
 
+    source = models.CharField(max_length=20, choices=ORDER_SOURCE_CHOICES, default='direct')
+    order_type = models.CharField(max_length=20, choices=ORDER_TYPE_CHOICES, default='new')
+    external_order_id = models.CharField(max_length=100, blank=True, null=True)
+    external_shipment_id = models.CharField(max_length=100, blank=True, null=True)
+    package_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Shipping/logistics cost paid by seller")
+    platform_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Marketplace commission/fees")
+    total_received = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, help_text="Net amount received. Can be negative on cancellation/return")
+    payment_gateway_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, help_text="Payment gateway charges for direct orders")
 
     def save(self, *args, **kwargs):
         if not self.order_number:
@@ -279,6 +299,10 @@ class DeliveryPackage(models.Model):
     delivery_executive = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='de_packages')
     product_listing_count = models.PositiveIntegerField(default=0, help_text="Number of distinct products in this package")
     total_units = models.PositiveIntegerField(default=0, help_text="Total number of items in this package")
+    package_cost = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0, blank=True,
+        help_text="Shipping cost for this specific package"
+    )
     delivery_out_date = models.DateTimeField(null=True, blank=True)
     delivered_date = models.DateTimeField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)  # ready for delivery date

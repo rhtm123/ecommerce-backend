@@ -18,10 +18,10 @@ class OrderItemInline(admin.TabularInline):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     inlines = [OrderItemInline,]
-    list_display = ("id","order_number" ,"user__first_name", "total_amount", "product_listing_count", "payment_status", "discount_amount_coupon", "discount_amount_offer")
-    list_filter = ("user",)
-    search_fields = ("order_number",)
-    readonly_fields = ("order_number", "product_listing_count","total_units")
+    list_display = ("id", "order_number", "user__first_name", "source", "order_type", "total_amount", "package_cost", "platform_cost", "total_received", "product_listing_count", "payment_status", "discount_amount_coupon", "discount_amount_offer")
+    list_filter = ("user", "source", "order_type")
+    search_fields = ("order_number", "external_order_id")
+    readonly_fields = ("order_number", "product_listing_count", "total_units")
 
 
 
@@ -33,5 +33,5 @@ class PackageItemInline(admin.TabularInline):
 class DeliveryPackageAdmin(admin.ModelAdmin):
     inlines = [PackageItemInline,]
     search_fields = ("tracking_number",)
-    list_display = ("id", "tracking_number", "is_return_package" , "delivery_executive" , "product_listing_count", "status", "delivery_out_date", "delivered_date")
-    readonly_fields = ("tracking_number", "delivery_out_date", "delivered_date", "product_listing_count","total_units")
+    list_display = ("id", "tracking_number", "is_return_package", "package_cost", "delivery_executive", "product_listing_count", "status", "delivery_out_date", "delivered_date")
+    readonly_fields = ("tracking_number", "delivery_out_date", "delivered_date", "product_listing_count", "total_units")
