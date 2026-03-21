@@ -228,7 +228,6 @@ def create_order(request, payload: OrderCreateSchema):
 # Read Orders (List)
 
 @router.get("/orders/", response=PaginatedResponseSchema)
-@cache_response()
 def orders(request, 
            page: int = 1, 
            page_size: int = 10, 
